@@ -27,7 +27,7 @@ LANGUAGE LANG_POLISH, SUBLANG_DEFAULT
 // RT_MANIFEST
 //
 
-1                       RT_MANIFEST             ".manifest"
+1                       RT_MANIFEST             "res\.manifest"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -75,19 +75,19 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_PLUG_BAN            ICON                    "plug_ban.ico"
-MAINICON                ICON                    "../ui/app.ico"
-IDI_DEBUG_ICON          ICON                    "debug_icon.ico"
-IDI_PLUG_NEW            ICON                    "plug_new.ico"
-IDI_PLUG_ERROR          ICON                    "plug_error.ico"
-IDI_PLUG_OK             ICON                    "plug_ok.ico"
+IDI_PLUG_BAN            ICON                    "res\plug_ban.ico"
+MAINICON                ICON                    "../ui/res/app.ico"
+IDI_DEBUG_ICON          ICON                    "res\debug_icon.ico"
+IDI_PLUG_NEW            ICON                    "res\plug_new.ico"
+IDI_PLUG_ERROR          ICON                    "res\plug_error.ico"
+IDI_PLUG_OK             ICON                    "res\plug_ok.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Bitmap
 //
 
-BETA                    BITMAP                  "beta.bmp"
+BETA                    BITMAP                  "res\beta.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -925,72 +925,17 @@
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 			<File
-				RelativePath="..\res\main\resource.h">
+				RelativePath=".\resource.rc">
 			</File>
 			<File
-				RelativePath="..\res\main\resource.rc"
-				DeploymentContent="TRUE">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCResourceCompilerTool"
-						Culture="1045"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug - remote|Win32">
-					<Tool
-						Name="VCResourceCompilerTool"
-						Culture="1045"/>
-				</FileConfiguration>
+				RelativePath=".\resources.h">
 			</File>
 			<File
-				RelativePath="..\res\main\resrc1.h">
+				RelativePath=".\resrc1.h">
 			</File>
 			<Filter
-				Name="1"
+				Name="files"
 				Filter="">
-				<File
-					RelativePath="res\ui\app.ico">
-				</File>
-				<File
-					RelativePath="..\res\ui\app.ico">
-				</File>
-				<File
-					RelativePath="res\main\beta.bmp">
-				</File>
-				<File
-					RelativePath="..\res\main\beta.bmp">
-				</File>
-				<File
-					RelativePath="res\main\debug_icon.ico">
-				</File>
-				<File
-					RelativePath="..\res\main\debug_icon.ico">
-				</File>
-				<File
-					RelativePath="res\main\plug_ban.ico">
-				</File>
-				<File
-					RelativePath="..\res\main\plug_ban.ico">
-				</File>
-				<File
-					RelativePath="..\res\main\plug_error.ico">
-				</File>
-				<File
-					RelativePath="res\main\plug_error.ico">
-				</File>
-				<File
-					RelativePath="res\main\plug_new.ico">
-				</File>
-				<File
-					RelativePath="..\res\main\plug_new.ico">
-				</File>
-				<File
-					RelativePath="res\main\plug_ok.ico">
-				</File>
-				<File
-					RelativePath="..\res\main\plug_ok.ico">
-				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -1013,10 +958,10 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath="res\main\.manifest">
+			RelativePath="..\res\main\.manifest">
 		</File>
 		<File
-			RelativePath="..\res\main\.manifest">
+			RelativePath="res\main\.manifest">
 		</File>
 		<File
 			RelativePath="Branches.txt">
