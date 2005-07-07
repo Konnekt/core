@@ -1,0 +1,361 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resrc1.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "resource.h"
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Polish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_PLK)
+#ifdef _WIN32
+LANGUAGE LANG_POLISH, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RT_MANIFEST
+//
+
+1                       RT_MANIFEST             ".manifest"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+1 VERSIONINFO
+ FILEVERSION 0,6,22,137
+ PRODUCTVERSION 0,6,0,0
+ FILEFLAGSMASK 0x0L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041504e2"
+        BEGIN
+            VALUE "CompanyName", "Stamina"
+            VALUE "FileDescription", "Konnekt - Core"
+            VALUE "FileVersion", "0.6.22.137"
+            VALUE "InternalName", "Konnekt"
+            VALUE "LegalCopyright", "Copyright ©2002,2003,2004,2005 Stamina"
+            VALUE "ProductName", "Konnekt"
+            VALUE "ProductVersion", "0.6"
+            VALUE "URL", "http://www.konnekt.info/"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x415, 1250
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_PLUG_BAN            ICON                    "plug_ban.ico"
+MAINICON                ICON                    "../ui/app.ico"
+IDI_DEBUG_ICON          ICON                    "debug_icon.ico"
+IDI_PLUG_NEW            ICON                    "plug_new.ico"
+IDI_PLUG_ERROR          ICON                    "plug_error.ico"
+IDI_PLUG_OK             ICON                    "plug_ok.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+BETA                    BITMAP                  "beta.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DEBUG DIALOGEX 50, 50, 309, 147
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Konnekt@Dev"
+FONT 8, "Tahoma", 0, 0, 0xEE
+BEGIN
+    CONTROL         "",IDC_MSG,"RichEdit20A",ES_MULTILINE | ES_WANTRETURN | 
+                    WS_VSCROLL | WS_TABSTOP,37,1,230,80
+    COMBOBOX        IDC_COMMAND,4,131,48,30,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "Wykonaj",IDOK,3,129,50,14
+END
+
+IDD_BETA DIALOGEX 0, 0, 248, 132
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "KONNEKT.beta"
+FONT 8, "Tahoma", 0, 0, 0xEE
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,167,44,70,17
+    CTEXT           "Wpisz swój login i has³o do systemu BETA\r\ni naciœnij OK.\r\n\r\nJe¿eli nie masz konta i nie chcesz go zak³adaæ - pozostaw oba pola PUSTE.\r\nRejestracja nie jest wymagana.",
+                    IDC_STATIC1,7,72,156,54,0,WS_EX_TRANSPARENT
+    GROUPBOX        "Login / Has³o",IDC_STATIC2,7,37,234,28
+    EDITTEXT        IDE_LOGIN,11,48,62,12,ES_AUTOHSCROLL
+    EDITTEXT        IDE_PASS,76,48,52,12,ES_PASSWORD | ES_AUTOHSCROLL
+    PUSHBUTTON      "Zarejestruj siê,\nPrzypomnij has³o",IDWWWREGISTER,167,
+                    70,70,25,BS_MULTILINE
+    PUSHBUTTON      "IDB_BETA",IDWWW,-1,-1,251,37,BS_BITMAP | BS_CENTER | 
+                    BS_FLAT,WS_EX_TRANSPARENT
+    PUSHBUTTON      "Wygeneruj\r\nzestawienie",IDC_STATICREPORT,167,100,70,
+                    24,BS_MULTILINE
+END
+
+IDD_REPORT DIALOGEX 0, 0, 249, 150
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Zg³oszenie problemu/propozycji"
+FONT 8, "Tahoma", 0, 0, 0xEE
+BEGIN
+    DEFPUSHBUTTON   "Wyœlij",IDOK,192,129,50,14
+    PUSHBUTTON      "Anuluj",IDCANCEL,137,129,50,14
+    LTEXT           "Tytu³",IDC_STATIC,7,8,18,8
+    EDITTEXT        IDE_TITLE,36,7,206,12,ES_AUTOHSCROLL
+    LTEXT           "Typ",IDC_STATIC4,7,24,13,8
+    LTEXT           "Dotyczy",IDC_STATIC2,109,24,26,8
+    COMBOBOX        IDE_TYPE,36,22,70,107,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDE_RELATIVE,139,22,103,107,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Treœæ",IDC_STATIC3,7,39,18,8
+    EDITTEXT        IDE_MSG,36,39,206,83,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    LTEXT           "Razem z raportem zostan¹ wys³ane:\nw. systemu/typ komp./w. wtyczek",
+                    IDC_STATIC1,7,127,128,16
+END
+
+IDD_PROFILE DIALOGEX 0, 0, 166, 134
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Konnekt - wybieranie profilu"
+FONT 8, "Tahoma", 0, 0, 0xEE
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,108,95,50,14
+    PUSHBUTTON      "Anuluj",IDCANCEL,108,111,50,14
+    PUSHBUTTON      "Nowy",IDYES,100,63,50,14
+    GROUPBOX        "Podaj has³o (jeœli jest)",IDC_STATIC1,6,90,96,38
+    GROUPBOX        "Zmieñ profil",IDC_STATIC,6,50,152,37
+    EDITTEXT        IDC_PASS1,14,106,78,12,ES_PASSWORD | ES_AUTOHSCROLL
+    COMBOBOX        IDC_COMBO,13,63,78,1000,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CTEXT           "Wybierz, lub utwórz nowy profil lokalny w którym przechowywane bêd¹ Twoje ustawienia, lista kontaktów itd.\r\nJe¿eli wybrany profil zabezpieczany jest has³em, musisz je teraz podaæ.",
+                    IDC_STATIC,7,7,153,41
+END
+
+IDD_PLUGS DIALOGEX 0, 0, 329, 227
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Konnekt - wtyczki"
+FONT 8, "Tahoma", 400, 0, 0xEE
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,260,204,61,18
+    PUSHBUTTON      "Anuluj",IDCANCEL,198,204,56,18
+    CTEXT           "Wybierz wtyczki , które maj¹ byæ uruchamiane w twoim profilu.\nAlt+góra/dó³ zmienia kolejnoœæ uruchamiania.",
+                    IDC_STATIC,53,5,224,23
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_REPORT | WS_BORDER | 
+                    WS_TABSTOP,8,24,313,156
+    ICON            IDI_PLUG_NEW,IDC_STATIC1,7,211,21,20,SS_REALSIZEIMAGE
+    LTEXT           "Nowa",IDC_STATIC2,20,212,27,10
+    ICON            IDI_PLUG_BAN,IDC_STATIC3,41,211,21,20,SS_REALSIZEIMAGE
+    LTEXT           "Wy³¹czona",IDC_STATIC4,54,212,37,10
+    ICON            IDI_PLUG_ERROR,IDC_STATIC5,89,211,21,20,SS_REALSIZEIMAGE
+    LTEXT           "Nie uruchamia siê",IDC_STATIC6,102,212,60,10
+    CONTROL         "W³¹cz wszystkie",IDC_SELECT,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,87,182,80,14
+    CONTROL         "Tylko polecane",IDC_RECOMMEND,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,8,182,78,14
+    CONTROL         "Dowiedz siê jak pobraæ wtyczki",IDC_DOWNLOAD,"Button",
+                    BS_OWNERDRAW | BS_RIGHT | WS_TABSTOP,195,182,126,14
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,8,199,313,2
+    LTEXT           "Oznaczenia:",IDC_LEGEND,8,203,68,7
+END
+
+IDD_ERROR DIALOGEX 0, 0, 249, 150
+STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_NOIDLEMSG | 
+    DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION
+EXSTYLE WS_EX_NOPARENTNOTIFY | WS_EX_APPWINDOW
+CAPTION "KONNEKT - Komentarz b³êdu krytycznego"
+FONT 8, "Tahoma", 0, 0, 0xEE
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,192,129,50,14
+    LTEXT           "Wyst¹pi³ b³¹d krytyczny! Napisz co przed chwil¹ robi³eœ, lub co Twoim zdaniem, mog³o przyczyniæ siê do powstania b³êdu...",
+                    IDC_STATIC,37,3,207,17
+    EDITTEXT        IDE_MSG,3,78,241,44,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    ICON            "MAINICON",IDI_PLUG_BAN,10,4,20,20,0,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_MSG,3,28,241,47,ES_MULTILINE | ES_READONLY | 
+                    WS_VSCROLL
+    LTEXT           "Wpisz rzeczy, co do których jesteœ pewien. Jeœli ci siê nie chce, NIC nie wpisuj!",
+                    IDC_STATIC1,7,127,172,16
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resrc1.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""resource.h""\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_DEBUG, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 143
+    END
+
+    IDD_PLUGS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 321
+        VERTGUIDE, 8
+        VERTGUIDE, 74
+        BOTTOMMARGIN, 221
+        HORZGUIDE, 24
+        HORZGUIDE, 45
+        HORZGUIDE, 211
+    END
+
+    IDD_ERROR, DIALOG
+    BEGIN
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 244
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_DEBUG_URL           "http://www.konnekt.info/"
+    IDS_DEBUG_URL_DL        "http://www.konnekt.info/download.php"
+    IDS_DEBUG_URL_BUG       "http://www.konnekt.info/send_bug.php?post=1&title=%s&version=%s&author=%s&msg=%s"
+    IDS_DEBUG_URL_SDK       "http://www.konnekt.info/sdk/"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_APPNAME             "Konnekt"
+    IDS_URL                 "http://www.konnekt.info/"
+    IDS_PLUGINDIR           "plugins\\"
+    IDS_URL_SUPPORT         ".\\doc\\index.html"
+    IDS_URL_FORUM           "http://www.konnekt.info/forum/"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_INF_NEWPROFILE      "Profil %s zosta³ utworzony"
+    IDS_INF_FILECREATED     "Plik %s zosta³ utworzony"
+    IDS_INF_FILESKIPPED     "Plik %s nie zosta³ otworzony"
+    IDS_INF_BADFILE         "Plik %s nie mo¿e zostaæ przeczytany"
+    IDS_INF_EXP             "Program w wersji BETA [%s]!\nWa¿noœæ tej wersji koñczy siê:\n\n   %s\n\nPo tym czasie TRZEBA pobraæ now¹ wersjê!\nWiêcej informacji:\n\n        http://www.stamina.eu.org/konnekt/                      "
+    IDS_INF_RESTART         "Konnekt zostanie teraz zrestartowany."
+    IDS_INF_PLUGOUT         "Wtyczka ""%s"" od³¹czy³a wtyczkê ""%s""\r\nMo¿esz j¹ przywróciæ rêcznie w opcji ""wtyczki"".\r\n\r\n%s\r\n\r\n%s"
+    IDS_INF_SHUTDOWN        "Konnekt zostanie teraz wy³¹czony."
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_ERR_UNAUTHORIZED    "Nie posiadasz uprawnieñ do otwarcia pliku %s . "
+    IDS_ERR_ONEINSTANCE     "Konnekt ju¿ jest w³¹czony na tym profilu i nie uda³o siê go przywróciæ!"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_ERR_NOUI            "Wymagany ui.dll"
+    IDS_ERR_NONET           "Wymagany net.dll"
+    IDS_ERR_DLL             "Wyst¹pi³ b³¹d podczas ³adowania %s\r\nJe¿eli naciœniesz [TAK] plugin ten\r\nnie bêdzie ³adowany ponownie.\r\n----------------\r\n\r\n%s"
+    IDS_ERR_FILENOTFOUND    "Plik %s nie mo¿e zostac znaleziony!"
+    IDS_ERR_EXCEPTION       "Wyst¹pi³ wyj¹tek krytyczny \n\n%s \n\nNast¹pi zamkniêcie programu!"
+    IDS_ERR_EXCEPTIONINT    "Wyst¹pi³ wyj¹tek krytyczny [%#.6x] !\n\nNast¹pi zamkniêcie programu!"
+    IDS_ERR_EXP             "Wersja BETA straci³a wa¿noœæ! Pobierz now¹ wersjê! \n\n  Wiêcej informacji: \n\nhttp://www.stamina.eu.org/konnekt/\n            "
+    IDS_ERR_BADPASSWORD     "Poda³eœ z³e has³o!"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_ASK_CNTREMOVE       "Usun¹æ %s ???"
+    IDS_ASK_RESTART         "Konnekt powinien zostaæ zrestartowany. Zrobiæ to teraz?"
+    IDS_ASK_CNTOVERWRITE    "Kontakt %s/%d ju¿ istnieje na liœcie (%s)!\r\nMo¿esz:\r\nnadpisaæ istniej¹cy kontakt [TAK],\r\nutworzyæ nowy [NIE],\r\nanulowaæ operacjê [ANULUJ]."
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_ASK_SHUTDOWN        "Konnekt powinien zostaæ wy³¹czony. Zrobiæ to teraz?"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_URL_DOWNLOADINFO    ".\\doc\\download.html"
+END
+
+#endif    // Polish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
