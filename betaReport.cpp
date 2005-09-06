@@ -1,10 +1,13 @@
 #include "stdafx.h"
 #include <fstream>
+#include <Stamina\Time64.h>
 #include "main.h"
 #include "beta.h"
 #include "tables.h"
 #include "profiles.h"
-#include <Stamina\Time64.h>
+
+using namespace Stamina;
+using namespace Tables;
 
 namespace Konnekt { namespace Beta {
 
@@ -29,15 +32,12 @@ namespace Konnekt { namespace Beta {
 				filename = "betaReport.html";
 			}
 		}
-		CdtFileBin FBin;
-		Tables::savePrepare(FBin);
-		FBin.assign(&Beta);
-		FBin.load(FILE_BETA);
+		oTableImpl beta(tableBeta);
 
 		Stamina::Time64 startDate(false);
 
 		if (usedate) {
-			Stamina::Date64 date(Beta.get64(0, BETA_LAST_STATICREPORT));
+			Stamina::Date64 date(beta->getInt64(0, BETA_LAST_STATICREPORT));
 			date.msec = 0; // zerujemy koñcówkê...
 			date.sec = 0;
 			startDate = date;
@@ -48,19 +48,17 @@ namespace Konnekt { namespace Beta {
 					ShellExecute(0, "OPEN", filename, 0, 0, SW_SHOW);
 				return;
 			}
-			Beta.set64(0, BETA_LAST_STATICREPORT, _time64(0));
-			FBin.save(FILE_BETA);
+			beta->setInt64(0, BETA_LAST_STATICREPORT, _time64(0));
+			beta->save();
 		}
 
-		FBin.assign(&Reports);
-		FBin.load(FILE_REPORTS);
-		FBin.assign(&Stats);
-		FBin.load(FILE_STATS);
+		oTableImpl reports(tableReports);
+		oTableImpl stats(tableStats);
 
 		if (silent) {
 			int count = 0;
-			for (unsigned int i=0; i<Reports.getrowcount(); i++) {
-				if (Reports.get64(i, REP_DATE) >= startDate) {
+			for (unsigned int i=0; i<reports->getRowCount(); i++) {
+				if (reports->getInt64(i, REP_DATE) >= startDate) {
 					count ++;
 				}
 			}
@@ -84,15 +82,15 @@ namespace Konnekt { namespace Beta {
 		if (!startDate.empty()) {
 			printValue(f, "Raporty od", startDate.strftime("%d-%m-%Y %H:%M"));
 		}
-		printValue(f, "Login", Beta.getch(0, BETA_LOGIN));
-		printValue(f, "Urid", inttostr( Beta.getint(0, BETA_URID), 16 ));
+		printValue(f, "Login", beta->getStr(0, BETA_LOGIN));
+		printValue(f, "Urid", inttostr( beta->getInt(0, BETA_URID), 16 ));
 		printValue(f, "Serial", info_serial());
-		printValue(f, "LastReport", Stamina::Time64(Beta.get64(0, BETA_LAST_REPORT)).strftime("%d-%m-%Y %H:%M:%S"));
+		printValue(f, "LastReport", Stamina::Time64(beta->getInt64(0, BETA_LAST_REPORT)).strftime("%d-%m-%Y %H:%M:%S"));
 
 		printHeader(f, "Raporty");
 
-		for (unsigned int i=0; i<Reports.getrowcount(); i++) {
-			if (Reports.get64(i, REP_DATE) < startDate) {
+		for (unsigned int i=0; i<reports->getRowCount(); i++) {
+			if (reports->getInt64(i, REP_DATE) < startDate) {
 				continue;
 			}
 			printHeader(f, "Raport", "report");
@@ -101,11 +99,11 @@ namespace Konnekt { namespace Beta {
 
 			f << "<td valign=\"top\"><table class=\"rep_fields\">" << endl;
 			// dane
-			printValue(f, "LastReport", Stamina::Time64(Reports.get64(i, REP_DATE)).strftime("%d-%m-%Y %H:%M:%S"));
-			printValue(f, "Tytu³", Reports.getch(i, REP_TITLE));
-			printValue(f, "Typ", inttostr(Reports.getint(i, REP_TYPE)));
-			printValue(f, "Wersja", inttostr( Reports.getint(i, REP_VERSION), 16));
-			CStdString plugs = Reports.getch(i, REP_PLUGS);
+			printValue(f, "LastReport", Stamina::Time64(reports->getInt64(i, REP_DATE)).strftime("%d-%m-%Y %H:%M:%S"));
+			printValue(f, "Tytu³", reports->getStr(i, REP_TITLE));
+			printValue(f, "Typ", inttostr(reports->getInt(i, REP_TYPE)));
+			printValue(f, "Wersja", inttostr( reports->getInt(i, REP_VERSION), 16));
+			CStdString plugs = reports->getStr(i, REP_PLUGS);
 			Stamina::tStringVector plugList;
 			Stamina::split(plugs, ",", plugList);
 			plugs = "";
@@ -123,11 +121,11 @@ namespace Konnekt { namespace Beta {
 			f << "<td class=\"rep_add\" valign=\"top\">" << endl;
 			// zrzut i log
 			f << "<h2>Message</h2>" << endl;
-			f << "<div class=\"rep_message\"><pre>"<< Reports.getch(i, REP_MSG) <<"</pre></div>" << endl;
+			f << "<div class=\"rep_message\"><pre>"<< reports->getStr(i, REP_MSG) <<"</pre></div>" << endl;
 			f << "<h2>Info</h2>" << endl;
-			f << "<div class=\"rep_info\"><pre>"<< Reports.getch(i, REP_INFO) <<"</pre></div>" << endl;
+			f << "<div class=\"rep_info\"><pre>"<< reports->getStr(i, REP_INFO) <<"</pre></div>" << endl;
 			f << "<h2>Log</h2>" << endl;
-			f << "<div class=\"rep_log\"><pre>"<< Reports.getch(i, REP_LOG) <<"</pre></div>" << endl;
+			f << "<div class=\"rep_log\"><pre>"<< reports->getStr(i, REP_LOG) <<"</pre></div>" << endl;
 			f << "</td>" << endl;
 
 			f << "</tr></table></td></tr>" << endl;

@@ -1,13 +1,17 @@
 #include "stdafx.h"
+#include <Stamina/Image.h>
+#include <Stamina/TLS.h>
 #include "threads.h"
 #include "main.h"
 #include "debug.h"
 #include "imessage.h"
 #include "plugins.h"
 
+using namespace Stamina;
+
 namespace Konnekt {
 
-	cTLS<cUserThread> TLSU;
+	ThreadLocalStorage<cUserThread> TLSU;
 	tThreads threads;
 	Stamina::CriticalSection threadsCS;
 
@@ -105,7 +109,7 @@ namespace Konnekt {
 		//v = max(0x505050, v);
 		//v = min(0xffffff, v);
 		color = getUniqueColor(userThreadCount, 5, 0x80, true);
-		OutputDebugString(_sprintf("TCOLOR = %x c=%d\n", color, userThreadCount));
+		OutputDebugString(stringf("TCOLOR = %x c=%d\n", color, userThreadCount).c_str());
 		userThreadCount++;
 	}
 	cUserThread::~cUserThread() {

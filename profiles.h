@@ -5,7 +5,9 @@ namespace Konnekt {
 	extern CStdString profilesDir;
 	extern bool newProfile;
 
-	extern unsigned char md5digest [16];
+	extern Stamina::MD5Digest passwordDigest;
+
+	void initializeProfileDirectory();
 
 	int setProfile(bool load = true , bool check = false);
 	void setProfilesDir(void);

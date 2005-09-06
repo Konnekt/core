@@ -13,6 +13,8 @@
 
 #include <stamina\Thread.h>
 
+using namespace Stamina;
+
 namespace Konnekt {
 
 
@@ -61,28 +63,30 @@ namespace Konnekt {
 		return Konnekt::IMessageDirect(Plug[i],msg);
 	}
 
-#define CTRL_SETDT CdTable * DT = (db==DTCFG)?&Cfg : (db==DTCNT)?&Cnt : (db==DTMSG)?&Msg : 0;\
+//#define CTRL_SETDT CdTable * DT = (db==DTCFG)?&Cfg : (db==DTCNT)?&Cnt : (db==DTMSG)?&Msg : 0;\
+
+#define CTRL_SETDT Tables::oTable DT (Tables::getTable((tTableId)db));\
 	if (!DT) _fatal("Table access denied , or table doesn\'t exist")
 
 	bool __stdcall  cCtrl1::DTget(tTable db , unsigned int row , unsigned int col , Tables::Value * value) {
 		if (!value) return false;
 		CTRL_SETDT;
 		if (value->type == DT_CT_PCHAR && !value->vCChar && value->buffSize==0)
-			value->vCChar = TLS().buff2;
-		return DT->getValue(row , col , value->dtRef());
+			value->vCChar = TLSU().shortBuffer;
+		return DT->get(row , col , *value);
 
 	}
 
 	bool __stdcall  cCtrl1::DTset(tTable db , unsigned int row , unsigned int col , Tables::Value * value) {
 		if (!value) return false;
 		CTRL_SETDT;
-		return DT->setValue(row , col , value->dtRef());
+		return DT->set(row , col , *value);
 
 	}
 
 	int __stdcall   cCtrl1::DTgetOld(tTable db , unsigned int row , unsigned int col) {
 		CTRL_SETDT;
-		return (int)DT->get(row,col);
+		return (int)DT->get(row,col, DT::Value());
 	}
 	int __stdcall   cCtrl1::DTsetOld(tTable db , unsigned int row , unsigned int col , int value , int mask) {
 		CTRL_SETDT;
@@ -90,55 +94,55 @@ namespace Konnekt {
 			if (db==DTCNT && col == CNT_STATUS) mask = ST_MASK;
 			else mask = -1;
 		}  
+		DT::Value v;
+		v.vInt = value;
 		if (mask == -1)
-			return DT->set(row , col , (TdEntry)value);
+			return DT->set(row , col , v);
 		else
-			return DT->set(row , col, (TdEntry)(((int)DT->get(row , col) & (~mask)) | (value)));
+			return DT->set(row , col, v);
 	}
 
 
 	int __stdcall cCtrl1::DTgetType (tTable db , unsigned int col) {
 		CTRL_SETDT;
-		int i=DT->cols.colindex(col);
-		if (i<0) return 0;
-		return DT->cols.getcolflag(i);
+		return DT->getColType(col);
 	}
 
 	int __stdcall cCtrl1::DTgetNameID(tTable db , const char * name) {
 		CTRL_SETDT;
-		return DT->cols.getnameid(name);
+		return DT->getColId(name);
 
 	}
 	const char * __stdcall cCtrl1::DTgetName(tTable db , unsigned int col) {
 		CTRL_SETDT;
-		int i=DT->cols.colindex(col);
-		if (i<0) return 0;
-		return DT->cols.getcolname(i);
+		return DT->getColName(col);
 	}
 
 
 	int __stdcall cCtrl1::DTgetPos(tTable db , unsigned int row){
 		CTRL_SETDT;
-		return DT->getrowpos(row);
+		return DT->getRowPos(row);
 	}
 
 	int __stdcall cCtrl1::DTgetID(tTable db , unsigned int row){
 		CTRL_SETDT;
-		return DT->getrowid(row);
+		return DT->getRowId(row);
 	}
 
 	int __stdcall cCtrl1::DTgetCount(tTable db) {
 		CTRL_SETDT;
-		return DT->getrowcount();
+		return DT->getRowCount();
 	}
 
 	unsigned short __stdcall cCtrl1::DTlock(tTable db , unsigned int row , int reserved) {
 		CTRL_SETDT;
-		return DT->lock(row);
+		DT->lockData(row);
+		return 1;
 	}
 	unsigned short __stdcall cCtrl1::DTunlock(tTable db , unsigned int row , int reserved){
 		CTRL_SETDT;
-		return DT->unlock(row);
+		DT->unlockData(row);
+		return 1;
 	}
 
 
@@ -163,9 +167,9 @@ namespace Konnekt {
 
 	void __stdcall cCtrl1::WMProcess () {
 		if (GetCurrentThreadId()==MainThreadID)
-			WMessages();
+			mainWindowsLoop();
 		else 
-			ProcessMessages(0);
+			processMessages(0);
 		//  else _warn("It's useless to call WMProcess outside the main thread!");
 	}
 
@@ -242,17 +246,24 @@ namespace Konnekt {
 		return Unique::getId(domainId, name);
 	}
 	const char * cCtrl1::getName(Unique::tDomainId domainId, Unique::tId id) {
-		return Unique::getName(domainId, id);
+		TLSU().buff = Unique::getName(domainId, id);
+		return TLSU().buff.c_str();
 	}
+
 	bool cCtrl1::idInRange(Unique::tDomainId domainId, Unique::tRangeId rangeId, Unique::tId id) {
-		return Unique::idInRange(domainId, rangeId, id);
+		Unique::oDomain d = Unique::getDomain(domainId);
+		if (!d) return false;
+		return d->idInRange(rangeId, id);
 	}
+
 	Unique::tRangeId cCtrl1::idInRange(Unique::tDomainId domainId, Unique::tId id, Unique::Range::enType check){
-		return Unique::idInRange(domainId, id, check);
+		Unique::oDomain d = Unique::getDomain(domainId);
+		if (!d) return Unique::rangeNotFound;
+		return d->inRange(id, check)->getRangeId();
 	}
 
 
-	Tables::oTable __stdcall cCtrl1::DT(Tables::tTableId tableId) {
+	Tables::oTable __stdcall cCtrl1::getTable(Tables::tTableId tableId) {
 		return Tables::getTable(tableId);
 	}
 	Konnekt::oPlugin __stdcall cCtrl1::getPlugin(Konnekt::tPluginId pluginId) {
@@ -278,7 +289,7 @@ namespace Konnekt {
 			CloseHandle(threads[GetCurrentThreadId()]);
 			threads.erase(GetCurrentThreadId());
 		}
-		TLS.detach();
+		//TLS.detach();
 		TLSU.detach(); 
 	}
 
@@ -288,13 +299,14 @@ namespace Konnekt {
 	void __stdcall cCtrl3::PlugOut(unsigned int id , const char * reason , bool restart) {
 		id = Plug.FindID(id);
 		if (id == -1) return;
-		int pl = Plg.findby((TdEntry)Plug[id].file.c_str() , PLG_FILE);
-		if (pl < 0) return;
-		CStdString msg = resStr(IDS_ERR_DLL);
+		Tables::oTableImpl plg(tablePlugins);
+		int pl = plg->findRow(0, DT::Find::EqStr(PLG::file, Plug[id].file));
+		if (pl == DT::rowNotFound) return;
+		CStdString msg = loadString(IDS_ERR_DLL);
 		msg.Format(msg , Plug[id].file.c_str() , reason);
-		if (MessageBox(NULL , msg , resStr(IDS_APPNAME) , MB_ICONWARNING|MB_OKCANCEL|MB_TASKMODAL) == IDOK) {
-			Plg.setint(pl , PLG_LOAD , -1);
-			Tables::savePlg();
+		if (MessageBox(NULL , msg , loadString(IDS_APPNAME).c_str() , MB_ICONWARNING|MB_OKCANCEL|MB_TASKMODAL) == IDOK) {
+			plg->setInt(pl , PLG::load , -1);
+			plg->save();
 		}
 
 #ifdef __DEBUG

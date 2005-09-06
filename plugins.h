@@ -7,15 +7,28 @@
 
 
 namespace Konnekt {
-	
+
+	namespace PLG {
+		const tColId file = 0;
+		const tColId md5 = 1;
+		const tColId sig = 2;
+		const tColId load = 3;
+		const tColId isNew = 4;
+
+	};
+
+	extern tTableId tablePlugins;
+
+
+	void pluginsInit();
+
 	class cPlug {
 	public:
 		fIMessageProc IMessageProc;
 		HMODULE hModule;
 		int net;
 		int type;
-		string version;
-		unsigned int versionNumber;
+		Stamina::Version version;
 		string sig;
 		string core_v;
 		string ui_v;
@@ -42,7 +55,7 @@ namespace Konnekt {
 			if (i >= PLUG_MAX_COUNT) // mamy ID
 				i = FindID(i);
 			return Plug[i];}
-		bool exists(int i) {
+		bool exists(unsigned int i) {
 			if (i >= PLUG_MAX_COUNT) // mamy ID
 				i = FindID(i);
 			return (i >= 0 && i < Plug.size());
@@ -53,7 +66,7 @@ namespace Konnekt {
 		int PlugOUT(int nr);
 		void sort(void);
 
-		const char * Name (unsigned int);
+		std::string Name (unsigned int);
 
 		int FindID (unsigned int id , int start=0);
 

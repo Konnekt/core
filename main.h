@@ -25,7 +25,7 @@
 
 #define MAX_PLUGS  100
 #define TIMEOUT_DIAL  20000
-#define TIMEOUT_RETRY Cfg.getint(0,CFG_TIMEOUT_RETRY)  // 60000
+#define TIMEOUT_RETRY Tables::cfg->getInt(0,CFG_TIMEOUT_RETRY)  // 60000
 
 #define PLUG_MAX_COUNT 0x80
 
@@ -39,25 +39,17 @@
 
 #define STACKTRACE() stackTrace = dcallstack()
 
-#define PLG_FILE 0  //pchar
-#define PLG_MD5  1  //pchar
-#define PLG_SIG  2  //pchar
-#define PLG_LOAD 3  //int
-#define PLG_NEW  4  //int ns
 
-#define C_PLG_COLCOUNT 5
 
 
 namespace Konnekt {
 	//DWORD curThread;
 	//	CStdString versionSig;
 	extern CStdString appPath;
-	extern CStdString exePath;
-	extern CStdString app;
+	extern CStdString appFile;
 	extern CStdString sessionName; // ID sesji - MD5 katalogu z profilem
 	extern CStdString tempPath;
 	extern CStdString dataPath;
-	extern bool isComCtl6;
 	extern HINTERNET hInternet; // uchwyt do globalnej sesji sieciowej...
 	extern bool noCatch;
 
@@ -85,19 +77,30 @@ namespace Konnekt {
 	extern HANDLE semaphore;
 
 
-	void Init() ;
-	void deInit(bool doExit = true) ;
+	void initialize() ;
+	void deinitialize(bool doExit = true) ;
 	void end();
-	void WMessages(bool loop = 0);
-	inline void WMProcess2() {WMessages(false);}
+	void mainWindowsLoop(bool loop);
+	inline void mainWindowsLoop() {
+		mainWindowsLoop(false);
+	}
 
+	void loadRegistry();
 	int saveRegistry();
 	void __cdecl restart ( void );
-	void __cdecl remove ( void );
+	void __cdecl removeProfileAndRestart ( void );
+
+	void showArgumentsHelp(bool force);
+	void initializePaths();
+	void initializeSuiteVersionInfo();
+
+	bool restoreRunningInstance();
 
 	// ------------------------------ core_setup
 	void setPlgColumns();
 	void setColumns();
+	void initializeMainTables();
+
 	void updateCore(int from);
 
 	void gracefullExit();

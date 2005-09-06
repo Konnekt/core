@@ -3,24 +3,34 @@
 #include "konnekt_sdk.h"
 #include "main.h"
 #include "profiles.h"
+#include "tables.h"
+#include "threads.h"
 
-#define MRU_FLAG  0
+#define MRU_FLAG  (tColId)0
 #define MRU_ID    1
 #define MRU_VALUE 2
 
-#define FILE_MRU "mru.dtb"
-
 #define MRU_SEPCHAR char(1)
+
+using namespace Tables;
+using namespace Stamina;
 
 namespace Konnekt { namespace MRU {
 
-	CdtColDesc descriptor=CdtColDesc(3
-		,MRU_FLAG , DT_CT_INT , 0 , ""
-		,MRU_ID   , DT_CT_PCHAR | DT_CF_CXOR , "" , ""
-		,MRU_VALUE, DT_CT_PCHAR | DT_CF_CXOR , "" , ""
-		);
+	tTableId tableMRU;
 
+	void init() {
+		oTable mru = registerTable(Ctrl, "MRU", optAutoLoad | optAutoSave | optAutoUnload | optDiscardLoadedColumns | optMakeBackups | optUseCurrentPassword);
+		mru->setFilename("mru.dtb");
+		mru->setDirectory();
 
+		tableMRU = mru->getTableId();
+
+		mru->setColumn(MRU_FLAG, ctypeInt);
+		mru->setColumn(MRU_ID, ctypeString | cflagXor);
+		mru->setColumn(MRU_VALUE, ctypeString | cflagXor);
+
+	}
 
 
 	// Porzadkuje liste
@@ -57,8 +67,8 @@ namespace Konnekt { namespace MRU {
 		if (!mru || !mru->name || !mru->name[0] || !mru->count
 			/*|| !mru->buffSize || !mru->values || !mru->values[0]*/) return 0;
 			if (mru->flags & MRU_GET_USETEMP) mru->flags |= MRU_GET_ONEBUFF;
-		char * temp = mru->flags&MRU_GET_USETEMP?TLS().buff : mru->buffer;
-		size_t tempSize = mru->flags&MRU_GET_USETEMP?MAX_STRING : mru->buffSize;
+		char * temp = mru->flags & MRU_GET_USETEMP ? TLSU().buff.GetBuffer(2048) : mru->buffer;
+		size_t tempSize = mru->flags & MRU_GET_USETEMP ? 2048 : mru->buffSize;
 		if (!temp || tempSize < (size_t)(4*mru->count + mru->count)) return 0;
 		if (mru->flags & MRU_GET_ONEBUFF) {
 			// Musimy wstawiæ puste wskaŸniki do bufora.
@@ -70,21 +80,19 @@ namespace Konnekt { namespace MRU {
 		} else {
 			tempSize = mru->buffSize;
 		}
-		CdtFileBin FBin;
-		CdTable TMru;
-		TMru.cols = MRU::descriptor;
-		TMru.cxor_key = XOR_KEY;
-		FBin.assign(&TMru);
-		FBin.load((profileDir + FILE_MRU).c_str());
-		int row = TMru.findby((TdEntry)mru->name , MRU_ID);
+
+		oTableImpl dt(tableMRU);
+		dt->load();
+
+		tRowId row = dt->findRow(0, DT::Find::EqStr(MRU_ID, mru->name));
 		// Zerujemy wszystkie bufory.
 		int i = 0;
 		while (i<mru->count && mru->values[i]) {
 			mru->values[i][0] = 0;
 			i++;
 		}
-		if (row == -1) return 0; // Udalo sie znalezc NIC, ale udalo :]
-		string entry = (char*)TMru.get(row , MRU_VALUE);
+		if (row == DT::rowNotFound) return 0; // Udalo sie znalezc NIC, ale udalo :]
+		string entry = dt->getStr(row , MRU_VALUE);
 		if (entry.empty()) return 0;
 		if (*(entry.end()-1) == MRU_SEPCHAR) entry.erase(entry.end()-1);
 		size_t current = 0;
@@ -138,19 +146,20 @@ namespace Konnekt { namespace MRU {
 			i++;
 		}
 
-		CdtFileBin FBin;
-		CdTable TMru;
-		TMru.cols = MRU::descriptor;
-		TMru.cxor_key = XOR_KEY;
-		FBin.assign(&TMru);
-		FBin.load((profileDir + FILE_MRU).c_str());
-		int row = TMru.findby((TdEntry)mru->name , MRU_ID);
-		if (row==-1) {
-			row = TMru.addrow();
-			TMru.set(row , MRU_ID , (TdEntry)mru->name);
+		{
+			oTableImpl dt(tableMRU);
+			TableLocker lock(dt);
+			dt->load();
+
+			tRowId row = dt->findRow(0, DT::Find::EqStr(MRU_ID, mru->name));
+
+			if (row==-1) {
+				row = dt->addRow();
+				dt->setStr(row, MRU_ID, mru->name);
+			}
+			dt->setStr(row , MRU_VALUE, entry);
+			dt->lateSave(true);
 		}
-		TMru.set(row , MRU_VALUE , (TdEntry)entry.c_str());
-		FBin.save((profileDir + FILE_MRU).c_str());
 		delete [] MRU2.values;
 		return true;
 	}

@@ -1,4 +1,7 @@
 #include "stdafx.h"
+
+#include <Stamina\ButtonX.h>
+
 #include "main.h"
 #include "windows.h"
 #include "resources.h"
@@ -7,12 +10,11 @@
 #include "tables.h"
 #include "plugins.h"
 
-#include "include\win_listview.h"
-#include <Stamina\ButtonX.h>
+using namespace Stamina;
 
 namespace Konnekt {
 
-	void InitInstance(HINSTANCE hInst) {
+	void initializeInstance(HINSTANCE hInst) {
 		INITCOMMONCONTROLSEX icex;
 		icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
 		icex.dwICC  = ICC_LISTVIEW_CLASSES;
@@ -78,23 +80,32 @@ namespace Konnekt {
 			if (HIWORD(wParam)==BN_CLICKED) {
 				switch (LOWORD(wParam))
 				{
-				case IDYES: {
+				case IDYES: 
+				{
 					sDIALOG_enter sd;
 					sd.title = "Zak³adanie nowego profilu";
 					sd.info = "Wpisz nazwê nowego profilu";
 					sd.value = (char*)profile.c_str();
-					memset(md5digest , 0 , 16);
+					passwordDigest.reset();
 					
 					IMessage(IMI_DLGENTER , 0 , 0 , (int)&sd);
-					clearChar(sd.value);
-
-					if (!sd.value || !*sd.value) gracefullExit();
-					profile = sd.value;
+					if (!sd.value) gracefullExit();
+					IMLOG("- got new profile name: ''", sd.value);
+					RegEx reg;
+					reg.setSubject(sd.value);
+					reg.replaceItself("/[^\\w\\d() .]+/", "");
+					reg.replaceItself("/^ +/", "");
+					reg.replaceItself("/ +$/", "");
+					profile = reg.getSubject();
+					IMLOG("- cleared profile name: ''", profile.c_str());
+					if (profile.empty()) 
+						gracefullExit();
 					ShowWindow(hwnd , SW_HIDE);
 					EndDialog(hwnd , setProfile(0));
 					return 1;
-							}
-				case IDOK: {
+				}
+				case IDOK: 
+				{
 					CStdString login , pass;
 					GetDlgItemText(hwnd , IDC_COMBO , login.GetBuffer(255) , 255);
 					GetDlgItemText(hwnd , IDC_PASS1 , pass.GetBuffer(255) , 255);
@@ -104,16 +115,16 @@ namespace Konnekt {
 						profile = login;
 						// zapisujemy na potrzeby kolejnego sprawdzania...
 						if (pass.empty())
-							memset(md5digest , 0 , 16);
+							passwordDigest.reset();
 						else
-							MD5(pass , md5digest);
+							passwordDigest.calculate(pass);
 						badPass = 0;
 						ShowWindow(hwnd , SW_HIDE);
 						EndDialog(hwnd , setProfile(0));
 						return 1;
 					} else {
-						if (memcmp(MD5(pass , (unsigned char *) TLS().buff) , md5digest , 16)) {
-							IMessage(IMI_ERROR , 0 , 0 , (int)resStr(IDS_ERR_BADPASSWORD));
+						if (MD5Digest(pass) != passwordDigest) {
+							IMessage(IMI_ERROR , 0 , 0 , (int)loadString(IDS_ERR_BADPASSWORD).c_str());
 							//exit(0);
 							SetDlgItemText(hwnd , IDC_PASS1 , "");
 							if (++badPass >= 3) 
@@ -175,7 +186,7 @@ namespace Konnekt {
 	HIMAGELIST plugIml;
 
 	void PlugsDialog(bool firstTimer) {
-		DialogBoxParam(hInst , MAKEINTRESOURCE(IDD_PLUGS), 0 , PlugsDialogProc, firstTimer);
+		DialogBoxParam(Stamina::getHInstance() , MAKEINTRESOURCE(IDD_PLUGS), 0 , PlugsDialogProc, firstTimer);
 	}
 
 
@@ -210,9 +221,10 @@ namespace Konnekt {
 
 		HWND item = GetDlgItem(hwnd, IDC_LIST);
 		int count = ListView_GetItemCount(item);
+		Tables::oTableImpl plg(tablePlugins);
 		for (int i = 0; i<count; i++) {
 			int id = ListView_GetItemData(item , i);
-			CStdString file = Plg.getch(i,PLG_FILE);
+			CStdString file = plg->getStr(i, PLG::file);
 			file.erase( 0, file.find_last_of('\\')+1 );
 			file.ToLower();
 			ListView_SetCheckState(item , i , (std::find(list.begin(), list.end(), file) != list.end()));
@@ -238,7 +250,7 @@ namespace Konnekt {
 				font = plugSelectFont;
 				break;
 			case selectNew:
-				plugBSelect->setImage(new Stamina::Icon(hInst, MAKEINTRESOURCE(IDI_PLUG_NEW), 16));
+				plugBSelect->setImage(new Stamina::Icon(getHInstance(), MAKEINTRESOURCE(IDI_PLUG_NEW), 16));
 				plugBSelect->setText("W³¹cz nowe");
 				font = plugSelectFontBold;
 				break;
@@ -250,47 +262,45 @@ namespace Konnekt {
 	void PlugsDialogGet(HWND hwnd) {
 		HWND item = GetDlgItem(hwnd, IDC_LIST);
 		LVITEM li;
-		char * ch;
 		li.mask = LVIF_IMAGE | LVIF_PARAM | LVIF_TEXT;
 		li.iSubItem = 0;
 		selectAllType = selectAll;
 		gotNewPlugins = false;
 		bool gotLoaded = false;
-		for (unsigned int i=0;i<Plg.getrowcount();i++) {
-			if (Plg.getint(i , PLG_NEW)>=0) {
-				ch = strrchr(Plg.getch(i , PLG_FILE) , '\\');
+		Tables::oTableImpl plg(tablePlugins);
+		for (unsigned int i=0;i<plg->getRowCount();i++) {
+			if (plg->getInt(i, PLG::isNew)>=0) {
 				li.iItem=0x7FFF;
 
-				char str_buff [50]="";
-				FILEVERSIONINFO fvi(true);
-				FileVersionInfo(Plg.getch(i , PLG_FILE) , str_buff , &fvi);
+				FileVersion fv(plg->getStr(i, PLG::file));
 
 				//li.pszText = ch?ch+1:Plg.getch(i , PLG_FILE);
-				li.pszText = (LPSTR)fvi.InternalName.c_str();
-				li.iImage = Plg.getint(i , PLG_LOAD)==-1?3
-					:Plg.getint(i , PLG_NEW)==1?1
-					:Plg.getint(i , PLG_LOAD)==0?2
-					:0;
+				std::string internalName = fv.getString("InternalName");
+				li.pszText = (char*)internalName.c_str();
+				li.iImage = plg->getInt(i, PLG::load) == -1 ? 3
+					: plg->getInt(i, PLG::isNew) == 1 ? 1
+					: plg->getInt(i, PLG::load) == 0 ? 2
+					: 0;
 
-				if (Plg.getint(i, PLG_NEW) == 1) {
+				if (plg->getInt(i, PLG::isNew) == 1) {
 					gotNewPlugins = true;
 				}
-				if (Plg.getint(i, PLG_LOAD) == 1) {
+				if (plg->getInt(i, PLG::load) == 1) {
 					selectAllType = selectNone;
 					gotLoaded = true;
 				}
 
-				li.lParam = Plg.getrowid(i);
+				li.lParam = plg->getRowId(i);
 				int pos = ListView_InsertItem(item , &li);
-				ListView_SetCheckState(item , pos , Plg.getint(i , PLG_LOAD)==1);
+				ListView_SetCheckState(item, pos, plg->getInt(i, PLG::load)==1);
 
 				//ListView_SetItemText(item , pos , 1 , (LPSTR)fvi.InternalName.c_str());
-				ListView_SetItemText(item , pos , 1 , (LPSTR)fvi.FileDescription.c_str());
+				ListView_SetString(item, pos, 1, (LPSTR)fv.getString("FileDescription").c_str());
 
-				ListView_SetItemText(item , pos , 2 , (LPSTR)(ch?ch+1:Plg.getch(i , PLG_FILE)));
-				ListView_SetItemText(item , pos , 3 , str_buff);
-				ListView_SetItemText(item , pos , 4 , (LPSTR)fvi.CompanyName.c_str());
-				ListView_SetItemText(item , pos , 5 , (LPSTR)fvi.URL.c_str());
+				ListView_SetString(item , pos , 2 , (LPSTR)getFileName(plg->getStr(i, PLG::file)).c_str());
+				ListView_SetString(item , pos , 3 , (LPSTR)fv.getFileVersion().getString().c_str());
+				ListView_SetString(item , pos , 4 , (LPSTR)fv.getString("CompanyName").c_str());
+				ListView_SetString(item , pos , 5 , (LPSTR)fv.getString("URL").c_str());
 			}
 		}
 		if (gotNewPlugins) {
@@ -303,20 +313,19 @@ namespace Konnekt {
 	}
 
 	void PlugsDialogSet(HWND hwnd) {
+		Tables::oTableImpl plg(tablePlugins);
 		HWND item = GetDlgItem(hwnd, IDC_LIST);
 		int count = ListView_GetItemCount(item);
 		for (int i = 0; i<count; i++) {
 			bool load = ListView_GetCheckState(item , i);
-			int pos = Plg.getrowpos(ListView_GetItemData(item , i));
+			int pos = plg->getRowPos(ListView_GetItemData(item , i));
 
-			Plg.setint(pos,PLG_LOAD , load?1:Plg.getint(pos,PLG_LOAD)==-1?-1:0);
+			plg->setInt(pos,PLG::load , load?1:plg->getInt(pos, PLG::load)==-1?-1:0);
 			if (pos==i) continue;
-			CdtRow * tmp = Plg.rows[i];
-			Plg.rows[i]=Plg.rows[pos];
-			Plg.rows[pos]=tmp;
+			plg->getDT().swapRows(i, pos);
 		}
-		Plg.setindexes();
-		Tables::savePlg();
+		//Plg.setindexes();
+		plg->save();
 
 		
 
@@ -338,16 +347,16 @@ namespace Konnekt {
 			item = GetDlgItem(hwnd, IDC_LIST);
 			iml = ImageList_Create(16,16,ILC_COLOR32|ILC_MASK ,4,4);
 			plugIml = iml;
-			icon = LoadIconEx(hInst , MAKEINTRESOURCE(IDI_PLUG_OK) , 16);
+			icon = loadIconEx(getHInstance() , MAKEINTRESOURCE(IDI_PLUG_OK) , 16);
 			ImageList_AddIcon(iml , icon);
 			DestroyIcon(icon);
-			icon = LoadIconEx(hInst , MAKEINTRESOURCE(IDI_PLUG_NEW) , 16);
+			icon = loadIconEx(getHInstance() , MAKEINTRESOURCE(IDI_PLUG_NEW) , 16);
 			ImageList_AddIcon(iml , icon);
 			DestroyIcon(icon);
-			icon = LoadIconEx(hInst , MAKEINTRESOURCE(IDI_PLUG_BAN) , 16);
+			icon = loadIconEx(getHInstance() , MAKEINTRESOURCE(IDI_PLUG_BAN) , 16);
 			ImageList_AddIcon(iml , icon);
 			DestroyIcon(icon);
-			icon = LoadIconEx(hInst , MAKEINTRESOURCE(IDI_PLUG_ERROR) , 16);
+			icon = loadIconEx(getHInstance() , MAKEINTRESOURCE(IDI_PLUG_ERROR) , 16);
 			ImageList_AddIcon(iml , icon);
 			DestroyIcon(icon);
 			ListView_SetImageList(item , iml , LVSIL_SMALL);
@@ -403,10 +412,11 @@ namespace Konnekt {
 				HWND item = GetDlgItem(hwnd, IDC_LIST);
 				GetWindowText((HWND)lParam , type , 2);
 				int count = ListView_GetItemCount(item);
+				Tables::oTableImpl plg(tablePlugins);
 				for (int i = 0; i<count; i++) {
 					if (selectAllType == selectNew) {
 						int pos = ListView_GetItemData(item , i);
-						if (Plg.getint(pos,PLG_NEW)>0) {
+						if (plg->getInt(pos, PLG::isNew)>0) {
 							ListView_SetCheckState(item , i , true);
 						}
 					} else {
@@ -438,7 +448,7 @@ namespace Konnekt {
 
 				PlugsDialogSet(hwnd);
 				if (running && changed && IMessage(IMI_CONFIRM , 0,0,(int)"Konnekt musi zostaæ uruchomiony ponownie aby zmiany odnios³y skutek.\n\nZrestartowaæ?")) {
-					deInit(false);
+					deinitialize(false);
 					restart();}
 				}
 			case IDCANCEL:

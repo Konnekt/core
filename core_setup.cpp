@@ -2,124 +2,240 @@
 #include "konnekt_sdk.h"
 #include "tables.h"
 #include "main.h"
+#include "plugins.h"
+#include "profiles.h"
+#include "argv.h"
+#include "debug.h"
+
+using namespace Stamina;
 
 namespace Konnekt {
 
-	void setPlgColumns() {
-		Plg.dbID = 0;
-		Plg.cols.deftype = DT_CT_PCHAR | DT_CT_CXOR;
-		Plg.cols.setcolcount(C_PLG_COLCOUNT , DT_CC_FILL);
-		Plg.cols.setcol(PLG_LOAD,   DT_CT_INT);
-		Plg.cols.setcol(PLG_NEW,   DT_CT_INT | DT_CT_DONTSAVE , (TdEntry)-1);
+	using namespace Tables;
+
+	void initializeMainTables() {
+		using namespace Tables;
+		Tables::cfg = registerTable(Ctrl, tableConfig, optBroadcastEvents | optAutoLoad | optAutoSave | optMakeBackups | optUseCurrentPassword);
+		Unique::registerId(Unique::domainTable, tableConfig, "Config");
+		cfg->setFilename("cfg.dtb");
+		cfg->setDirectory();
+
+		Tables::cnt = registerTable(Ctrl, tableContacts, optBroadcastEvents | optAutoLoad | optAutoSave | optMakeBackups | optUseCurrentPassword);
+		Unique::registerId(Unique::domainTable, tableConfig, "Contacts");
+		cnt->setFilename("cnt.dtb");
+		cnt->setDirectory();
+
+		oTable msg = registerTable(Ctrl, tableMessages, optBroadcastEvents | optAutoLoad | optAutoSave | optMakeBackups | optUseCurrentPassword);
+		Unique::registerId(Unique::domainTable, tableConfig, "Messages");
+		msg->setFilename("msg.dtb");
+		msg->setDirectory();
+
+
+
+
 	}
+
+
 	void setColumns() {
-		/* Msg.cols.deftype = Cfg.cols.deftype = Cnt.cols.deftype = DT_CT_PCHAR | DT_CT_CXOR;
-		Msg.cols.setcolcount(C_MSG_COLCOUNT , DT_CC_FILL | DT_CC_RESIZE);
-		Cnt.cols.setcolcount(C_CNT_COLCOUNT , DT_CC_FILL | DT_CC_RESIZE);
-		Cfg.cols.setcolcount(C_CFG_COLCOUNT , DT_CC_FILL | DT_CC_RESIZE);
+		/* Msg.cols.deftype = Cfg.cols.deftype = Cnt.cols.deftype = ctypeString | DT_CT_CXOR;
+		msg->setColumncount(C_MSG_COLCOUNT , DT_CC_FILL | DT_CC_RESIZE);
+		cnt->setColumncount(C_CNT_COLCOUNT , DT_CC_FILL | DT_CC_RESIZE);
+		cfg->setColumncount(C_CFG_COLCOUNT , DT_CC_FILL | DT_CC_RESIZE);
 		*/
+
+		using namespace Tables;
 
 		// Ustawia w³asne 
 
 		// Wiadomoœci
-		Msg.cols.setcol(MSG_ID,   DT_CT_INT , 0 , "ID");
-		Msg.cols.setcol(MSG_NET,  DT_CT_INT , 0 , "Net");
-		Msg.cols.setcol(MSG_TYPE, DT_CT_INT , 0 , "Type");
-		Msg.cols.setcol(MSG_FROMUID, DT_CT_PCHAR|DT_CF_CXOR , 0 , "FromUID");
-		Msg.cols.setcol(MSG_TOUID, DT_CT_PCHAR|DT_CF_CXOR , 0 , "ToUID");
-		Msg.cols.setcol(MSG_BODY, DT_CT_PCHAR|DT_CF_CXOR , 0 , "Body");
-		Msg.cols.setcol(MSG_EXT, DT_CT_PCHAR|DT_CF_CXOR , 0 , "Ext");
-		Msg.cols.setcol(MSG_FLAG, DT_CT_INT , 0 , "Flag");
-		Msg.cols.setcol(MSG_NOTIFY, DT_CT_INT | DT_CT_DONTSAVE);
-		Msg.cols.setcol(MSG_ACTIONP, DT_CT_INT | DT_CT_DONTSAVE);
-		Msg.cols.setcol(MSG_ACTIONI, DT_CT_INT | DT_CT_DONTSAVE);
-		Msg.cols.setcol(MSG_HANDLER, DT_CT_INT | DT_CT_DONTSAVE);
-		Msg.cols.setcol(MSG_TIME, DT_CT_64 , 0 , "Time");
+		oTableImpl msg(tableMessages);
+		msg->setColumn(MSG_ID,   ctypeInt , 0 , "ID");
+		msg->setColumn(MSG_NET,  ctypeInt , 0 , "Net");
+		msg->setColumn(MSG_TYPE, ctypeInt , 0 , "Type");
+		msg->setColumn(MSG_FROMUID, ctypeString|cflagXor , 0 , "FromUID");
+		msg->setColumn(MSG_TOUID, ctypeString|cflagXor , 0 , "ToUID");
+		msg->setColumn(MSG_BODY, ctypeString|cflagXor , 0 , "Body");
+		msg->setColumn(MSG_EXT, ctypeString|cflagXor , 0 , "Ext");
+		msg->setColumn(MSG_FLAG, ctypeInt , 0 , "Flag");
+		msg->setColumn(MSG_NOTIFY, ctypeInt | cflagDontSave);
+		msg->setColumn(MSG_ACTIONP, ctypeInt | cflagDontSave);
+		msg->setColumn(MSG_ACTIONI, ctypeInt | cflagDontSave);
+		msg->setColumn(MSG_HANDLER, ctypeInt | cflagDontSave);
+		msg->setColumn(MSG_TIME, ctypeInt64 , 0 , "Time");
 
 		// Konfiguracja
-		Cfg.cols.setcol(CFG_VERSIONS, DT_CT_PCHAR , "" , "Versions");
-		Cfg.cols.setcol(CFG_APPFILE, DT_CT_PCHAR | DT_CT_DONTSAVE);
-		Cfg.cols.setcol(CFG_APPDIR, DT_CT_PCHAR | DT_CT_DONTSAVE);
-		Cfg.cols.setcol(CFG_AUTO_CONNECT, DT_CT_INT , 0 , "ConnAuto");
-		Cfg.cols.setcol(CFG_DIALUP, DT_CT_INT , (void*)0 , "Dialup");
-		Cfg.cols.setcol(CFG_RETRY, DT_CT_INT , (void*)1 , "ConnRetry");
-		Cfg.cols.setcol(CFG_LOGHISTORY , DT_CT_INT , (void*)1 , "LogHistory");
-		Cfg.cols.setcol(CFG_TIMEOUT , DT_CT_INT , (void*)30000 , "Timeout");
-		Cfg.cols.setcol(CFG_TIMEOUT_RETRY , DT_CT_INT , (void*)60000 , "TimeoutRetry");
-		Cfg.cols.setcol(CFG_PROXY, DT_CT_INT , 0 , "Proxy/On");
-		Cfg.cols.setcol(CFG_PROXY_AUTH, DT_CT_INT , 0 , "Proxy/Auth");
-		Cfg.cols.setcol(CFG_PROXY_PORT, DT_CT_INT , (void*)8080 , "Proxy/Port");
-		Cfg.cols.setcol(CFG_PROXY_AUTO, DT_CT_INT , (void*)1 , "Proxy/Auto");
-		Cfg.cols.setcol(CFG_PROXY_HTTP_ONLY, DT_CT_INT , (void*)1 , "Proxy/HttpOnly");
-		Cfg.cols.setcol(CFG_PROXY_HOST , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Proxy/Host");
-		Cfg.cols.setcol(CFG_PROXY_LOGIN , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Proxy/Login");
-		Cfg.cols.setcol(CFG_PROXY_PASS , DT_CT_PCHAR | DT_CF_SECRET | DT_CF_CXOR , 0 , "Proxy/Pass");
-		Cfg.cols.setcol(CFG_PROXY_VERSION , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Proxy/Version");
-		Cfg.cols.setcol(CFG_IGNORE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Ignore");
-		Cfg.cols.setcol(CFG_GROUPS , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Groups");
-		Cfg.cols.setcol(CFG_CURGROUP , DT_CT_PCHAR | DT_CF_CXOR , 0 , "CurrentGroup");
+		cfg->setColumn(CFG_VERSIONS, ctypeString , "" , "Versions");
+		cfg->setColumn(CFG_APPFILE, ctypeString | cflagDontSave);
+		cfg->setColumn(CFG_APPDIR, ctypeString | cflagDontSave);
+		cfg->setColumn(CFG_AUTO_CONNECT, ctypeInt , 0 , "ConnAuto");
+		cfg->setColumn(CFG_DIALUP, ctypeInt , (void*)0 , "Dialup");
+		cfg->setColumn(CFG_RETRY, ctypeInt , (void*)1 , "ConnRetry");
+		cfg->setColumn(CFG_LOGHISTORY , ctypeInt , (void*)1 , "LogHistory");
+		cfg->setColumn(CFG_TIMEOUT , ctypeInt , (void*)30000 , "Timeout");
+		cfg->setColumn(CFG_TIMEOUT_RETRY , ctypeInt , (void*)60000 , "TimeoutRetry");
+		cfg->setColumn(CFG_PROXY, ctypeInt , 0 , "Proxy/On");
+		cfg->setColumn(CFG_PROXY_AUTH, ctypeInt , 0 , "Proxy/Auth");
+		cfg->setColumn(CFG_PROXY_PORT, ctypeInt , (void*)8080 , "Proxy/Port");
+		cfg->setColumn(CFG_PROXY_AUTO, ctypeInt , (void*)1 , "Proxy/Auto");
+		cfg->setColumn(CFG_PROXY_HTTP_ONLY, ctypeInt , (void*)1 , "Proxy/HttpOnly");
+		cfg->setColumn(CFG_PROXY_HOST , ctypeString | cflagXor , 0 , "Proxy/Host");
+		cfg->setColumn(CFG_PROXY_LOGIN , ctypeString | cflagXor , 0 , "Proxy/Login");
+		cfg->setColumn(CFG_PROXY_PASS , ctypeString | DT_CF_SECRET | cflagXor , 0 , "Proxy/Pass");
+		cfg->setColumn(CFG_PROXY_VERSION , ctypeString | cflagXor , 0 , "Proxy/Version");
+		cfg->setColumn(CFG_IGNORE , ctypeString | cflagXor , 0 , "Ignore");
+		cfg->setColumn(CFG_GROUPS , ctypeString | cflagXor , 0 , "Groups");
+		cfg->setColumn(CFG_CURGROUP , ctypeString | cflagXor , 0 , "CurrentGroup");
 
 		// Kontakty
-		Cnt.cols.setcol(CNT_UID, DT_CT_PCHAR | DT_CF_CXOR , 0 , "UID");
-		Cnt.cols.setcol(CNT_NET, DT_CT_INT , 0 , "Net");
-		Cnt.cols.setcol(CNT_STATUS, DT_CT_INT , 0 ,  "Status");
-		Cnt.cols.setcol(CNT_HOST, DT_CT_PCHAR , 0 ,  "Host");
-		Cnt.cols.setcol(CNT_PORT, DT_CT_INT , 0 ,  "Port");
-		Cnt.cols.setcol(CNT_GENDER, DT_CT_INT , GENDER_UNKNOWN ,  "Gender");
-		Cnt.cols.setcol(CNT_BORN, DT_CT_INT , 0 ,  "Born");
-		Cnt.cols.setcol(CNT_NOTIFY, DT_CT_INT | DT_CF_NOSAVE);
-		Cnt.cols.setcol(CNT_LASTMSG, DT_CT_INT | DT_CF_NOSAVE);
-		Cnt.cols.setcol(CNT_ACT_PARENT, DT_CT_INT|DT_CF_NOSAVE);
-		Cnt.cols.setcol(CNT_ACT_ID, DT_CT_INT|DT_CF_NOSAVE);
-		Cnt.cols.setcol(CNT_NOTIFY_MSG, DT_CT_INT|DT_CF_NOSAVE);
-		Cnt.cols.setcol(CNT_INTERNAL , DT_CT_INT|DT_CF_NOSAVE , 0);
-		Cnt.cols.setcol(CNT_CLIENTVERSION , DT_CT_INT , 0 , "ClientVersion");
-		Cnt.cols.setcol(CNT_CLIENT , DT_CT_PCHAR|DT_CF_CXOR , 0 , "Client");
-		Cnt.cols.setcol(CNT_LASTACTIVITY , DT_CT_64 , 0 , "LastActivity");
-		Cnt.cols.setcol(CNT_STATUSINFO , DT_CT_PCHAR | DT_CF_CXOR , 0 , "StatusInfo");
-		Cnt.cols.setcol(CNT_NAME , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Name");
-		Cnt.cols.setcol(CNT_SURNAME , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Surname");
-		Cnt.cols.setcol(CNT_NICK , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Nick");
-		Cnt.cols.setcol(CNT_DISPLAY , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Display");
-		Cnt.cols.setcol(CNT_CELLPHONE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Cellphone");
-		Cnt.cols.setcol(CNT_PHONE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Phone");
-		Cnt.cols.setcol(CNT_EMAIL , DT_CT_PCHAR | DT_CF_CXOR , 0 , "EMail");
-		Cnt.cols.setcol(CNT_INFO , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Info");
-		Cnt.cols.setcol(CNT_LOCALITY , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Locality");
-		Cnt.cols.setcol(CNT_COUNTRY , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Country");
-		Cnt.cols.setcol(CNT_GROUP , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Group");
-		Cnt.cols.setcol(CNT_STREET , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Street");
-		Cnt.cols.setcol(CNT_POSTALCODE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "PostalCode");
+		cnt->setColumn(CNT_UID, ctypeString | cflagXor , 0 , "UID");
+		cnt->setColumn(CNT_NET, ctypeInt , 0 , "Net");
+		cnt->setColumn(CNT_STATUS, ctypeInt , 0 ,  "Status");
+		cnt->setColumn(CNT_HOST, ctypeString , 0 ,  "Host");
+		cnt->setColumn(CNT_PORT, ctypeInt , 0 ,  "Port");
+		cnt->setColumn(CNT_GENDER, ctypeInt , GENDER_UNKNOWN ,  "Gender");
+		cnt->setColumn(CNT_BORN, ctypeInt , 0 ,  "Born");
+		cnt->setColumn(CNT_NOTIFY, ctypeInt | cflagDontSave);
+		cnt->setColumn(CNT_LASTMSG, ctypeInt | cflagDontSave);
+		cnt->setColumn(CNT_ACT_PARENT, ctypeInt|cflagDontSave);
+		cnt->setColumn(CNT_ACT_ID, ctypeInt|cflagDontSave);
+		cnt->setColumn(CNT_NOTIFY_MSG, ctypeInt|cflagDontSave);
+		cnt->setColumn(CNT_INTERNAL , ctypeInt|cflagDontSave , 0);
+		cnt->setColumn(CNT_CLIENTVERSION , ctypeInt , 0 , "ClientVersion");
+		cnt->setColumn(CNT_CLIENT , ctypeString|cflagXor , 0 , "Client");
+		cnt->setColumn(CNT_LASTACTIVITY , ctypeInt64 , 0 , "LastActivity");
+		cnt->setColumn(CNT_STATUSINFO , ctypeString | cflagXor , 0 , "StatusInfo");
+		cnt->setColumn(CNT_NAME , ctypeString | cflagXor , 0 , "Name");
+		cnt->setColumn(CNT_SURNAME , ctypeString | cflagXor , 0 , "Surname");
+		cnt->setColumn(CNT_NICK , ctypeString | cflagXor , 0 , "Nick");
+		cnt->setColumn(CNT_DISPLAY , ctypeString | cflagXor , 0 , "Display");
+		cnt->setColumn(CNT_CELLPHONE , ctypeString | cflagXor , 0 , "Cellphone");
+		cnt->setColumn(CNT_PHONE , ctypeString | cflagXor , 0 , "Phone");
+		cnt->setColumn(CNT_EMAIL , ctypeString | cflagXor , 0 , "EMail");
+		cnt->setColumn(CNT_INFO , ctypeString | cflagXor , 0 , "Info");
+		cnt->setColumn(CNT_LOCALITY , ctypeString | cflagXor , 0 , "Locality");
+		cnt->setColumn(CNT_COUNTRY , ctypeString | cflagXor , 0 , "Country");
+		cnt->setColumn(CNT_GROUP , ctypeString | cflagXor , 0 , "Group");
+		cnt->setColumn(CNT_STREET , ctypeString | cflagXor , 0 , "Street");
+		cnt->setColumn(CNT_POSTALCODE , ctypeString | cflagXor , 0 , "PostalCode");
 
-		Cnt.cols.setcol(CNT_MIDDLENAME , DT_CT_PCHAR | DT_CF_CXOR , 0 , "MiddleName");
-		Cnt.cols.setcol(CNT_EMAIL_MORE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Email_More");
-		Cnt.cols.setcol(CNT_PHONE_MORE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Phone_More");
-		Cnt.cols.setcol(CNT_DESCRIPTION , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Description");
-		Cnt.cols.setcol(CNT_FAX , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Fax");
-		Cnt.cols.setcol(CNT_URL , DT_CT_PCHAR | DT_CF_CXOR , 0 , "URL");
-		Cnt.cols.setcol(CNT_ADDRESS_MORE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Address_More");
-		Cnt.cols.setcol(CNT_REGION , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Region");
-		Cnt.cols.setcol(CNT_POBOX , DT_CT_PCHAR | DT_CF_CXOR , 0 , "POBox");
-		Cnt.cols.setcol(CNT_WORK_ORGANIZATION , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/Organization");
-		Cnt.cols.setcol(CNT_WORK_ORG_UNIT , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/OrganizationUnit");
-		Cnt.cols.setcol(CNT_WORK_TITLE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/Title");
-		Cnt.cols.setcol(CNT_WORK_ROLE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/Role");
-		Cnt.cols.setcol(CNT_WORK_EMAIL , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/EMail");
-		Cnt.cols.setcol(CNT_WORK_URL , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/URL");
-		Cnt.cols.setcol(CNT_WORK_PHONE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/Phone");
-		Cnt.cols.setcol(CNT_WORK_FAX , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/Fax");
-		Cnt.cols.setcol(CNT_WORK_STREET , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/Street");
-		Cnt.cols.setcol(CNT_WORK_ADDRESS_MORE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/Address_More");
-		Cnt.cols.setcol(CNT_WORK_POBOX , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/POBox");
-		Cnt.cols.setcol(CNT_WORK_POSTALCODE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/PostalCode");
-		Cnt.cols.setcol(CNT_WORK_LOCALITY , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/Locality");
-		Cnt.cols.setcol(CNT_WORK_REGION , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/Region");
-		Cnt.cols.setcol(CNT_WORK_COUNTRY , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/Country");
-		Cnt.cols.setcol(CNT_WORK_MORE , DT_CT_PCHAR | DT_CF_CXOR , 0 , "Work/More");
+		cnt->setColumn(CNT_MIDDLENAME , ctypeString | cflagXor , 0 , "MiddleName");
+		cnt->setColumn(CNT_EMAIL_MORE , ctypeString | cflagXor , 0 , "Email_More");
+		cnt->setColumn(CNT_PHONE_MORE , ctypeString | cflagXor , 0 , "Phone_More");
+		cnt->setColumn(CNT_DESCRIPTION , ctypeString | cflagXor , 0 , "Description");
+		cnt->setColumn(CNT_FAX , ctypeString | cflagXor , 0 , "Fax");
+		cnt->setColumn(CNT_URL , ctypeString | cflagXor , 0 , "URL");
+		cnt->setColumn(CNT_ADDRESS_MORE , ctypeString | cflagXor , 0 , "Address_More");
+		cnt->setColumn(CNT_REGION , ctypeString | cflagXor , 0 , "Region");
+		cnt->setColumn(CNT_POBOX , ctypeString | cflagXor , 0 , "POBox");
+		cnt->setColumn(CNT_WORK_ORGANIZATION , ctypeString | cflagXor , 0 , "Work/Organization");
+		cnt->setColumn(CNT_WORK_ORG_UNIT , ctypeString | cflagXor , 0 , "Work/OrganizationUnit");
+		cnt->setColumn(CNT_WORK_TITLE , ctypeString | cflagXor , 0 , "Work/Title");
+		cnt->setColumn(CNT_WORK_ROLE , ctypeString | cflagXor , 0 , "Work/Role");
+		cnt->setColumn(CNT_WORK_EMAIL , ctypeString | cflagXor , 0 , "Work/EMail");
+		cnt->setColumn(CNT_WORK_URL , ctypeString | cflagXor , 0 , "Work/URL");
+		cnt->setColumn(CNT_WORK_PHONE , ctypeString | cflagXor , 0 , "Work/Phone");
+		cnt->setColumn(CNT_WORK_FAX , ctypeString | cflagXor , 0 , "Work/Fax");
+		cnt->setColumn(CNT_WORK_STREET , ctypeString | cflagXor , 0 , "Work/Street");
+		cnt->setColumn(CNT_WORK_ADDRESS_MORE , ctypeString | cflagXor , 0 , "Work/Address_More");
+		cnt->setColumn(CNT_WORK_POBOX , ctypeString | cflagXor , 0 , "Work/POBox");
+		cnt->setColumn(CNT_WORK_POSTALCODE , ctypeString | cflagXor , 0 , "Work/PostalCode");
+		cnt->setColumn(CNT_WORK_LOCALITY , ctypeString | cflagXor , 0 , "Work/Locality");
+		cnt->setColumn(CNT_WORK_REGION , ctypeString | cflagXor , 0 , "Work/Region");
+		cnt->setColumn(CNT_WORK_COUNTRY , ctypeString | cflagXor , 0 , "Work/Country");
+		cnt->setColumn(CNT_WORK_MORE , ctypeString | cflagXor , 0 , "Work/More");
 
 
 		return;
 	}
+
+	// ----------------------------------------------------------------------
+
+	void loadRegistry() {
+		HKEY hKey=HKEY_CURRENT_USER;
+		string str;
+		if (!RegOpenKeyEx(hKey,string("Software\\Stamina\\"+sig).c_str(),0,KEY_READ,&hKey))
+		{
+			//    if (!RegOpenKeyEx(hKey,"Stamina",0,KEY_READ,&hKey) &&
+			//          !RegOpenKeyEx(hKey,sig.c_str(),0,KEY_READ,&hKey))
+			//       if (!RegCreateKey(hKey,"Stamina"
+			//      {
+			if (getArgV(ARGV_PROFILE))
+				profile = getArgV(ARGV_PROFILE , true);
+			else
+				profile = regQueryString(hKey,"Profile");
+
+			if (getArgV(ARGV_PROFILESDIR,true,0)) {
+				profilesDir = getArgV(ARGV_PROFILESDIR , true);
+			} else
+				profilesDir = regQueryString(hKey,"ProfilesDir");
+
+			profilesDir = Stamina::unifyPath(profilesDir, true);
+			str=regQueryString(hKey,"Version");
+			newVersion = (str != versionInfo);
+			Debug::superUser=false;
+	#ifdef __DEBUG
+			Debug::superUser=regQueryDWord(hKey , "superUser" , 0)==1;
+			if (getArgV(ARGV_DEBUG))
+				Debug::superUser = true;
+
+			if (Debug::superUser) {
+				//Debug::show=RegQueryDW(hKey , "dbg_show" , 1);
+				Debug::x  = regQueryDWord(hKey , "dbg_x" , 0);
+				Debug::y  = regQueryDWord(hKey , "dbg_y" , 0);
+				Debug::w  = regQueryDWord(hKey , "dbg_w" , 0);
+				Debug::h  = regQueryDWord(hKey , "dbg_h" , 0);
+				//Debug::log = RegQueryDW(hKey , "dbg_log" , 0);
+				//Debug::log = false;
+				//Debug::logAll = RegQueryDW(hKey , "dbg_logAll" , 0);
+				//Debug::logAll = false;
+				Debug::scroll = regQueryDWord(hKey , "dbg_scroll" , 0);
+			}   
+	#endif
+			//      }
+			RegCloseKey(hKey);
+		}
+	}
+
+
+	int saveRegistry() {
+		HKEY hKey=HKEY_CURRENT_USER , hKey2;
+		if (
+			//    !RegOpenKeyEx(hKey,string("Software\\Stamina\\"+sig).c_str(),0,KEY_ALL_ACCESS,&hKey)
+			!RegCreateKeyEx(hKey,string("Software\\Stamina\\"+sig).c_str(),0,"",0,KEY_ALL_ACCESS,0,&hKey,0)
+			)
+		{
+			if (!getArgV(ARGV_PROFILE))
+				regSetString(hKey,"Profile",profile);
+			regSetString(hKey,"ProfilesDir",profilesDir);
+			regSetString(hKey,"Version",versionInfo);
+	#ifdef __DEBUG
+
+			if (Debug::superUser) {
+				//RegSetDW(hKey,"dbg_show",IsWindowVisible(dbg.hwnd));
+				RECT rc;
+				GetWindowRect(Debug::hwnd , &rc);
+				regSetDWord(hKey,"dbg_x",rc.left);
+				regSetDWord(hKey,"dbg_y",rc.top);
+				regSetDWord(hKey,"dbg_w",rc.right - rc.left);
+				regSetDWord(hKey,"dbg_h",rc.bottom - rc.top);
+				//RegSetDW(hKey,"dbg_log",dbg.log);
+				//RegSetDW(hKey,"dbg_logAll",dbg.logAll);
+				//dbg.logAll = false;
+				regSetDWord(hKey,"dbg_scroll",Debug::scroll);
+			}
+
+	#endif
+			if (!RegCreateKeyEx(hKey,"DiscardPlugins",0,"",0,KEY_ALL_ACCESS,0,&hKey2,0))
+			{
+				RegCloseKey(hKey2);
+			}
+			RegCloseKey(hKey);
+		}
+		return 0;
+	}
+
+
+	// ------------------------------------------------------
 
 
 	void updateCore(int from) {

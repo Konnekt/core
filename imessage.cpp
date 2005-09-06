@@ -12,7 +12,7 @@ namespace Konnekt {
 	void IMBadSender(sIMessage_base * msg , int rcvr) {
 		TLSU().setError(IMERROR_BADSENDER);
 #ifdef __DEBUG
-		IMLOG("! IMERROR_BADSENDER  %s->%s ID=%d NOT ALLOWED" , Plug.Name(msg->sender) , Plug.Name(rcvr) , msg->id);
+		IMLOG("! IMERROR_BADSENDER  %s->%s ID=%d NOT ALLOWED" , Plug.Name(msg->sender).c_str() , Plug.Name(rcvr) , msg->id);
 #endif
 	}
 

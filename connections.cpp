@@ -1,4 +1,6 @@
 #include "stdafx.h"
+#include <Stamina\Timer.h>
+
 #include "connections.h"
 #include "konnekt_sdk.h"
 #include "plugins.h"
@@ -7,7 +9,7 @@
 #include "argv.h"
 #include "pseudo_export.h"
 
-#include <Stamina\Timer.h>
+using namespace Stamina;
 
 namespace Konnekt { namespace Connections {
 	tList list;
@@ -38,7 +40,7 @@ namespace Konnekt { namespace Connections {
 			bool ok = false;
 			bool connected = isConnected();
 	
-			int period = (Cfg.getint(0,CFG_DIALUP)&&!isConnected())?TIMEOUT_DIAL:TIMEOUT_RETRY;
+			int period = (Tables::cfg->getInt(0,CFG_DIALUP)&&!isConnected())?TIMEOUT_DIAL:TIMEOUT_RETRY;
 
 			//      IMLOG("*ConnTimer %s [%x:%x]" , connected?"Connected":"Disconnected" , dwTimerLowValue , dwTimerHighValue);
 			for (tList::iterator list_it = list.begin(); list_it != list.end(); list_it ++) {
@@ -73,7 +75,7 @@ namespace Konnekt { namespace Connections {
 		if (!run) return;
 		bool ok = false;
 
-		int period = (Cfg.getint(0,CFG_DIALUP)&&!isConnected())?TIMEOUT_DIAL:TIMEOUT_RETRY;
+		int period = (Tables::cfg->getInt(0,CFG_DIALUP)&&!isConnected())?TIMEOUT_DIAL:TIMEOUT_RETRY;
 
 		for (tList::iterator list_it = list.begin(); list_it != list.end(); list_it ++) {
 			if (list_it->second.connect) { 
@@ -85,7 +87,7 @@ namespace Konnekt { namespace Connections {
 		}
 		if (ok) {
 			//        if (!timer)
-			//          timer = SetTimer(0 , 0 , (Cfg.getint(0,CFG_DIALUP)&&!CConnected())?TIMEOUT_DIAL:TIMEOUT_RETRY , (TIMERPROC)cConns_timerProc);
+			//          timer = SetTimer(0 , 0 , (Tables::cfg->getInt(0,CFG_DIALUP)&&!CConnected())?TIMEOUT_DIAL:TIMEOUT_RETRY , (TIMERPROC)cConns_timerProc);
 
 			IMLOG("-ConnTimer ON .. in %d ms" , period);
 
@@ -101,7 +103,7 @@ namespace Konnekt { namespace Connections {
 
 	void setConnect(int sender , int connect) {
 
-		if (Connections::run || (Cfg.getint(0, CFG_AUTO_CONNECT) && !getArgV(ARGV_OFFLINE))) {
+		if (Connections::run || (Tables::cfg->getInt(0, CFG_AUTO_CONNECT) && !getArgV(ARGV_OFFLINE))) {
 			IMLOG("* SetConn plug=%x val=%d" , sender , connect);
 			list[sender].connect = (connect > 0);
 			if (!connect) {
@@ -120,7 +122,7 @@ namespace Konnekt { namespace Connections {
 
 
 	bool isConnected() {
-		if (Cfg.getint(0,CFG_DIALUP)) {
+		if (Tables::cfg->getInt(0,CFG_DIALUP)) {
 			RASCONN TRasCon;
 			RASCONNSTATUS Tstatus;
 

@@ -5,8 +5,11 @@
 #include "tables.h"
 #include "imessage.h"
 #include "threads.h"
+#include "argv.h"
 
 #define LOG_TAB 9
+
+using namespace Stamina;
 
 namespace Konnekt { namespace Debug {
 
@@ -18,6 +21,73 @@ namespace Konnekt { namespace Debug {
 	string stackTrace="";
 	unsigned int threadId = 0;
 	bool debugAll = false;
+
+
+	void initializeDebug() {
+		_mkdir(logPath);
+#ifdef __DEBUG
+		{
+			WIN32_FIND_DATA fd;
+			HANDLE hFile;
+			if ((hFile = FindFirstFile(logPath + "*.log",&fd))!=INVALID_HANDLE_VALUE) {
+				do {
+					struct _stat st;
+					CStdString file = logPath + fd.cFileName;
+					if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY || _stat(file , &st))
+						continue;
+					time_t curTime = time(0);
+					if ((curTime - st.st_mtime) > 86400*2 || (st.st_size > 500000 && (curTime - st.st_mtime) > 3600))
+						unlink(file);
+				} while (FindNextFile(hFile , &fd));
+				FindClose(hFile);
+			}
+			logFileName = string(logPath) + string("konnekt_live_") + Date64(true).strftime("%y-%m-%d");
+		}
+		CStdString logAdd = "";
+		int logAddInt = 0;
+		while (!_access(logFileName + logAdd + ".log" , 0)) {
+			logAddInt++;
+			_snprintf(logAdd.GetBuffer(5) , 5 , "[%02d]" , logAddInt);
+			logAdd.ReleaseBuffer();
+		}
+		logFileName += logAdd + ".log";
+		Debug::logFile = fopen(logFileName , "wt");
+		if (Debug::logFile == 0) debug = false;
+
+	#if defined(__WITHDEBUGALL)
+		Debug::debugAll = getArgV(ARGV_DEBUGALL);
+	#else
+		Debug::debugAll = false;
+	#endif
+	#if defined(__DEBUGALL)
+		Debug::debugAll = true;
+	#endif
+		if (superUser) {
+			Debug::startup(Stamina::getHInstance());
+			Debug::ShowDebugWnds();
+		} else {
+			//debugLock=false;
+			InitCommonControls();
+		}
+
+		if (Debug::logFile) {
+			fprintf(Debug::logFile , "Konnekt_log ... v %s\n" , suiteVersionInfo.c_str());
+			fprintf(Debug::logFile , "\n");
+			if (Debug::debugAll) 
+				fprintf(Debug::logFile , "Logowanie WSZYSTKICH zdarzeñ w³¹czone!\n");
+			fprintf(Debug::logFile , "\n_____________________________________________\n\n");
+			fflush(Debug::logFile);
+		}
+	#else
+	#endif
+
+		IMLOG("argv[0]=%s" , __argv[0]);
+		IMLOG("appPath=%s" , appPath.c_str());
+		IMLOG("dataPath=%s", dataPath.c_str());
+		IMLOG("PATH=%s", getEnvironmentVariable("PATH").c_str());
+
+	}
+
 
 #ifdef __DEBUG
 
@@ -58,13 +128,13 @@ namespace Konnekt { namespace Debug {
 				msgCopy.p1 = msgCopy.p2 = 0;
 				msg = &msgCopy;
 			}
-			IMD.id = inttoch(msg->id);
+			IMD.id = inttostr(msg->id);
 			IMD.p1 = "0x" + inttostr(msg->p1 , 16);
 			IMD.p2 = "0x" + inttostr(msg->p2 , 16);
-			IMD.nr=inttoch(IMlogsize);
+			IMD.nr=inttostr(IMlogsize);
 			IMD.sender=Plug.Name(msg->sender);
-			IMD.net= (msg->net==NET_BC)?"BC" : inttoch(msg->net);
-			IMD.type=inttoch(msg->type,2,12);
+			IMD.net= (msg->net==NET_BC)?"BC" : inttostr(msg->net);
+			IMD.type=inttostr(msg->type,2,12);
 		}  
 		cMessage * m;
 		char * ch;
@@ -101,12 +171,12 @@ namespace Konnekt { namespace Debug {
 		case IMI_WARNING :
 			IMD.id = "IMI_WARNING";
 			if (!msg->p1) return 0;
-			stringf(IMD.p1 , "\"%.2000s\"" , msg->p1);
+			stringf(IMD.p1.c_str() , "\"%.2000s\"" , msg->p1);
 			break;
 		case IMI_ERROR :
 			IMD.id = "IMI_ERROR";
 			if (!msg->p1) return 0;
-			stringf(IMD.p1 , "\"%.2000s\"" , msg->p1);
+			stringf(IMD.p1.c_str() , "\"%.2000s\"" , msg->p1);
 			break;
 		case IMI_PREPARE :
 			IMD.id = "IMI_PREPARE";
@@ -117,13 +187,13 @@ namespace Konnekt { namespace Debug {
 		case IMI_ACTION :
 			IMD.id = "IMI_ACTION";
 			if (!msg->p1 || !msg->p2) return 0;
-			stringf(IMD.p1 , "%d / %d / %x" , ((sUIActionInfo*)msg->p1)->act.parent,((sUIActionInfo*)msg->p1)->act.id);
-			stringf(IMD.p2 , "\"%.2000s\"" , ((sUIActionInfo*)msg->p1)->txt);
+			stringf(IMD.p1.c_str() , "%d / %d / %x" , ((sUIActionInfo*)msg->p1)->act.parent,((sUIActionInfo*)msg->p1)->act.id);
+			stringf(IMD.p2.c_str() , "\"%.2000s\"" , ((sUIActionInfo*)msg->p1)->txt);
 			break;
 		case IMI_ACTION_SET :
 			IMD.id = "IMI_ACTION_SET";
 			if (!msg->p1) return 0;
-			stringf(IMD.p1 , "%d / %d / %x m=%x" , ((sUIActionInfo*)msg->p1)->act.parent,((sUIActionInfo*)msg->p1)->act.id , ((sUIActionInfo*)msg->p1)->act.cnt , ((sUIActionInfo*)msg->p1)->mask);
+			stringf(IMD.p1.c_str() , "%d / %d / %x m=%x" , ((sUIActionInfo*)msg->p1)->act.parent,((sUIActionInfo*)msg->p1)->act.id , ((sUIActionInfo*)msg->p1)->act.cnt , ((sUIActionInfo*)msg->p1)->mask);
 			break;	 
 
 		case IMI_REFRESH_LST :
@@ -149,7 +219,7 @@ namespace Konnekt { namespace Debug {
 			IMD.id = "IMC_NEWMESSAGE";
 			if (!msg->p1) return 0;
 			m = (cMessage *) msg->p1;
-			stringf(IMD.p1 , "id=%d net=%d from[\"%.50s\"] to[\"%.50s\"]" , m->id , m->net , m->fromUid , m->toUid);
+			stringf(IMD.p1.c_str() , "id=%d net=%d from[\"%.50s\"] to[\"%.50s\"]" , m->id , m->net , m->fromUid , m->toUid);
 			break;
 		case IMC_MESSAGEQUEUE :
 			IMD.id = "IMC_MESSAGEQUEUE";
@@ -166,12 +236,12 @@ namespace Konnekt { namespace Debug {
 		case IMC_CNT_IGNORED :
 			IMD.id = "IMC_CNT_IGNORED";
 			if (!msg->p2) return 0;
-			stringf(IMD.p2 , "\"%.2000s\"" , msg->p2);
+			stringf(IMD.p2.c_str() , "\"%.2000s\"" , msg->p2);
 			break;
 		case IMC_FINDCONTACT :
 			IMD.id = "IMC_FINDCONTACT";
 			if (!msg->p2) return 0;
-			stringf(IMD.p2 , "\"%.2000s\"" , msg->p2);
+			stringf(IMD.p2.c_str() , "\"%.2000s\"" , msg->p2);
 			break;
 		case IMC_PROFILEDIR :
 			IMD.id = "IMC_PROFILEDIR";
@@ -265,7 +335,7 @@ namespace Konnekt { namespace Debug {
 		if (msg->id == IMC_THREADEND || msg->id == IMC_THREADSTART)
 			return -1;
 //		static cCriticalSection_WM CSection(WMProcess2);
-		static cCriticalSection CSection;
+		static CriticalSection CSection;
 		//if (debugLock) CSection.lock();
 		//  if (hMainThread && (GetCurrentThreadId()!=MainThreadID)) {
 		//     Beep(200,20);//return 0;
@@ -279,7 +349,7 @@ namespace Konnekt { namespace Debug {
 
 		CSection.lock();
 
-		cThread thread_copy = TLS();
+		//cThread thread_copy = TLS();
 		sIMDebug IMD;
 		IMDebug_transform(IMD , msg,result,TLSU().error.code);
 		IMD.receiver=Plug.Name(rcvr);
@@ -309,7 +379,7 @@ namespace Konnekt { namespace Debug {
 		}
 
 		indent[GetCurrentThreadId()] ++;
-		TLS() = thread_copy;
+		//TLS() = thread_copy;
 		CSection.unlock();
 
 		debugLogStart(IMD , msg , ind);
@@ -331,14 +401,14 @@ namespace Konnekt { namespace Debug {
 		Beep(800,20);return 0;
 		}*/
 		static bool inCritical = false;
-		static cCriticalSection_WM CSection(WMProcess2);
+		static CriticalSection_WM CSection(mainWindowsLoop);
 		if (debugLock) CSection.lock();
 		/*  if (inCritical) {
 		Beep(1000,10);
 		}*/
 		//EnterCriticalSection(&section_debug);
 		inCritical = true;
-		cThread thread_copy = TLS();
+		//cThread thread_copy = TLS();
 		sIMDebug IMD;
 		string ind;
 		ind.resize(indent[GetCurrentThreadId()] , LOG_TAB);
@@ -362,7 +432,7 @@ namespace Konnekt { namespace Debug {
 				fflush(Debug::logFile);
 			}
 		}
-		TLS() = thread_copy;
+		//TLS() = thread_copy;
 		//LeaveCriticalSection(&section_debug);
 		inCritical = false;
 		if (debugLock) CSection.unlock();

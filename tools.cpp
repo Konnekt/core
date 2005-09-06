@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "tools.h"
 
+using namespace Stamina;
+
 int Konnekt::findVersion(string & ver , string fileName , int version) {
     int found = ver.find("\n" + fileName + "=");
     int prevVer = 0;
@@ -9,10 +11,10 @@ int Konnekt::findVersion(string & ver , string fileName , int version) {
         prevVer = chtoint(ver.c_str() + found , 16);
         if (prevVer != version) {
             ver.erase(ver.begin() + found , ver.begin() + ver.find('\n' , found));
-            ver.insert(found , inttoch(version , 16));
+            ver.insert(found , inttostr(version , 16));
         }
     } else {
-        ver+="\n" + fileName + "=" + string(inttoch(version , 16));
+        ver+="\n" + fileName + "=" + inttostr(version , 16);
     }
     return prevVer;
 }

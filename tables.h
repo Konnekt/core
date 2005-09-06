@@ -1,32 +1,38 @@
 #pragma once
-#include "konnekt_sdk.h"
+#ifndef __KONNEKT_TABLES__
+#define __KONNEKT_TABLES__
+
+
 #include <boost\shared_ptr.hpp>
 #include <Konnekt\core_assert.h>
 #include <Stamina\ObjectImpl.h>
 #include <Stamina\Timer.h>
+#include <Stamina\MD5.h>
+#include <Stamina\CriticalSection.h>
+
+#include "konnekt_sdk.h"
 #include "unique.h"
 
 namespace Konnekt { namespace Tables {
 
-	extern CdTable Msg;
-	extern CdTable Cfg;
-	extern CdTable Cnt;
-	extern CdTable Plg; // Informacje o wtyczkach
+
+	using Stamina::LockerCS;
+
+	//extern oTable msg;
+	extern oTable cfg;
+	extern oTable cnt;
+	//extern CdTable Plg; // Informacje o wtyczkach
+	
 
 	int setColumn(sIMessage_setColumn * sc);
-	void saveDTB(CdTable & tab , const CStdString & file);
-	void saveCfg();
-	void savePlg();
-	void saveCnt();
-	void saveMsg();
-	int saveProfile(bool all);
-	void savePrepare(CdtFileBin & FBin);
 	int saveProfile(bool all=true);
+	void deinitialize();
+
 
 /*#pragma warning( push )
 #pragma warning(disable: 4250)*/
 
-	class TableImpl: public Stamina::SharedObject<iTable> {
+	class TableImpl: public ::Stamina::SharedObject<iTable> {
 	public:
 		typedef Stamina::ObjLocker TableLocker;
 
@@ -34,12 +40,14 @@ namespace Konnekt { namespace Tables {
 
 		TableImpl(oPlugin owner, tTableId tableId, enTableOptions tableOpts);
 
+		virtual void __stdcall release();
+
 		int __stdcall getRowPos(tRowId rowId);
 		int __stdcall getRowId(unsigned int rowPos);
-        tRowId __cdecl findRow(unsigned int startPos, int argCount, ...);
+		tRowId __cdecl _findRow(unsigned int startPos, int argCount, ...);
 
 
-		tColType __stdcall getColType(tColId colId);
+		enColumnFlag __stdcall getColFlags(tColId colId);
 		unsigned int __stdcall getRowCount();
 		tColId __stdcall getColId(const char * colName);
 		const char * __stdcall getColName(tColId colId);
@@ -47,9 +55,14 @@ namespace Konnekt { namespace Tables {
 		tColId __stdcall getColIdByPos(unsigned int colPos);
 		bool __stdcall get(tRowId rowId , tColId colId , Value & value);
 		bool __stdcall set(tRowId rowId , tColId colId , Value & value);
-		unsigned short __stdcall lockData(tRowId rowId , int reserved=0);
-		unsigned short __stdcall unlockData(tRowId rowId , int reserved=0);
-		tColId __stdcall setColumn(oPlugin plugin, tColId colId , tColType type , int def , const char * name);
+		void __stdcall lockData(tRowId rowId , int reserved=0);
+		void __stdcall unlockData(tRowId rowId , int reserved=0);
+		tColId __stdcall setColumn(oPlugin plugin, tColId colId , tColType type , DataEntry def = 0 , const char * name = 0);
+
+		tColId setColumn(tColId colId , tColType type , int def = 0 , const char * name = 0) {
+			return this->setColumn(Ctrl->getPlugin(), colId, type, (DataEntry)def, name);
+		}
+
 
 		tRowId __stdcall addRow(tRowId rowId = rowNotFound);
 		bool __stdcall removeRow(tRowId rowId);
@@ -59,14 +72,14 @@ namespace Konnekt { namespace Tables {
 
 		void __stdcall requestColumns(cCtrl * ctrl, unsigned int net = NET_BROADCAST, unsigned int plugType = IMT_ALL) {
 			if (!ctrl) ctrl = Ctrl;
-			IM::_tableIM ti(IM::setColumns, oTable(this));
+			IM::TableIM ti(IM::setColumns, oTable(this));
 			ti.net = net;
 			ti.type = plugType;
 			ctrl->IMessage(&ti);
 		}
 		void __stdcall dataChanged(cCtrl * ctrl, tRowId rowId, unsigned int net = NET_BROADCAST, unsigned int plugType = IMT_ALL) {
 			if (!ctrl) ctrl = Ctrl;
-			IM::_tableRowIM ti(IM::dataChanged, oTable(this), rowId);
+			IM::TableRow ti(IM::dataChanged, oTable(this), rowId);
 			ti.net = net;
 			ti.type = plugType;
 			ctrl->IMessage(&ti);
@@ -77,8 +90,8 @@ namespace Konnekt { namespace Tables {
 			return _isLoaded();
 		}
 
-		bool __stdcall load(bool force = false, const char * filePath = 0);
-		bool __stdcall save(bool force = false, const char * filePath = 0);
+		enResult __stdcall load(bool force = false, const char * filePath = 0);
+		enResult __stdcall save(bool force = false, const char * filePath = 0);
 		void __stdcall lateSave(bool enabled);
 
 		bool __stdcall setOpt(enTableOptions option , bool enabled);
@@ -95,7 +108,7 @@ namespace Konnekt { namespace Tables {
 			TableLocker(this);
 			return this->_filename.c_str();
 		}
-		void __stdcall setDirectory(const char * path);
+		void __stdcall setDirectory(const char * path = 0);
 		const char * __stdcall _getDirectory() {
 			TableLocker(this);
 			return this->_directory.c_str();
@@ -116,6 +129,14 @@ namespace Konnekt { namespace Tables {
 		}
 
 		 bool __stdcall unregisterTable();
+
+		 virtual Stamina::DT::DataTable& __stdcall getDT() {
+			 return _dt;
+		 }
+
+		 virtual void setTablePassword(const char* password) {
+			 _dt.setPassword(password);
+		 }
 
 
 		void __stdcall destroy();
@@ -149,7 +170,7 @@ namespace Konnekt { namespace Tables {
 		enTableOptions _opt;
 		oPlugin _owner;
 		tTableId _tableId;
-		CdTable _dt;
+		DataTable _dt;
 		CStdString _directory, _filename;
 		bool _loaded;
 		bool _columnsSet;
@@ -160,47 +181,81 @@ namespace Konnekt { namespace Tables {
 
 //#pragma warning(pop)
 
-	class TableList : public map<tTableId, oTable> {
+	class oTableImpl:public oTable {
 	public:
-		oTable operator [] (tTableId tableId) {
+		oTableImpl(const oTable& b) {
+			this->set((TableImpl*)b.get());
+		}
+		oTableImpl(tTableId tableId) {
+			this->setById(tableId);
+		}
+		oTableImpl(const char * tableName) {
+			this->setById(getTableId(tableName));
+		}
+		oTableImpl(TableImpl * obj = 0) {
+			this->set(obj);
+		}
+		void setById(tTableId tableId);
+
+		inline TableImpl * operator -> () const {
+			S_ASSERT(this->get() != 0);
+			return (TableImpl*)this->get();
+		}
+		inline TableImpl & operator * () const {
+			return *(TableImpl*)this->get();
+		}
+
+	};
+
+
+	class TableList : public map<tTableId, oTableImpl> {
+	public:
+		const oTableImpl& operator [] (tTableId tableId) {
+			LockerCS l(_cs);
 			TableList::iterator it = this->find(tableId);
-			Tables::oTable t;
-			if (it == this->end())
-				return t;
-			else {
-				t.set(it->second);
-				return t;
+			if (it == this->end()) {
+				static Tables::oTableImpl emptyTable;
+				return emptyTable;
+			} else {
+				//t.set(it->second);
+				return it->second;
 			}
 		}
 		bool tableExists(tTableId tableId) {
 			if (tableId == rowNotFound) return false;
+			LockerCS l(_cs);
 			return this->find(tableId) != this->end();
 		}
-		oTable registerTable(oPlugin owner, tTableId tableId, enTableOptions tableOpts) {
-			Tables::oTable t;
-			if (tableExists(tableId)) return t;
-			t.set(new TableImpl(owner, tableId, tableOpts));
-			if (tableId != rowNotFound) {
-				this->insert(std::pair<tTableId, oTable>(tableId, t));
-			}
-			return t;
-		}
+		oTable registerTable(oPlugin owner, tTableId tableId, enTableOptions tableOpts);
+		bool unregisterTable(tTableId tableId);
+
 		void saveAll(bool force = false);
+		void setProfilePassword(const Stamina::MD5Digest& digest);
+
+		void unregisterAll();
+
+	private:
+
+		Stamina::CriticalSection _cs;
 	};
 
 	extern TableList tables;
 
 	inline oTable getTable(tTableId tableId) {
-		return tables[tableId];
+		oTable table = tables[tableId];
+		return table->getOpt(optPrivate) ? oTable() : table;
 	}
 
 	void debugCommand(sIMessage_debugCommand * arg);
 
 
+
 };};
 
-using Konnekt::Tables::Msg;
-using Konnekt::Tables::Cfg;
-using Konnekt::Tables::Cnt;
-using Konnekt::Tables::Plg;
+//using Konnekt::Tables::Msg;
+//using Konnekt::Tables::Cfg;
+//using Konnekt::Tables::Cnt;
+//using Konnekt::Tables::Plg;
 using Konnekt::Tables::tables;
+
+#endif

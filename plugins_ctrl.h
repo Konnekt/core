@@ -14,7 +14,7 @@ namespace Konnekt {
 		void setCtrl(int id , void * handle);
 
 		unsigned int __stdcall ID(){return _ID;}  ///< Identyfikator wtyczki
-		HINSTANCE __stdcall hInst(){return ::hInst;}   ///  Uchwyt procesu (HINSTANCE)
+		HINSTANCE __stdcall hInst(){return Stamina::getHInstance();}   ///  Uchwyt procesu (HINSTANCE)
 		HINSTANCE __stdcall hDll(){return _hDll;}   ///  Uchwyt biblioteki.
 		int __stdcall getError(); ///< Zwraca kod ostatniego bledu
 		void __stdcall setError(int err_code);
@@ -91,9 +91,9 @@ namespace Konnekt {
 		 Unique::tId __stdcall getId(Unique::tDomainId domainId, const char * name);
 		 const char * __stdcall getName(Unique::tDomainId domainId, Unique::tId id);
 		 bool __stdcall idInRange(Unique::tDomainId domainId, Unique::tRangeId rangeId, Unique::tId id);
-		 Unique::tRangeId __stdcall idInRange(Unique::tDomainId domainId, Unique::tId id, Unique::Range::enType check = Unique::Range::typeBoth);
+		 Unique::tRangeId __stdcall idInRange(Unique::tDomainId domainId, Unique::tId id, Unique::iRange::enType check = Unique::iRange::typeBoth);
 
-		Tables::oTable __stdcall DT(Tables::tTableId tableId);
+		Tables::oTable __stdcall getTable(Tables::tTableId tableId);
 		Konnekt::oPlugin __stdcall getPlugin(Konnekt::tPluginId pluginId);
 
 		HANDLE __stdcall BeginThread(const char* name, void *security,unsigned stack_size,unsigned ( __stdcall *start_address )( void * ),void *arglist,unsigned initflag,unsigned *thrdaddr);

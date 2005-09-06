@@ -5,7 +5,7 @@
 namespace Konnekt{ namespace Debug {
 
 	struct sIMDebug {
-		string id, p1, p2, result, error
+		CStdString id, p1, p2, result, error
 			, sender, receiver,
 			nr , net , type , thread
 			;
@@ -45,10 +45,12 @@ namespace Konnekt{ namespace Debug {
 	extern bool showLog;
 	extern bool debug;
 	extern HWND hwnd;
-	extern cCriticalSection windowCSection;
+	extern Stamina::CriticalSection windowCSection;
 
 	void startup(HINSTANCE hInst);
 	void finish();
+
+	void initializeDebug();
 
 	void debugLog();
 	void debugLogInfo();

@@ -7,6 +7,8 @@
 
 using Stamina::RegEx;
 
+using namespace Stamina;
+
 namespace Konnekt {
 
 	int except_filter(EXCEPTION_POINTERS xp , const char * threadOwner) {
@@ -83,7 +85,7 @@ namespace Konnekt {
 		}
 
 		CStdString msg = "Critical structured Exception \"" + exName + "\" occured at adress 0x";
-		msg +=inttoch((int)xr.ExceptionAddress,16,8);
+		msg +=inttostr((int)xr.ExceptionAddress,16,8);
 		if (MainThreadID==GetCurrentThreadId())
 			msg +=" in the main Thread.";
 		else 
@@ -109,7 +111,7 @@ namespace Konnekt {
 		toDigest += RegEx::doReplace("/0x\\d+/", "", addInfo);
 
 		msg += addInfo;
-		Beta::errorreport(REPTYPE_ERROR , (exName/*+" at 0x"+inttoch((int)xr.ExceptionAddress,16,8)*/) , msg, Beta::makeDigest(toDigest).c_str(), log);
+		Beta::errorreport(REPTYPE_ERROR , (exName/*+" at 0x"+inttostr((int)xr.ExceptionAddress,16,8)*/) , msg, Beta::makeDigest(toDigest).c_str(), log);
 		//  xp.ContextRecord->
 		//  printf("\n x [%x]" , xr.ExceptionCode);
 
@@ -119,7 +121,7 @@ namespace Konnekt {
 	}
 
 	void exception_information(const char * e) {
-		CStdString msg = _sprintf("Unhandled Exception \"%s\" occured.\n\n" , e);
+		CStdString msg = stringf("Unhandled Exception \"%s\" occured.\n\n" , e);
 		CStdString toDigest = msg;
 		CStdString addInfo;
 		Beta::imdigest(addInfo);

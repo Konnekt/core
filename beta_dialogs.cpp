@@ -4,6 +4,7 @@
 #include "tables.h"
 #include "main.h"
 
+using namespace Stamina;
 
 // -----------------------------------------------
 
@@ -17,8 +18,8 @@ namespace Konnekt { namespace Beta {
 		case WM_INITDIALOG:
 			SetFocus(GetDlgItem(hwnd , IDE_LOGIN));
 			PassChanged=false;
-			if (!anonymous) SetDlgItemText(hwnd , IDE_LOGIN , Beta.getch(0,BETA_LOGIN));
-			SendDlgItemMessage(hwnd , IDWWW , BM_SETIMAGE , IMAGE_BITMAP , (LPARAM)LoadImage(hInst , "BETA" , IMAGE_BITMAP , 0 , 0 , 0));
+			if (!anonymous) SetDlgItemText(hwnd , IDE_LOGIN , Tables::tables[tableBeta]->getCh(0,BETA_LOGIN));
+			SendDlgItemMessage(hwnd , IDWWW , BM_SETIMAGE , IMAGE_BITMAP , (LPARAM)LoadImage(Stamina::getHInstance() , "BETA" , IMAGE_BITMAP , 0 , 0 , 0));
 			break;
 		case WM_NCDESTROY:
 			DeleteObject((HBITMAP)SendDlgItemMessage(hwnd , IDWWW , BM_GETIMAGE , 0 , 0));
@@ -52,40 +53,36 @@ namespace Konnekt { namespace Beta {
 					CStdString newLogin;
 					GetDlgItemText(hwnd , IDE_LOGIN , newLogin.GetBuffer(50) , 50);
 					newLogin.ReleaseBuffer();
+					Tables::oTableImpl beta(tableBeta);
 					if (LoginChanged && newLogin != betaLogin) {
 						if (anonymous && !newLogin.empty()) {
-							Beta.setch(0 , BETA_ANONYMOUS_LOGIN , betaLogin.c_str());
+							beta->setStr(0 , BETA_ANONYMOUS_LOGIN , betaLogin);
 						}
 						if (!anonymous && newLogin.empty()) {
 							// jeœli da siê, wracamy do starego loginu-anonima
-							betaLogin = Beta.getch(0 , BETA_ANONYMOUS_LOGIN);
+							betaLogin = beta->getStr(0 , BETA_ANONYMOUS_LOGIN);
 						} else {
 							betaLogin = newLogin;
 						}
-						Beta.setch(0 , BETA_LOGIN , betaLogin.c_str());
+						beta->setStr(0 , BETA_LOGIN , betaLogin);
 						anonymous = newLogin.empty();
 						if (anonymous == false) {
-							Beta.set64(0 , BETA_LOGIN_CHANGE, _time64(0));
+							beta->setInt64(0 , BETA_LOGIN_CHANGE, _time64(0));
 						}
-						Beta.setint(0 , BETA_ANONYMOUS , anonymous);
+						beta->setInt(0 , BETA_ANONYMOUS , anonymous);
 						loggedIn=false;
 					}
 					if (PassChanged && (anonymous || !newLogin.empty())) {
 						CStdString newPass;
 						GetDlgItemText(hwnd , IDE_PASS , newPass.GetBuffer(255) , 255);
 						newPass.ReleaseBuffer();
-						Beta.setch(0 , BETA_PASSMD5 , MD5Hex(newPass , TLS().buff));
-						betaPass = Beta.getch(0 , BETA_PASSMD5);
+						beta->setStr(0 , BETA_PASSMD5 , Stamina::MD5Hex(newPass));
+						betaPass = beta->getStr(0 , BETA_PASSMD5);
 					}
 /*					Beta.setint(0, BETA_AFIREWALL , IsDlgButtonChecked(hwnd , IDCB_FIREWALL)==BST_CHECKED);
 					Beta.setint(0, BETA_AMODEM , IsDlgButtonChecked(hwnd , IDCB_MODEM)==BST_CHECKED);
 					Beta.setint(0, BETA_AWBLINDS , IsDlgButtonChecked(hwnd , IDCB_WINDOWSBLINDS)==BST_CHECKED);*/
-					{
-						CdtFileBin FBin;
-						Tables::savePrepare(FBin);
-						FBin.assign(&Beta);
-						FBin.save(FILE_BETA);
-					}
+					beta->save();                    
 					Beta::send(true);
 				}
 				// Fall through.
@@ -145,18 +142,30 @@ namespace Konnekt { namespace Beta {
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
-			case IDOK: {
+			case IDOK: 
+			{
 				int type = SendDlgItemMessage(hwnd , IDE_TYPE , CB_GETCURSEL , 0 , 0)==1;
-				GetDlgItemText(hwnd , IDE_RELATIVE , TLS().buff , MAX_STRING);
-				string title=TLS().buff;
+				string title;
+				GetDlgItemText(hwnd , IDE_RELATIVE , stringBuffer(title, 1024) , 1024);
+				stringRelease(title);
 				title+=":  ";
-				GetDlgItemText(hwnd , IDE_TITLE , TLS().buff , MAX_STRING);
-				if (!*TLS().buff) {MessageBox(hwnd , "Musisz podaæ tytu³ raportu!" , "" , MB_OK|MB_ICONERROR);return 0;}
-				title+=TLS().buff;
-				GetDlgItemText(hwnd , IDE_MSG , TLS().buff , MAX_STRING);
-				if (!*TLS().buff) {MessageBox(hwnd , "Musisz wpisaæ treœæ raportu!" , "" , MB_OK|MB_ICONERROR);return 0;}
-				Beta::report(type , title.c_str() , TLS().buff, 0, info_log(), true);
-					   }
+				std::string repTitle;
+				GetDlgItemText(hwnd , IDE_TITLE , stringBuffer(repTitle) , 1024);
+				if (repTitle.empty()) {
+					MessageBox(hwnd , "Musisz podaæ tytu³ raportu!" , "" , MB_OK|MB_ICONERROR);
+					return 0;
+				}
+				title += repTitle;
+
+				std::string msg;
+				GetDlgItemText(hwnd , IDE_MSG , stringBuffer(msg, 4024) , 4024);
+				if (msg.empty()) {
+					MessageBox(hwnd , "Musisz wpisaæ treœæ raportu!" , "" , MB_OK|MB_ICONERROR);
+					return 0;
+				}
+
+				Beta::report(type , title.c_str() , msg.c_str(), 0, info_log(), true);
+			}
 					   // Fall through.
 			case IDCANCEL:
 				EndDialog(hwnd, wParam);

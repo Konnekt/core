@@ -2,8 +2,9 @@
 
 #include <Stamina\Semaphore.h>
 
+#include "tables.h"
 
-#define  BETA_LOGIN      0 //pch
+#define  BETA_LOGIN      (tColId)0 //pch
 #define  BETA_PASSMD5    1 //pch
 #define  BETA_AFIREWALL   4
 #define  BETA_AMODEM      5
@@ -16,14 +17,14 @@
 #define  BETA_LAST_STATICREPORT 14 //pch
 
 // Data trzymana jest w identyfikatorze wiersza jako _time64 / 86400
-#define  STATS_DATE 0 // _time64 / 86400
+#define  STATS_DATE (tColId)0 // _time64 / 86400
 #define  STATS_STARTCOUNT 1
 #define  STATS_UPTIME     2
 #define  STATS_MSGSENT    3
 #define  STATS_MSGRECV    4
 #define  STATS_REPORTED   5
 
-#define  REP_DATE     0
+#define  REP_DATE     (tColId)0
 #define  REP_TYPE     1 //int
 #define  REP_TITLE    2
 #define  REP_MSG      3
@@ -76,9 +77,9 @@ namespace Konnekt {
 		extern bool anonymous;
 		extern __time64_t lastStat;
 
-		extern CdTable Beta;
-		extern CdTable Reports;
-		extern CdTable Stats;
+		extern Tables::tTableId tableBeta;
+		extern Tables::tTableId tableStats;
+		extern Tables::tTableId tableReports;
 
 		extern bool hwndBeta;
 		extern bool loggedIn;
@@ -101,6 +102,8 @@ namespace Konnekt {
 		string makeDigest(const string& txt);
 
 		string info_log();
+		__int64 info_serialSystem();
+		__int64 info_serialInstance();
 		string info_serial();
 		string info_other(bool extended=false);
 		string info_os();

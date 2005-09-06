@@ -9,6 +9,8 @@
 #include "threads.h"
 #include "argv.h"
 
+using namespace Stamina;
+
 namespace Konnekt { namespace Debug {
 
 #ifdef __DEBUG
@@ -27,7 +29,7 @@ namespace Konnekt { namespace Debug {
 	bool showLog = false;
 	HWND hwnd = 0 , hwndStatus , hwndLog , hwndBar, hwndCommand;
 	HIMAGELIST iml;
-	cCriticalSection windowCSection;
+	CriticalSection windowCSection;
 
 	HINSTANCE instRE;
 
@@ -113,12 +115,12 @@ namespace Konnekt { namespace Debug {
 			Debug::h = 250;
 			Debug::scroll=true;
 		}
-		Debug::hwnd = CreateDialog(hInst , MAKEINTRESOURCE(IDD_DEBUG) , 0 , (DLGPROC)WndProc);
+		Debug::hwnd = CreateDialog(Stamina::getHInstance() , MAKEINTRESOURCE(IDD_DEBUG) , 0 , (DLGPROC)WndProc);
 		Debug::hwndLog = GetDlgItem(Debug::hwnd , IDC_MSG);
 		Debug::hwndCommand = GetDlgItem(Debug::hwnd , IDC_COMMAND);
 		SetWindowPos(Debug::hwnd , 0 , Debug::x , Debug::y , Debug::w , Debug::h , SWP_NOACTIVATE | SWP_NOZORDER);
-		SendMessage(Debug::hwnd , WM_SETICON , ICON_SMALL , (LPARAM)LoadIconEx(hInst , MAKEINTRESOURCE(IDI_DEBUG_ICON) , 16));
-		SendMessage(Debug::hwnd , WM_SETICON , ICON_BIG , (LPARAM)LoadIconEx(hInst , MAKEINTRESOURCE(IDI_DEBUG_ICON) , 32));
+		SendMessage(Debug::hwnd , WM_SETICON , ICON_SMALL , (LPARAM)loadIconEx(Stamina::getHInstance() , MAKEINTRESOURCE(IDI_DEBUG_ICON) , 16));
+		SendMessage(Debug::hwnd , WM_SETICON , ICON_BIG , (LPARAM)loadIconEx(Stamina::getHInstance() , MAKEINTRESOURCE(IDI_DEBUG_ICON) , 32));
 
 		Debug::hwndStatus = CreateStatusWindow(SBARS_SIZEGRIP | WS_CHILD | WS_VISIBLE,
 			("Konnekt "+suiteVersionInfo).c_str(),Debug::hwnd,IDC_STATUSBAR);
@@ -144,7 +146,7 @@ namespace Konnekt { namespace Debug {
 			| CCS_NORESIZE
 
 			, 0, 0, 200, 30, Debug::hwnd,
-			(HMENU)IDC_TOOLBAR, hInst, 0);
+			(HMENU)IDC_TOOLBAR, Stamina::getHInstance(), 0);
 		// Get the height of the toolbar.
 		SendMessage(Debug::hwndBar , TB_SETEXTENDEDSTYLE , 0 ,
 			TBSTYLE_EX_MIXEDBUTTONS
@@ -211,7 +213,7 @@ namespace Konnekt { namespace Debug {
 		CStdString command;
 		GetWindowText(Debug::hwndCommand, command.GetBuffer(1024), 1024);
 		command.ReleaseBuffer();
-		SplitCommand(command, ' ', list);
+		splitCommand(command, ' ', list);
 		const char ** argv = new const char * [list.size()];
 		for (unsigned int i = 0; i < list.size(); i++) {
 			argv[i] = list[i].c_str();
@@ -254,7 +256,7 @@ namespace Konnekt { namespace Debug {
 					quitOnce = true;
 					break;
 				case IDB_SDK:
-					ShellExecute(0 , "open" , resStr(IDS_DEBUG_URL_SDK) , "" , "" , SW_SHOW);
+					ShellExecute(0 , "open" , loadString(IDS_DEBUG_URL_SDK).c_str() , "" , "" , SW_SHOW);
 					break;
 				case IDB_INFO:
 					debugLogInfo();
@@ -341,7 +343,7 @@ namespace Konnekt { namespace Debug {
 			RE_ADD("\r\n -> " + Plug[i].file);  
 			RE_BOLD(0);
 			RE_ADD(stringf("\r\n    ID = %d hModule = 0x%x net = %d type = %x prrt = %d " , Plug[i].ID , Plug[i].hModule , Plug[i].net , Plug[i].type ,  Plug[i].priority));
-			RE_ADD(stringf("\r\n    name = \"%s\" sig=\"%s\"  v %s" , Plug[i].name.c_str() , Plug[i].sig.c_str() , Plug[i].version.c_str()));
+			RE_ADD(stringf("\r\n    name = \"%s\" sig=\"%s\"  v %s" , Plug[i].name.c_str() , Plug[i].sig.c_str() , Plug[i].version.getString().c_str()));
 		}
 
 		RE_BOLD(1);
@@ -350,7 +352,7 @@ namespace Konnekt { namespace Debug {
 		RE_COLOR(0);
 		RE_BOLD(0);
 		for (Connections::tList::iterator item = Connections::getList().begin(); item != Connections::getList().end(); item++) {
-			RE_ADD(stringf("\r\n -> %s %s %d retries" , Plug.Name(item->first) , item->second.connect?"Awaiting connection":"Idle" , item->second.retry));
+			RE_ADD(stringf("\r\n -> %s %s %d retries" , Plug.Name(item->first).c_str() , item->second.connect?"Awaiting connection":"Idle" , item->second.retry));
 		}
 
 		RE_ADD(".\r\n");
@@ -359,20 +361,21 @@ namespace Konnekt { namespace Debug {
 	void debugLogQueue(){
 		RE_();
 		RE_PREPARE();
-		Msg.lock(DT_LOCKALL);
-		for (unsigned int i=0; i<Msg.getrowcount(); i++) {
+		Tables::oTableImpl msg(Tables::tableMessages);
+		msg->lockData(DT::allRows);
+		for (unsigned int i=0; i<msg->getRowCount(); i++) {
 			RE_BOLD(1);
 			RE_COLOR(RGB(0x0,80,0));
-			RE_ADD(stringf("\r\nMSG %x %s from '%s' to '%s' [%s]\r\n",Msg.getint(i,MSG_ID) 
-				, IMessage(IM_PLUG_NETNAME,Msg.getint(i,MSG_NET),IMT_PROTOCOL)
-				, Msg.getch(i,MSG_FROMUID)
-				, Msg.getch(i,MSG_TOUID)
-				, string(Msg.getch(i,MSG_BODY)).substr(0,30).c_str()));
+			RE_ADD(stringf("\r\nMSG %x %s from '%s' to '%s' [%s]\r\n", msg->getInt(i,MSG_ID) 
+				, IMessage(IM_PLUG_NETNAME,msg->getInt(i,MSG_NET),IMT_PROTOCOL)
+				, msg->getCh(i,MSG_FROMUID)
+				, msg->getCh(i,MSG_TOUID)
+				, msg->getStr(i,MSG_BODY).substr(0,30).c_str()));
 			RE_BOLD(0);
 			RE_COLOR(RGB(0,0,0));
-			RE_ADD("EXT []" + string(Msg.getch(i , MSG_EXT)) + "\r\n");
-			int flag = Msg.getint(i,MSG_FLAG);
-			RE_ADD(stringf("Type=%d  flag=%x " , Msg.getint(i,MSG_TYPE)
+			RE_ADD("EXT []" + msg->getStr(i , MSG_EXT) + "\r\n");
+			int flag = msg->getInt(i,MSG_FLAG);
+			RE_ADD(stringf("Type=%d  flag=%x " , msg->getInt(i,MSG_TYPE)
 				, flag));
 			RE_COLOR(RGB(80,0,0));
 			RE_ADD(stringf("%s %s %s\r\n" 
@@ -382,7 +385,7 @@ namespace Konnekt { namespace Debug {
 				));
 			RE_COLOR(RGB(0,0,0));
 		}
-		Msg.unlock(DT_LOCKALL);
+		msg->unlockData(DT::allRows);
 		RE_ADD(".\r\n");
 	}
 
@@ -413,14 +416,14 @@ namespace Konnekt { namespace Debug {
 		RE_BOLD(0);
 		RE_ADDLINE(suiteVersionInfo);
 		RE_COLOR(RGB(0,0,128));
-		string info = _sprintf("ComCtl6_present = %d (%s message loop)\r\n"
+		string info = stringf("ComCtl6_present = %d (%s message loop)\r\n"
 #ifdef __DEBUG
 			"Wersja DEBUG - logowanie w³¹czone!\r\n"
 #endif
 #ifdef __WITHDEBUGALL
 			"Wersja VERBOSE - mo¿liwoœæ logowania wszystkich wiadomoœci!\r\n"
 #endif
-			"", isComCtl6 , isComCtl6?"szybszy":"wolniejszy");
+			"", isComctl(6,0) , isComctl(6,0) ? "szybszy":"wolniejszy");
 		if (Debug::debugAll) {
 			info += "logowanie wszystkich wiadomoœci w³¹czone\r\n";
 		}
@@ -449,7 +452,7 @@ namespace Konnekt { namespace Debug {
 		if (!superUser || !Debug::log || !Debug::showLog) return;
 		if (msg->id != IMC_LOG && !Debug::logAll) return; 
 		sIMessage_2params * msg2p = static_cast<sIMessage_2params *>(msg);
-		cLocker lock(windowCSection);
+		Locker lock(windowCSection);
 		RE_();
 		RE_PREPARE();
 		RE_BOLD(0);
@@ -517,7 +520,7 @@ namespace Konnekt { namespace Debug {
 		if (!superUser || !Debug::log || !Debug::showLog) return;
 		if (msg->id != IMC_LOG && !Debug::logAll) return;
 
-		cLocker lock(windowCSection);
+		Locker lock(windowCSection);
 
 		RE_();
 		RE_PREPARE();

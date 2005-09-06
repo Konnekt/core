@@ -4,6 +4,7 @@
 #include "main.h"
 
 #include <Stamina\Thread.h>
+#include <Stamina\TLS.h>
 
 namespace Konnekt {
 
@@ -53,6 +54,8 @@ namespace Konnekt {
 		sIMTS lastIM;
 		COLORREF color;
 		CStdString name;
+		CStdString buff;
+		char shortBuffer [64];
 
 		struct {
 			int code; 
@@ -69,7 +72,7 @@ namespace Konnekt {
 	};
 
 
-	extern cTLS<cUserThread> TLSU;
+	extern Stamina::ThreadLocalStorage<cUserThread> TLSU;
 	typedef map <DWORD , HANDLE> tThreads;
 	extern tThreads threads;
 	extern Stamina::CriticalSection threadsCS;

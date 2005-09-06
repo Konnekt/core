@@ -28,7 +28,7 @@
 				BufferSecurityCheck="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="0"
-				BrowseInformation="1"
+				BrowseInformation="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="4"
@@ -37,7 +37,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib Wininet.lib Dbghelp.lib Msimg32.lib version.lib Rasapi32.lib ../../__libs/shared_debug.lib shell32.lib stamina_d.lib"
+				AdditionalDependencies="comctl32.lib Wininet.lib Dbghelp.lib Msimg32.lib version.lib Rasapi32.lib shell32.lib stamina_d.lib datatable_d.lib"
 				OutputFile="$(OutDir)/konnekt.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="konnekt"
@@ -368,6 +368,9 @@
 				RelativePath=".\betaReport.cpp">
 			</File>
 			<File
+				RelativePath="..\include\callstack.cpp">
+			</File>
+			<File
 				RelativePath=".\connections.cpp">
 			</File>
 			<File
@@ -527,6 +530,12 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\init.cpp">
+			</File>
+			<File
+				RelativePath="..\konnekt\konnekt_defs.cpp">
+			</File>
+			<File
 				RelativePath=".\main.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -587,39 +596,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\plug_defs.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="dev|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions="NO_PLUG_EXPORT"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="dev_log|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug - remote|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -925,6 +901,27 @@
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 			<File
+				RelativePath="..\ui\res\app.ico">
+			</File>
+			<File
+				RelativePath=".\res\beta.bmp">
+			</File>
+			<File
+				RelativePath=".\res\debug_icon.ico">
+			</File>
+			<File
+				RelativePath=".\res\plug_ban.ico">
+			</File>
+			<File
+				RelativePath=".\res\plug_error.ico">
+			</File>
+			<File
+				RelativePath=".\res\plug_new.ico">
+			</File>
+			<File
+				RelativePath=".\res\plug_ok.ico">
+			</File>
+			<File
 				RelativePath=".\resource.rc">
 			</File>
 			<File
@@ -958,34 +955,10 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath="..\res\main\.manifest">
-		</File>
-		<File
-			RelativePath="res\main\.manifest">
-		</File>
-		<File
-			RelativePath="Branches.txt">
+			RelativePath=".\res\.manifest">
 		</File>
 		<File
 			RelativePath="..\..\__output\changelog.txt">
-		</File>
-		<File
-			RelativePath=".\Ficzersy na 0.7">
-		</File>
-		<File
-			RelativePath="..\Ficzersy na 07.txt">
-		</File>
-		<File
-			RelativePath=".\ikonki.txt">
-		</File>
-		<File
-			RelativePath="leak.txt">
-		</File>
-		<File
-			RelativePath="raporty.txt">
-		</File>
-		<File
-			RelativePath="..\..\__output\readme.txt">
 		</File>
 	</Files>
 	<Globals>

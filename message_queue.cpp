@@ -5,6 +5,8 @@
 #include "plugins.h"
 #include "imessage.h"
 
+using namespace Stamina;
+using namespace Tables;
 
 namespace Konnekt { namespace Messages {
 
@@ -12,30 +14,22 @@ namespace Konnekt { namespace Messages {
 	int msgRecv=0;
 	int timerMsg = 0;
 
-	VOID CALLBACK timerMsgProc(HWND hwnd,UINT uMsg,UINT_PTR idEvent,DWORD dwTime) {
-		Tables::saveMsg();
-		KillTimer(0 , timerMsg);
-	}
-
-	void postSaveMsg() {
-		if (timerMsg) KillTimer(0 , timerMsg);
-		timerMsg = SetTimer(0 , 0 , 500 , (TIMERPROC)timerMsgProc);
-	}
 
 	void updateMessage(int pos , cMessage * m) {
-		Msg.lock(pos);
-		Msg.setint(pos , MSG_NET , m->net);
-		Msg.setint(pos , MSG_TYPE , m->type);
-		Msg.setch(pos , MSG_FROMUID , m->fromUid);
-		Msg.setch(pos , MSG_TOUID , m->toUid);
-		Msg.setch(pos , MSG_BODY , m->body);
-		Msg.setch(pos , MSG_EXT  , m->ext);
-		Msg.setint(pos , MSG_FLAG , m->flag);
-		Msg.setint(pos , MSG_ACTIONP , m->action.parent);
-		Msg.setint(pos , MSG_ACTIONI , m->action.id);
-		Msg.setint(pos , MSG_NOTIFY , m->notify);
-		Msg.set64(pos , MSG_TIME , m->time);
-		Msg.unlock(pos);
+		oTableImpl msg(tableMessages);
+		msg->lockData(pos);
+		msg->setInt(pos , MSG_NET , m->net);
+		msg->setInt(pos , MSG_TYPE , m->type);
+		msg->setCh(pos , MSG_FROMUID , m->fromUid);
+		msg->setCh(pos , MSG_TOUID , m->toUid);
+		msg->setCh(pos , MSG_BODY , m->body);
+		msg->setCh(pos , MSG_EXT  , m->ext);
+		msg->setInt(pos , MSG_FLAG , m->flag);
+		msg->setInt(pos , MSG_ACTIONP , m->action.parent);
+		msg->setInt(pos , MSG_ACTIONI , m->action.id);
+		msg->setInt(pos , MSG_NOTIFY , m->notify);
+		msg->setInt64(pos , MSG_TIME , m->time);
+		msg->unlockData(pos);
 	}
 
 	int newMessage (cMessage * m , bool load , int pos) {
@@ -65,6 +59,10 @@ namespace Konnekt { namespace Messages {
 		}
 		if (m->flag & MF_HANDLEDBYUI) handler=0;
 messagedelete:
+
+		oTableImpl msg(tableMessages);
+		msg->lateSave(false);
+
 		if (handler==-1) {
 			// Zapisywanie w historii
 			if (m->type == MT_MESSAGE && !(m->flag & MF_DONTADDTOHISTORY)) {
@@ -78,26 +76,27 @@ messagedelete:
 				IMessageDirect(Plug[0] , IMI_HISTORY_ADD , (int)&ha);
 			}  
 			IMLOG("_Wiadomosc bez obslugi lub usunieta - %.50s...",m->body);
-			if (load) Msg.deleterow(pos);
+			if (load) msg->removeRow(pos);
 			return 0/*pos-1*/;
 		}
 		// Zapisywanie
-		if (!load) {pos = Msg.addrow();
+		if (!load) {pos = msg->addRow();
 		//    } else {
 		//    if ((int)m->id > MsgID) MsgID = m->id;
 		}
-		m->id = DT_MASKID(Msg.getint(pos , DT_C_ID));
+		m->id = msg->getRowId(pos);
 		int cntID = m->type&MT_MASK_NOTONLIST?0:IMessage(IMC_FINDCONTACT,0,0,m->net,(int)m->fromUid);
-		if (cntID != -1) Cnt.setint(cntID , CNT_LASTMSG , m->id);
+		if (cntID != -1) cnt->setInt(cntID , CNT_LASTMSG , m->id);
 		IMLOG("- Wiadomoœæ %d %s" , m->id , load?"jest w kolejce":"dodana do kolejki");
-		Msg.lock(pos);
-		updateMessage(pos , m);
-		Msg.setint(pos , MSG_ID , m->id);
-		Msg.setint(pos , MSG_HANDLER , handler);
-		Msg.unlock(pos);
+		{
+			TableLocker lock(msg, i);
+			updateMessage(pos , m);
+			msg->setInt(pos , MSG_ID , m->id);
+			msg->setInt(pos , MSG_HANDLER , handler);
+		}
 		//  if ((m->action.id || m->notify)) {IMessageDirect(Plug[0],IMI_NOTIFY,
 		//           );}
-		postSaveMsg();
+		msg->lateSave(true);
 		// stats
 		if (!load && m->type==MT_MESSAGE)
 			if (m->flag & MF_SEND) msgSent++;
@@ -107,47 +106,48 @@ messagedelete:
 
 	cMessage makeMessage(int pos, bool dup) {
 		cMessage m;
-		Msg.lock(pos);
-		m.id=Msg.getint(pos , MSG_ID);
-		m.net=Msg.getint(pos , MSG_NET);
-		m.type=Msg.getint(pos , MSG_TYPE);
-		m.fromUid=Msg.getch(pos , MSG_FROMUID);
-		m.toUid=Msg.getch(pos , MSG_TOUID);
-		m.body=Msg.getch(pos , MSG_BODY);
-		m.ext=Msg.getch(pos , MSG_EXT);
+		oTableImpl msg(tableMessages);
+		TableLocker lock(msg, pos);
+		m.id = msg->getInt(pos , MSG_ID);
+		m.net = msg->getInt(pos , MSG_NET);
+		m.type = msg->getInt(pos , MSG_TYPE);
+		m.fromUid = msg->getCh(pos , MSG_FROMUID);
+		m.toUid = msg->getCh(pos , MSG_TOUID);
+		m.body = msg->getCh(pos , MSG_BODY);
+		m.ext = msg->getCh(pos , MSG_EXT);
 		if (dup) {
-			m.fromUid=strdup(m.fromUid);
-			m.toUid=strdup(m.toUid);
-			m.body=strdup(m.body);
-			m.ext=strdup(m.ext);
+			m.fromUid = strdup(m.fromUid);
+			m.toUid = strdup(m.toUid);
+			m.body = strdup(m.body);
+			m.ext = strdup(m.ext);
 		}
-		m.flag=Msg.getint(pos , MSG_FLAG);
-		m.action.parent=Msg.getint(pos , MSG_ACTIONP);
-		m.action.id=Msg.getint(pos , MSG_ACTIONI);
-		m.notify=Msg.getint(pos , MSG_NOTIFY);
-		m.time=Msg.get64(pos , MSG_TIME);
-		Msg.unlock(pos);
+		m.flag=msg->getInt(pos , MSG_FLAG);
+		m.action.parent=msg->getInt(pos , MSG_ACTIONP);
+		m.action.id=msg->getInt(pos , MSG_ACTIONI);
+		m.notify=msg->getInt(pos , MSG_NOTIFY);
+		m.time=msg->getInt64(pos , MSG_TIME);
 		return m;
 	}
 
 	bool isThatMessage(int i , sMESSAGESELECT * mw , unsigned int & position) {
-		Msg.lock(i);
-		int flag = Msg.getint(i , MSG_FLAG);
-		int type = Msg.getint(i , MSG_TYPE);
-		char * uid = flag & MF_SEND? Msg.getch(i , MSG_TOUID):Msg.getch(i , MSG_FROMUID);
+		oTableImpl msg(tableMessages);
+		TableLocker lock(msg, i);
+		int flag = msg->getInt(i , MSG_FLAG);
+		int type = msg->getInt(i , MSG_TYPE);
+		char * uid = flag & MF_SEND? msg->getCh(i , MSG_TOUID) : msg->getCh(i, MSG_FROMUID);
 
 		int r =
-			(!mw->type || mw->type==-1 || ((unsigned int)Msg.getint(i , MSG_TYPE) == mw->type))
-			&& (mw->net==NET_BC || (Msg.getint(i , MSG_NET) == mw->net) || (!mw->net && type&MT_MASK_NOTONLIST))
+			(!mw->type || mw->type==-1 || ((unsigned int)msg->getInt(i , MSG_TYPE) == mw->type))
+			&& (mw->net==NET_BC || (msg->getInt(i , MSG_NET) == mw->net) || (!mw->net && type&MT_MASK_NOTONLIST))
 			&& (!mw->uid||!strcmp(uid,mw->uid) || (!*mw->uid && type&MT_MASK_NOTONLIST))
 			&& ((flag & mw->wflag) == mw->wflag)
 			&& (!(flag & mw->woflag))
-			&& (mw->id==-1||mw->id==0||Msg.getint(i,MSG_ID)==mw->id)
+			&& (mw->id==-1||mw->id==0||msg->getInt(i,MSG_ID)==mw->id)
 			;
 
 		/*  IMLOG("IsThat?[%d] i=%d , %d==%d , %d==%d , %s==%s , 0x%x==0x%x , !0x%x flag=0x%x",
-		r , i , mw->type,Msg.getint(i , MSG_TYPE)
-		, mw->net , Msg.getint(i , MSG_NET)
+		r , i , mw->type,msg->getInt(i , MSG_TYPE)
+		, mw->net , msg->getInt(i , MSG_NET)
 		, mw->uid , uid
 		, mw->wflag , flag & mw->wflag , flag & mw->woflag , flag);
 		*/        
@@ -156,26 +156,28 @@ messagedelete:
 				r = false;
 			position ++;
 		}
-		Msg.unlock(i);
 		return r;
 	}
 
 
 	void runMessageQueue(sMESSAGESELECT * ms, bool notifyOnly) {
 		if (!ms) return;
-		IMLOG("*MessageQueue - inQ=%d , reqNet=%d , reqType=%d" , Msg.getrowcount() , ms->net , ms->type);
+		oTableImpl msg(tableMessages);
+		TableLocker lock(msg, allRows);
+		msg->lateSave(false);
+		IMLOG("*MessageQueue - inQ=%d , reqNet=%d , reqType=%d" , msg->getRowCount() , ms->net , ms->type);
 		//  stack <pair <int , string> > notify;
-		unsigned int siz = Msg.getrowcount();
+		unsigned int siz = msg->getRowCount();
 		map <int , bool> notify_blank;
 		unsigned int i=0;
 		unsigned int count = 0;
 		cMessage * m = 0;
-		while (i < Msg.getrowcount()) {
+		while (i < msg->getRowCount()) {
 			if (m) messageFree(m, false);
 			m = 0;
-			int id = Msg.getrowid(i);
+			int id = msg->getRowId(i);
 			int r;
-			if (Msg.getint(id , MSG_FLAG) & MF_PROCESSING) {i++;continue;}
+			if (msg->getInt(id , MSG_FLAG) & MF_PROCESSING) {i++;continue;}
 			/*    if (find(notify.begin() , notify.end() , cntId)!=notify.end())
 			notify.push_back(cntId);
 			*/
@@ -190,11 +192,11 @@ messagedelete:
 				:
 			(m->flag & MF_REQUESTOPEN && (ms->id != m->id))) {i++;continue;}
 
-			Msg.setint(id , MSG_FLAG , m->flag | MF_PROCESSING);
+			msg->setInt(id , MSG_FLAG , m->flag | MF_PROCESSING);
 			r = IM_MSG_ok;
 			if (!(m->flag & MF_OPENED) && !notifyOnly) {
 				if (m->flag & MF_SEND) { // Wysylamy
-					r = IMessageDirect(Plug[Msg.getint(id , MSG_HANDLER)],IM_MSG_SEND,(int)m);
+					r = IMessageDirect(Plug[msg->getInt(id , MSG_HANDLER)],IM_MSG_SEND,(int)m);
 				} else {
 					// sprawdzanie listy
 					//      IMLOG("CHECK %d %s = %d" , m->net , m->fromUid , CFindContact(m->net , m->fromUid));
@@ -202,17 +204,17 @@ messagedelete:
 						r=IM_MSG_delete;  // Jezeli jest spoza listy powinna zostac usunieta
 					//          IMessageDirect(Plug[0] , IMI_MSG_NOTINLIST , (int)m);
 					else
-						r = IMessageDirect(Plug[Msg.getint(id , MSG_HANDLER)],IM_MSG_OPEN,(int)m);
+						r = IMessageDirect(Plug[msg->getInt(id , MSG_HANDLER)],IM_MSG_OPEN,(int)m);
 				}
 			} // MF_OPENED
 			if (r & IM_MSG_delete) {
-				IMLOG("_Wiadomosc obsluzona - %d r=%x",Msg.getint(id , MSG_ID) , r);
+				IMLOG("_Wiadomosc obsluzona - %d r=%x",msg->getInt(id , MSG_ID) , r);
 				//      string test = m->fromUid;
 				//      test = notify.top().second;
 				//      test = notify.top().second.c_str();
 				//      notify.push(make_pair(m->net , m->fromUid));
 				if (cntID != -1) {SETCNTI(cntID , CNT_NOTIFY , NOTIFY_AUTO);}
-				Msg.deleterow(id);
+				msg->removeRow(id);
 				continue;
 			}
 			else if (r & IM_MSG_update) {
@@ -220,7 +222,7 @@ messagedelete:
 			}
 			if (!(r & IM_MSG_processing)) {
 				m->flag&=~MF_PROCESSING;
-				Msg.setint(id , MSG_FLAG , m->flag);
+				msg->setInt(id , MSG_FLAG , m->flag);
 			}
 			if (cntID != -1 && m->notify) {
 				SETCNTI(cntID , CNT_NOTIFY , m->notify);
@@ -234,26 +236,27 @@ messagedelete:
 		m = 0;
 		IMessageDirect(Plug[0],IMI_NOTIFY,NOTIFY_AUTO);
 		//notify.clear();
-		if (siz != Msg.getrowcount())   postSaveMsg();
+		if (siz != msg->getRowCount()) msg->lateSave(true);
 		return;
 	}
 
 	int messageNotify(sMESSAGENOTIFY * mn) {
-		int i = Msg.getrowcount()-1;
+		oTableImpl msg(tableMessages);
+		int i = msg->getRowCount()-1;
 		mn->action = sUIAction(0,0);
 		mn->notify = 0;
 		mn->id = 0;
 		int found=0;
 		while (i>=0) {
-			//    IMLOG("net %d uid %s == NET %d UID %s" , mn->net , mn->uid , Msg.getint(i , MSG_NET) , Msg.getch(i , MSG_FROMUID));
-			if ((Msg.getint(i , MSG_NET) == mn->net && !strcmp(Msg.getch(i , MSG_FROMUID),mn->uid))
-				|| (!mn->net && !*mn->uid && Msg.getint(i,MSG_TYPE)&MT_MASK_NOTONLIST)
+			//    IMLOG("net %d uid %s == NET %d UID %s" , mn->net , mn->uid , msg->getInt(i , MSG_NET) , Msg.getch(i , MSG_FROMUID));
+			if ((msg->getInt(i , MSG_NET) == mn->net && !strcmp(msg->getCh(i , MSG_FROMUID),mn->uid))
+				|| (!mn->net && !*mn->uid && msg->getInt(i,MSG_TYPE)&MT_MASK_NOTONLIST)
 				)
 			{
-				mn->action.parent = Msg.getint(i , MSG_ACTIONP);
-				mn->action.id = Msg.getint(i , MSG_ACTIONI);
-				mn->notify = Msg.getint(i , MSG_NOTIFY);
-				mn->id = Msg.getint(i , MSG_ID);
+				mn->action.parent = msg->getInt(i , MSG_ACTIONP);
+				mn->action.id = msg->getInt(i , MSG_ACTIONI);
+				mn->notify = msg->getInt(i , MSG_NOTIFY);
+				mn->id = msg->getInt(i , MSG_ID);
 				found++;
 				if (mn->action.id || mn->notify) return found;
 			}
@@ -264,13 +267,14 @@ messagedelete:
 
 
 	int messageWaiting(sMESSAGESELECT * mw) {
-		int i = Msg.getrowcount()-1;
+		oTableImpl msg(tableMessages);
+		int i = msg->getRowCount()-1;
 		int found=0;
 		unsigned int count = 0;
 		//  if (!mw->uid[0]) return 0;
 		while (i>=0) {
-			//    IMLOG("net %d uid %s == TYPE %d NET %d UID %s" , mw->net , mw->uid ,  Msg.getint(i , MSG_TYPE) , Msg.getint(i , MSG_NET) , Msg.getch(i , MSG_FROMUID));
-			//    int flag = Msg.getint(i , MSG_FLAG);
+			//    IMLOG("net %d uid %s == TYPE %d NET %d UID %s" , mw->net , mw->uid ,  msg->getInt(i , MSG_TYPE) , msg->getInt(i , MSG_NET) , Msg.getch(i , MSG_FROMUID));
+			//    int flag = msg->getInt(i , MSG_FLAG);
 			if (isThatMessage(i , mw , count))
 			{
 				found++;
@@ -281,11 +285,12 @@ messagedelete:
 	}
 
 	int getMessage(sMESSAGEPOP * mp , cMessage * m) {
-		int i = Msg.getrowcount()-1;
+		oTableImpl msg(tableMessages);
+		int i = msg->getRowCount()-1;
 		unsigned int count = 0;
 		//  if (!mw->uid[0]) return 0;
 		while (i>=0) {
-			//    IMLOG("net %d uid %s == TYPE %d NET %d UID %s" , mw->net , mw->uid ,  Msg.getint(i , MSG_TYPE) , Msg.getint(i , MSG_NET) , Msg.getch(i , MSG_FROMUID));
+			//    IMLOG("net %d uid %s == TYPE %d NET %d UID %s" , mw->net , mw->uid ,  msg->getInt(i , MSG_TYPE) , msg->getInt(i , MSG_NET) , Msg.getch(i , MSG_FROMUID));
 			if (isThatMessage(i , mp , count))
 			{
 				memcpy(m , &makeMessage(i, false) , sizeof(cMessage));
@@ -300,22 +305,22 @@ messagedelete:
 	int removeMessage(sMESSAGEPOP * mp , unsigned int limit) {
 		if (!limit) limit=1;
 		vector <pair <int , string> > notify;
-
+		oTableImpl msg(tableMessages);
 		unsigned int c = 0;
-		int i = Msg.getrowcount()-1;
+		int i = msg->getRowCount()-1;
 		unsigned int count = 0;
 		while (i>=0 && c<limit) {
-			/*          if (Msg.getint(i,MSG_TYPE)&MT_MASK_NOTONLIST)
+			/*          if (msg->getInt(i,MSG_TYPE)&MT_MASK_NOTONLIST)
 			notify.push_back(make_pair(0 , ""));
 			else
-			notify.push_back(make_pair(Msg.getint(i,MSG_NET) , Msg.getch(i,MSG_FROMUID)));
+			notify.push_back(make_pair(msg->getInt(i,MSG_NET) , Msg.getch(i,MSG_FROMUID)));
 			*/
 			if (isThatMessage(i , mp , count))
 			{
-				int cntID = Msg.getint(i,MSG_TYPE)&MT_MASK_NOTONLIST ? 0: IMessage(IMC_FINDCONTACT ,0,0, Msg.getint(i,MSG_NET) , Msg.getint(i,MSG_FROMUID));
+				int cntID = msg->getInt(i,MSG_TYPE)&MT_MASK_NOTONLIST ? 0: IMessage(IMC_FINDCONTACT ,0,0, msg->getInt(i,MSG_NET) , msg->getInt(i,MSG_FROMUID));
 				if (cntID != -1) SETCNTI(cntID , CNT_NOTIFY , NOTIFY_AUTO);
-				//if (!(Msg.getint(i,MSG_FLAG)&MF_SEND))
-				Msg.deleterow(i);
+				//if (!(msg->getInt(i,MSG_FLAG)&MF_SEND))
+				msg->removeRow(i);
 				c++;
 				//        return 1;
 			}
@@ -333,8 +338,9 @@ messagedelete:
 
 
 	void messageProcessed(int id , bool remove) {
-		id = DT_MASKID(id);
-		Msg.setint(id , MSG_FLAG , Msg.getint(id , MSG_FLAG) & (~MF_PROCESSING));
+		oTableImpl msg(tableMessages);
+		id = DataTable::flagId(id);
+		msg->setInt(id , MSG_FLAG , msg->getInt(id , MSG_FLAG) & (~MF_PROCESSING));
 		if (remove) {
 			sMESSAGEPOP mp;
 			mp.id = id;
@@ -351,11 +357,11 @@ messagedelete:
 	*/
 	void initMessages(void) {
 		unsigned int i=0;
-		Msg.lock(DT_LOCKALL);
-		while (i < Msg.getrowcount()) {
+		oTableImpl msg(tableMessages);
+		TableLocker lock(msg);
+		while (i < msg->getRowCount()) {
 			if (newMessage(&makeMessage(i, false),1,i)) i++;
 		}
-		Msg.unlock(DT_LOCKALL);
 	}
 
 };};
