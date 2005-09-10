@@ -30,6 +30,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/bind.hpp>
 
+#include <stamina/VersionControl.h>
 #include <stamina/ObjectImpl.h>
 #include <stamina/Semaphore.h>
 #include <stamina/Thread.h>

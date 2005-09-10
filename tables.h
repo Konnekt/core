@@ -44,27 +44,33 @@ namespace Konnekt { namespace Tables {
 
 		int __stdcall getRowPos(tRowId rowId);
 		int __stdcall getRowId(unsigned int rowPos);
-		tRowId __cdecl _findRow(unsigned int startPos, int argCount, ...);
+		oRow __cdecl _findRow(unsigned int startPos, int argCount, ...);
 
 
-		enColumnFlag __stdcall getColFlags(tColId colId);
-		unsigned int __stdcall getRowCount();
-		tColId __stdcall getColId(const char * colName);
-		const char * __stdcall getColName(tColId colId);
-		unsigned int __stdcall getColCount();
-		tColId __stdcall getColIdByPos(unsigned int colPos);
-		bool __stdcall get(tRowId rowId , tColId colId , Value & value);
-		bool __stdcall set(tRowId rowId , tColId colId , Value & value);
-		void __stdcall lockData(tRowId rowId , int reserved=0);
-		void __stdcall unlockData(tRowId rowId , int reserved=0);
-		tColId __stdcall setColumn(oPlugin plugin, tColId colId , tColType type , DataEntry def = 0 , const char * name = 0);
-
-		tColId setColumn(tColId colId , tColType type , int def = 0 , const char * name = 0) {
-			return this->setColumn(Ctrl->getPlugin(), colId, type, (DataEntry)def, name);
+		virtual oRow __stdcall getRow(tRowId rowId) {
+			return _dt.getRow(rowId).get();
+		}
+		virtual oColumn __stdcall getColumn(tColId colId) {
+			return _dt.getColumn(colId);
+		}
+		virtual oColumn __stdcall getColumn(const Stamina::StringRef& colName) {
+			return _dt.getColumn(colName);
 		}
 
+		virtual oColumn __stdcall getColumnByPos(unsigned int colPos) {
+			return _dt.getColumns().getColumnByIndex(colPos);
+		}
 
-		tRowId __stdcall addRow(tRowId rowId = rowNotFound);
+		unsigned int __stdcall getRowCount();
+		unsigned int __stdcall getColCount();
+		void __stdcall lockData(tRowId rowId , int reserved=0);
+		void __stdcall unlockData(tRowId rowId , int reserved=0);
+		oColumn __stdcall setColumn(const oPlugin& plugin, tColId colId , tColType type, const StringRef& name = StringRef());
+		oColumn __stdcall setColumn(tColId colId , tColType type, const StringRef& name = StringRef()) {
+			return this->setColumn(Ctrl->getPlugin(), colId, type, name);
+		}
+
+		oRow __stdcall addRow(tRowId rowId = rowNotFound);
 		bool __stdcall removeRow(tRowId rowId);
 		void __stdcall reset();
 		void __stdcall resetData();
@@ -90,8 +96,8 @@ namespace Konnekt { namespace Tables {
 			return _isLoaded();
 		}
 
-		enResult __stdcall load(bool force = false, const char * filePath = 0);
-		enResult __stdcall save(bool force = false, const char * filePath = 0);
+		enResult __stdcall load(bool force = false, const StringRef& filePath = StringRef());
+		enResult __stdcall save(bool force = false, const StringRef& filePath = StringRef());
 		void __stdcall lateSave(bool enabled);
 
 		bool __stdcall setOpt(enTableOptions option , bool enabled);
@@ -100,22 +106,18 @@ namespace Konnekt { namespace Tables {
 			return (this->_opt & option) == (int)option;
 		}
 
-		void __stdcall setFilename(const char * filename) {
+		void __stdcall setFilename(const StringRef& filename = StringRef()) {
 			TableLocker(this);
-			this->_filename = filename ? filename : "";
+			this->_filename = filename;
 		}
-		const char * __stdcall _getFilename() {
+		String __stdcall getFilename() {
 			TableLocker(this);
-			return this->_filename.c_str();
+			return this->_filename;
 		}
-		void __stdcall setDirectory(const char * path = 0);
-		const char * __stdcall _getDirectory() {
+		void __stdcall setDirectory(const StringRef& path = StringRef());
+		String __stdcall getDirectory() {
 			TableLocker(this);
-			return this->_directory.c_str();
-		}
-		const char * __stdcall _getTableName() {
-			TableLocker(this);
-			return Unique::getName(Unique::domainTable, this->getTableId()).c_str();
+			return this->_directory;
 		}
 		tTableId __stdcall getTableId() {
 			return this->_tableId;
@@ -134,7 +136,7 @@ namespace Konnekt { namespace Tables {
 			 return _dt;
 		 }
 
-		 virtual void setTablePassword(const char* password) {
+		 virtual void setTablePassword(const StringRef& password) {
 			 _dt.setPassword(password);
 		 }
 
@@ -144,7 +146,7 @@ namespace Konnekt { namespace Tables {
 		void broadcastEvent(tIMid imId, bool force = false);
 		void broadcastRowEvent(tIMid imId, tRowId rowId, bool force = false);
 
-		CStdString getFilepath() {
+		String getFilepath() {
 			if (this->_directory.empty() || this->_filename.empty())
 				return "";
 			else
@@ -171,10 +173,10 @@ namespace Konnekt { namespace Tables {
 		oPlugin _owner;
 		tTableId _tableId;
 		DataTable _dt;
-		CStdString _directory, _filename;
+		String _directory, _filename;
 		bool _loaded;
 		bool _columnsSet;
-		CStdString _name;
+		String _name;
 		boost::shared_ptr<Stamina::TimerDynamic> _lateSaveTimer;
 
 	};
@@ -189,7 +191,7 @@ namespace Konnekt { namespace Tables {
 		oTableImpl(tTableId tableId) {
 			this->setById(tableId);
 		}
-		oTableImpl(const char * tableName) {
+		oTableImpl(const StringRef& tableName) {
 			this->setById(getTableId(tableName));
 		}
 		oTableImpl(TableImpl * obj = 0) {
