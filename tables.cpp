@@ -3,6 +3,7 @@
 #include "profiles.h"
 #include "main.h"
 #include "threads.h"
+#include "tables_interface.h"
 
 #include <Stamina\ThreadInvoke.h>
 #include <Stamina\DataTable\FileBin.h>
@@ -14,6 +15,7 @@ namespace Konnekt { namespace Tables {
 
 	TableList tables;
 
+	StaticObj<Interface_konnekt> iface;
 
 /*	CdTable Msg;
 	CdTable Cfg;
@@ -71,6 +73,7 @@ namespace Konnekt { namespace Tables {
 		this->_dt.setXor1Key(XOR_KEY);
 		this->_loaded = false;
 		this->_columnsSet = false;
+		this->_dt.setInterface(iface);
 	}
 
 	void __stdcall TableImpl::release() {
@@ -204,6 +207,7 @@ namespace Konnekt { namespace Tables {
 			result = errFileNotFound;
 			if (!file.empty()) {
 				FileBin fb;
+				fb.warningDialogs = false;
 				fb.assign(_dt);
 				if (this->getOpt(optDiscardLoadedColumns) == false && this->_columnsSet == false) {
 					result = fb.loadAll(file);
@@ -214,7 +218,8 @@ namespace Konnekt { namespace Tables {
 			this->_columnsSet = true;
 			this->_loaded = true;
 		}
-		this->broadcastEvent(IM::afterLoad);
+		if (result == success) 
+			this->broadcastEvent(IM::afterLoad);
 		return result;
 	}
 
@@ -234,6 +239,7 @@ namespace Konnekt { namespace Tables {
 				return errFileNotFound;
 			}
 			FileBin fb(_dt);
+			fb.warningDialogs = false;
 
 			/*
 			if (this->getOpt(optUseCurrentPassword)) {
@@ -366,6 +372,9 @@ namespace Konnekt { namespace Tables {
 				}
 			}
 		}
+
+		// do listy znanych hase³...
+		iface->addDigest(digest);
 
 	}
 
