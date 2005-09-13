@@ -882,6 +882,9 @@
 				RelativePath=".\tables.h">
 			</File>
 			<File
+				RelativePath=".\tables_interface.h">
+			</File>
+			<File
 				RelativePath=".\test.h">
 			</File>
 			<File
