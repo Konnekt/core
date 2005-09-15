@@ -24,6 +24,7 @@ namespace Konnekt { namespace Tables {
 */
 	oTable cfg;
 	oTable cnt;
+	oTable global;
 
 	void deinitialize() {
 		tables.unregisterAll();
@@ -314,7 +315,7 @@ namespace Konnekt { namespace Tables {
 			this->_directory = unifyPath( path, false );
 		} else {
 			if (this->getOpt(optGlobalData)) {
-				this->_directory = "%KonnektData%";
+				this->_directory = "%KonnektData%\\settings";
 			} else {
 				this->_directory = "%KonnektProfile%";
 			}

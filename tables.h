@@ -21,6 +21,7 @@ namespace Konnekt { namespace Tables {
 	//extern oTable msg;
 	extern oTable cfg;
 	extern oTable cnt;
+	extern oTable global;
 	//extern CdTable Plg; // Informacje o wtyczkach
 	
 

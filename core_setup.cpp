@@ -30,7 +30,10 @@ namespace Konnekt {
 		msg->setFilename("msg.dtb");
 		msg->setDirectory();
 
-
+		Tables::global = registerTable(Ctrl, tableGlobalCfg, optAutoLoad | optAutoSave | optMakeBackups | optGlobalData);
+		Unique::registerId(Unique::domainTable, tableGlobalCfg, "GlobalCfg");
+		global->setFilename("global.dtb");
+		global->setDirectory();
 
 
 	}
