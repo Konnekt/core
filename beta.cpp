@@ -282,7 +282,7 @@ namespace Konnekt { namespace Beta {
 		setStats(0);
 	}
 
-	string info_plugins() {
+	string info_plugins(bool withFilenames = false) {
 		string s;
 		for (unsigned int i=0; i<Plug.Plug.size(); i++) {
 			//FileVersionInfo(Plug[i].file.c_str() , TLS().buff);
@@ -290,6 +290,9 @@ namespace Konnekt { namespace Beta {
 				s += ',';
 			}
 			s += RegEx::doReplace("/[^a-zA-Z0-9_]/", "_", Plug[i].sig.c_str());
+			if (withFilenames) {
+				s += "(" + getFileName(Plug[i].file) + ")";
+			}
 			s += " ";
 			s += inttostr(Plug[i].version.getInt(),16);
 		}
@@ -794,7 +797,7 @@ namespace Konnekt { namespace Beta {
 		reports->setStr(i , REP_TITLE , title);
 		reports->setStr(i , REP_MSG , msg);
 		reports->setStr(i , REP_OS , info_os());
-		reports->setStr(i , REP_PLUGS , info_plugins());
+		reports->setStr(i , REP_PLUGS , info_plugins(true));
 		reports->setInt(i , REP_VERSION , Konnekt::versionNumber);
 		reports->setStr(i , REP_INFO , info_other());
 		reports->setStr(i , REP_LOG , log);

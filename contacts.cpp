@@ -30,7 +30,11 @@ int findContact(int p1 , char * p2) {
 		else
 			return -1;
 	}
-	return Tables::cnt->findRow(0, DT::Find::EqInt(CNT_NET, p1), DT::Find::EqStr(p1 ? CNT_UID : CNT_DISPLAY, p2));
+	if (p1 == -1) { // tylko wg. display
+		return Tables::cnt->findRow(0, DT::Find::EqStr(CNT_DISPLAY, p2));
+	} else {
+		return Tables::cnt->findRow(0, DT::Find::EqInt(CNT_NET, p1), DT::Find::EqStr(CNT_UID, p2));
+	}
 	/*
 	int sz = Tables::cnt->getRowCount();
 	for (int i=1;i<sz;i++) {

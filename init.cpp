@@ -27,6 +27,8 @@ using namespace Stamina;
 
 namespace Konnekt {
 
+	const char* const coreLibraries = "/^(msvc.+|smemory|stamina|devil.*|zlib)\.dll$/i";
+
 	/*HACK: Przenoszenie bibliotek z katalogu g³ównego...*/
 	void moveAdditionalLibraries() {
 		FindFile ff(dataPath + "dll\\*.dll");
@@ -40,7 +42,7 @@ namespace Konnekt {
 			// do rozruchu.
 			if (fileExists(ff.found().getFileName().c_str()) == false) continue;
 			// niektóre DLLki po prostu musz¹ byæ w g³ównym...
-			if (find_noCase(ff.found().getFileName().c_str(), "msvc") == 0) continue;
+			if (RegEx::doMatch(coreLibraries, ff.found().getFileName().c_str()) > 0 ) continue;
 			if (ff.found().getFileName() == "ui.dll") continue;
 
 			// koñczymy gdy jest katalogiem, lub nie mozemy odczytac czasow
