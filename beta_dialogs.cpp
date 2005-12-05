@@ -18,7 +18,7 @@ namespace Konnekt { namespace Beta {
 		case WM_INITDIALOG:
 			SetFocus(GetDlgItem(hwnd , IDE_LOGIN));
 			PassChanged=false;
-			if (!anonymous) SetDlgItemText(hwnd , IDE_LOGIN , Tables::tables[tableBeta]->getCh(0,BETA_LOGIN));
+			if (!anonymous) SetDlgItemText(hwnd , IDE_LOGIN , Tables::tables[tableBeta]->getString(0,BETA_LOGIN).a_str());
 			SendDlgItemMessage(hwnd , IDWWW , BM_SETIMAGE , IMAGE_BITMAP , (LPARAM)LoadImage(Stamina::getHInstance() , "BETA" , IMAGE_BITMAP , 0 , 0 , 0));
 			break;
 		case WM_NCDESTROY:
@@ -56,15 +56,15 @@ namespace Konnekt { namespace Beta {
 					Tables::oTableImpl beta(tableBeta);
 					if (LoginChanged && newLogin != betaLogin) {
 						if (anonymous && !newLogin.empty()) {
-							beta->setStr(0 , BETA_ANONYMOUS_LOGIN , betaLogin);
+							beta->setString(0 , BETA_ANONYMOUS_LOGIN , betaLogin);
 						}
 						if (!anonymous && newLogin.empty()) {
 							// jeœli da siê, wracamy do starego loginu-anonima
-							betaLogin = beta->getStr(0 , BETA_ANONYMOUS_LOGIN);
+							betaLogin = beta->getString(0 , BETA_ANONYMOUS_LOGIN);
 						} else {
 							betaLogin = newLogin;
 						}
-						beta->setStr(0 , BETA_LOGIN , betaLogin);
+						beta->setString(0 , BETA_LOGIN , betaLogin);
 						anonymous = newLogin.empty();
 						if (anonymous == false) {
 							beta->setInt64(0 , BETA_LOGIN_CHANGE, _time64(0));
@@ -76,8 +76,8 @@ namespace Konnekt { namespace Beta {
 						CStdString newPass;
 						GetDlgItemText(hwnd , IDE_PASS , newPass.GetBuffer(255) , 255);
 						newPass.ReleaseBuffer();
-						beta->setStr(0 , BETA_PASSMD5 , Stamina::MD5Hex(newPass));
-						betaPass = beta->getStr(0 , BETA_PASSMD5);
+						beta->setString(0 , BETA_PASSMD5 , Stamina::MD5Hex(newPass));
+						betaPass = beta->getString(0 , BETA_PASSMD5);
 					}
 /*					Beta.setint(0, BETA_AFIREWALL , IsDlgButtonChecked(hwnd , IDCB_FIREWALL)==BST_CHECKED);
 					Beta.setint(0, BETA_AMODEM , IsDlgButtonChecked(hwnd , IDCB_MODEM)==BST_CHECKED);

@@ -107,7 +107,7 @@ namespace Konnekt {
 		string info_serial();
 		string info_other(bool extended=false);
 		string info_os();
-		string info_plugins();
+		string info_plugins(bool withFilenames);
 		void imdigest(string & msg);
 		void  stackdigest(string & msg);
 

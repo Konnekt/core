@@ -82,7 +82,7 @@ namespace Konnekt { namespace Beta {
 		if (!startDate.empty()) {
 			printValue(f, "Raporty od", startDate.strftime("%d-%m-%Y %H:%M"));
 		}
-		printValue(f, "Login", beta->getStr(0, BETA_LOGIN));
+		printValue(f, "Login", beta->getString(0, BETA_LOGIN).c_str());
 		printValue(f, "Urid", inttostr( beta->getInt(0, BETA_URID), 16 ));
 		printValue(f, "Serial", info_serial());
 		printValue(f, "LastReport", Stamina::Time64(beta->getInt64(0, BETA_LAST_REPORT)).strftime("%d-%m-%Y %H:%M:%S"));
@@ -100,10 +100,10 @@ namespace Konnekt { namespace Beta {
 			f << "<td valign=\"top\"><table class=\"rep_fields\">" << endl;
 			// dane
 			printValue(f, "LastReport", Stamina::Time64(reports->getInt64(i, REP_DATE)).strftime("%d-%m-%Y %H:%M:%S"));
-			printValue(f, "Tytu³", reports->getStr(i, REP_TITLE));
+			printValue(f, "Tytu³", reports->getString(i, REP_TITLE).c_str());
 			printValue(f, "Typ", inttostr(reports->getInt(i, REP_TYPE)));
 			printValue(f, "Wersja", inttostr( reports->getInt(i, REP_VERSION), 16));
-			CStdString plugs = reports->getStr(i, REP_PLUGS);
+			CStdString plugs = reports->getString(i, REP_PLUGS).c_str();
 			Stamina::tStringVector plugList;
 			Stamina::split(plugs, ",", plugList);
 			plugs = "";
@@ -121,11 +121,11 @@ namespace Konnekt { namespace Beta {
 			f << "<td class=\"rep_add\" valign=\"top\">" << endl;
 			// zrzut i log
 			f << "<h2>Message</h2>" << endl;
-			f << "<div class=\"rep_message\"><pre>"<< reports->getStr(i, REP_MSG) <<"</pre></div>" << endl;
+			f << "<div class=\"rep_message\"><pre>"<< reports->getString(i, REP_MSG) <<"</pre></div>" << endl;
 			f << "<h2>Info</h2>" << endl;
-			f << "<div class=\"rep_info\"><pre>"<< reports->getStr(i, REP_INFO) <<"</pre></div>" << endl;
+			f << "<div class=\"rep_info\"><pre>"<< reports->getString(i, REP_INFO) <<"</pre></div>" << endl;
 			f << "<h2>Log</h2>" << endl;
-			f << "<div class=\"rep_log\"><pre>"<< reports->getStr(i, REP_LOG) <<"</pre></div>" << endl;
+			f << "<div class=\"rep_log\"><pre>"<< reports->getString(i, REP_LOG) <<"</pre></div>" << endl;
 			f << "</td>" << endl;
 
 			f << "</tr></table></td></tr>" << endl;

@@ -144,17 +144,17 @@ namespace Konnekt { namespace Beta {
 		beta->setDirectory(PATH_BETA);
 		tableBeta = beta->getTableId();
 
-		beta->setColumn(BETA_LOGIN , DT_CT_PCHAR|DT_CF_CXOR , "");
-		beta->setColumn(BETA_PASSMD5 , DT_CT_PCHAR|DT_CF_CXOR , "");
-		beta->setColumn(BETA_AFIREWALL , DT_CT_INT , 0);
-		beta->setColumn(BETA_AMODEM , DT_CT_INT , 0);
-		beta->setColumn(BETA_AWBLINDS , DT_CT_INT , 0);
-		beta->setColumn(BETA_ANONYMOUS_LOGIN , DT_CT_PCHAR|DT_CF_CXOR , "");
-		beta->setColumn(BETA_ANONYMOUS , DT_CT_INT , 1);
-		beta->setColumn(BETA_LAST_REPORT , DT_CT_64 , 0);
-		beta->setColumn(BETA_URID , DT_CT_INT , 0);
-		beta->setColumn(BETA_LOGIN_CHANGE, DT_CT_64, 0);
-		beta->setColumn(BETA_LAST_STATICREPORT, DT_CT_64, 0);
+		beta->setColumn(BETA_LOGIN , ctypeString | cflagXor);
+		beta->setColumn(BETA_PASSMD5 , ctypeString | cflagXor);
+		beta->setColumn(BETA_AFIREWALL , ctypeInt);
+		beta->setColumn(BETA_AMODEM , ctypeInt);
+		beta->setColumn(BETA_AWBLINDS , ctypeInt);
+		beta->setColumn(BETA_ANONYMOUS_LOGIN , ctypeString | cflagXor);
+		beta->setColumn(BETA_ANONYMOUS , ctypeInt);
+		beta->setColumn(BETA_LAST_REPORT , ctypeInt64);
+		beta->setColumn(BETA_URID , ctypeInt);
+		beta->setColumn(BETA_LOGIN_CHANGE, ctypeInt64);
+		beta->setColumn(BETA_LAST_STATICREPORT, ctypeInt64);
 
 
 		oTable stats = registerTable(Ctrl, "Stats", optPrivate | optAutoLoad | optAutoSave | optAutoUnload | optDiscardLoadedColumns | optUsePassword | optSilent | optGlobalData);
@@ -163,12 +163,12 @@ namespace Konnekt { namespace Beta {
 		stats->setDirectory(PATH_BETA);
 		tableStats = stats->getTableId();
 
-		stats->setColumn(STATS_DATE , DT_CT_64 , 0);
-		stats->setColumn(STATS_STARTCOUNT , DT_CT_INT , 0);
-		stats->setColumn(STATS_UPTIME , DT_CT_INT , 0);
-		stats->setColumn(STATS_MSGRECV , DT_CT_INT , 0);
-		stats->setColumn(STATS_MSGSENT , DT_CT_INT , 0);
-		stats->setColumn(STATS_REPORTED , DT_CT_INT , 0);
+		stats->setColumn(STATS_DATE , ctypeInt64);
+		stats->setColumn(STATS_STARTCOUNT , ctypeInt);
+		stats->setColumn(STATS_UPTIME , ctypeInt);
+		stats->setColumn(STATS_MSGRECV , ctypeInt);
+		stats->setColumn(STATS_MSGSENT , ctypeInt);
+		stats->setColumn(STATS_REPORTED , ctypeInt);
 
 
 		oTable reports = registerTable(Ctrl, "Reports", optPrivate | optAutoLoad | optAutoSave | optAutoUnload | optDiscardLoadedColumns | optUsePassword | optSilent | optGlobalData);
@@ -177,25 +177,25 @@ namespace Konnekt { namespace Beta {
 		reports->setDirectory(PATH_BETA);
 		tableReports = reports->getTableId();
 
-		reports->setColumn(REP_DATE , DT_CT_64);
-		reports->setColumn(REP_TYPE , DT_CT_INT);
-		reports->setColumn(REP_TITLE , DT_CT_PCHAR | DT_CT_CXOR);
-		reports->setColumn(REP_MSG , DT_CT_PCHAR | DT_CT_CXOR);
-		reports->setColumn(REP_OS , DT_CT_PCHAR | DT_CT_CXOR);
-		reports->setColumn(REP_PLUGS , DT_CT_PCHAR | DT_CT_CXOR);
-		reports->setColumn(REP_INFO , DT_CT_PCHAR | DT_CT_CXOR);
-		reports->setColumn(REP_LOG , DT_CT_PCHAR | DT_CT_CXOR);
-		reports->setColumn(REP_REPORTED , DT_CT_INT , 0);
-		reports->setColumn(REP_DIGEST , DT_CT_PCHAR , 0);
-		reports->setColumn(REP_VERSION , DT_CT_INT);
+		reports->setColumn(REP_DATE , ctypeInt64);
+		reports->setColumn(REP_TYPE , ctypeInt);
+		reports->setColumn(REP_TITLE , ctypeString | cflagXor);
+		reports->setColumn(REP_MSG , ctypeString | cflagXor);
+		reports->setColumn(REP_OS , ctypeString | cflagXor);
+		reports->setColumn(REP_PLUGS , ctypeString | cflagXor);
+		reports->setColumn(REP_INFO , ctypeString | cflagXor);
+		reports->setColumn(REP_LOG , ctypeString | cflagXor);
+		reports->setColumn(REP_REPORTED , ctypeInt);
+		reports->setColumn(REP_DIGEST , ctypeString | cflagXor);
+		reports->setColumn(REP_VERSION , ctypeInt);
 
 		if (beta->getRowCount() == 0) beta->addRow();
 
 		setStats(0);
 
-		if (!*beta->getCh(0 , BETA_LOGIN) && !beta->getInt(0 , BETA_ANONYMOUS)) showBeta();
-		betaLogin = beta->getStr(0, BETA_LOGIN);
-		betaPass = beta->getStr(0, BETA_PASSMD5);
+		if (beta->getString(0 , BETA_LOGIN).empty() && !beta->getInt(0 , BETA_ANONYMOUS)) showBeta();
+		betaLogin = beta->getString(0, BETA_LOGIN);
+		betaPass = beta->getString(0, BETA_PASSMD5);
 		anonymous = beta->getInt(0 , BETA_ANONYMOUS);
 		if (!betaLogin.empty() && betaLogin[0]!=ANONYM_CHAR) {
 			anonymous = false;
@@ -330,7 +330,9 @@ namespace Konnekt { namespace Beta {
 
 	string info_other(bool extended) {
 		HKEY hKey=HKEY_LOCAL_MACHINE;
-		string str = "";
+		string str = "level=" + Stamina::inttostr(ShowBits::getLevel());
+
+
 		/*
 		if (!RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Internet Explorer",0,KEY_READ,&hKey))
 		{
@@ -488,14 +490,14 @@ namespace Konnekt { namespace Beta {
 
 				IMLOG("* BT Zbieram dane...");
 				// login , pass		
-				frmdata = "login="+urlEncode(beta->getStr(0 , BETA_LOGIN))
-					+"&pass="+urlEncode(beta->getStr(0 , BETA_PASSMD5));
+				frmdata = "login="+urlEncode(beta->getString(0 , BETA_LOGIN))
+					+"&pass="+urlEncode(beta->getString(0 , BETA_PASSMD5));
 				// urid (Unique Report ID) - do wykrywania powtórnych wys³añ
 				int urid = beta->getInt(0 , BETA_URID);
 				frmdata += "&urid=" + inttostr(urid, 16);
 				// anonymous
-				if (beta->getStr(0 , BETA_ANONYMOUS_LOGIN).empty() == false) {
-					frmdata+="&anonymous="+urlEncode(beta->getStr(0 , BETA_ANONYMOUS_LOGIN));
+				if (beta->getString(0 , BETA_ANONYMOUS_LOGIN).empty() == false) {
+					frmdata+="&anonymous="+urlEncode(beta->getString(0 , BETA_ANONYMOUS_LOGIN));
 				}
 				// os , nfo
 				frmdata += "&os=" + urlEncode(info_os());
@@ -510,7 +512,7 @@ namespace Konnekt { namespace Beta {
 
 				/* Fakt ¿e mamy login w pewien sposób upewnia nas, ¿e dostajemy odpowiedzi... */
 
-				if (beta->getStr(0 , BETA_LOGIN).length() > 0 || beta->getStr(0, BETA_LAST_REPORT).length() > 0) {
+				if (beta->getString(0 , BETA_LOGIN).length() > 0 || beta->getString(0, BETA_LAST_REPORT).length() > 0) {
 					// Statystyki
 					for (unsigned int i=0; i<stats->getRowCount(); i++) {
 						if ((int)(stats->getInt64(i , STATS_DATE)/86400) == (int)(_time64(0)/86400)) continue; // Pomijamy niepe³ne, dzisiejsze statystyki...
@@ -536,18 +538,18 @@ namespace Konnekt { namespace Beta {
 						frmdata += var + "[id]=" + inttostr(reports->getRowId(i), 16);
 						frmdata += var + "[date]=" + Time64(reports->getInt64(i , REP_DATE)).strftime("%Y-%m-%d"); 
 						frmdata += var + "[type]="+inttostr(reports->getInt(i , REP_TYPE));
-						frmdata += var + "[title]="+urlEncode(reports->getStr(i , REP_TITLE));
-						frmdata += var + "[msg]="+urlEncode(reports->getStr(i , REP_MSG));
-						frmdata += var + "[os]="+urlEncode(reports->getStr(i , REP_OS));
-						frmdata += var + "[nfo]="+urlEncode(reports->getStr(i , REP_INFO));
-						CStdString log = reports->getStr(i , REP_LOG);
+						frmdata += var + "[title]="+urlEncode(reports->getString(i , REP_TITLE));
+						frmdata += var + "[msg]="+urlEncode(reports->getString(i , REP_MSG));
+						frmdata += var + "[os]="+urlEncode(reports->getString(i , REP_OS));
+						frmdata += var + "[nfo]="+urlEncode(reports->getString(i , REP_INFO));
+						CStdString log = reports->getString(i , REP_LOG).a_str();
 						if (log.length() > logSendout) {
 							log.erase(0, log.length() - logSendout);
 						}
 						frmdata += var + "[log]=" + urlEncode(log);
-						frmdata += var + "[digest]=" + urlEncode(reports->getStr(i , REP_DIGEST));
+						frmdata += var + "[digest]=" + urlEncode(reports->getString(i , REP_DIGEST));
 						frmdata += var + "[version]="+inttostr(reports->getInt(i , REP_VERSION), 16);
-						frmdata += var + "[plugins]="+urlEncode(reports->getStr(i , REP_PLUGS));
+						frmdata += var + "[plugins]="+urlEncode(reports->getString(i , REP_PLUGS));
 					}
 				} // have login...
 			} // unlock
@@ -558,7 +560,7 @@ namespace Konnekt { namespace Beta {
 			srand(time(0));
 			url.Format(URL_BETA_CENTRAL, Stamina::random(1, BETA_SERVER_COUNT) );
 			url += "?";
-			if (beta->getStr(0 , BETA_LOGIN)[0] == 0) {
+			if (beta->getString(0 , BETA_LOGIN).empty()) {
 				url += "nologin=1";
 			} else if (beta->getInt(0 , BETA_ANONYMOUS)){
 				url += "anon=1";
@@ -582,6 +584,8 @@ namespace Konnekt { namespace Beta {
 			TCHAR hdrs[] = _T("Content-Type: application/x-www-form-urlencoded");
 			//      TCHAR accept[] =
 			//         _T("Accept: */*");
+
+			std::string userAgent = "Konnekt-beta (" + Konnekt::versionInfo + ")";
 
 			Stamina::oInternet internet ( new Stamina::Internet((HINTERNET) IMCore(&sIMessage_2params(IMC_HINTERNET_OPEN , (int)"Konnekt-beta" , 0))) );
 
@@ -654,8 +658,8 @@ namespace Konnekt { namespace Beta {
 						ShellExecute(0 , "open" , URL , "" , "" , SW_SHOW);
 				}
 				if (response.match("/^Unauthorized$/m")) {
-					beta->setStr(0 , BETA_LOGIN , "");
-					beta->setStr(0 , BETA_PASSMD5 , "");
+					beta->setString(0 , BETA_LOGIN , "");
+					beta->setString(0 , BETA_PASSMD5 , "");
 					beta->setInt(0 , BETA_ANONYMOUS , 0);
 
 					betaLogin = "";
@@ -686,8 +690,8 @@ namespace Konnekt { namespace Beta {
 					response.reset();
 					// User zosta³ zarejestrowany jako anonim...
 					if (response.match("/^Registered=\"(.+),(.*)\"$/m")) {
-						beta->setStr(0 , BETA_LOGIN , response[1].c_str());
-						beta->setStr(0 , BETA_PASSMD5 , response[2].c_str());
+						beta->setString(0 , BETA_LOGIN , response[1].c_str());
+						beta->setString(0 , BETA_PASSMD5 , response[2].c_str());
 						beta->setInt(0 , BETA_ANONYMOUS , 1);
 						betaLogin = response[1];
 						betaPass = response[2];
@@ -695,7 +699,7 @@ namespace Konnekt { namespace Beta {
 					}
 					// User ju¿ nie jest anonimem...
 					if (response.match("/^Unregistered$/m")) {
-						beta->setStr(0 , BETA_ANONYMOUS_LOGIN , "");
+						beta->setString(0 , BETA_ANONYMOUS_LOGIN , "");
 					}
 					if (response.match("/^Reported$/m")) {
 						beta->setInt64(0 , BETA_LAST_REPORT , _time64(0));
@@ -794,14 +798,14 @@ namespace Konnekt { namespace Beta {
 		tRowId i = reports->addRow();
 		reports->setInt64(i , REP_DATE , _time64(0));
 		reports->setInt(i , REP_TYPE , type);
-		reports->setStr(i , REP_TITLE , title);
-		reports->setStr(i , REP_MSG , msg);
-		reports->setStr(i , REP_OS , info_os());
-		reports->setStr(i , REP_PLUGS , info_plugins(true));
+		reports->setString(i , REP_TITLE , title);
+		reports->setString(i , REP_MSG , msg);
+		reports->setString(i , REP_OS , info_os());
+		reports->setString(i , REP_PLUGS , info_plugins(true));
 		reports->setInt(i , REP_VERSION , Konnekt::versionNumber);
-		reports->setStr(i , REP_INFO , info_other());
-		reports->setStr(i , REP_LOG , log);
-		reports->setStr(i , REP_DIGEST , digest);
+		reports->setString(i , REP_INFO , info_other());
+		reports->setString(i , REP_LOG , log);
+		reports->setString(i , REP_DIGEST , digest);
 		reports->save();
 		if (send != 0) Beta::send(true);
 		return i;
@@ -881,7 +885,7 @@ namespace Konnekt { namespace Beta {
 		msg += "\n-----------------------------------\nINFO:  ";
 		msg += ER.info;
 		oTableImpl reports(tableReports);
-		reports->setStr(id , REP_MSG , msg);
+		reports->setString(id , REP_MSG , msg);
 		reports->save();
 		IMLOG("- reports saved");
 	}
