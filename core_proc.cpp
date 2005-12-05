@@ -176,7 +176,10 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				msgCC.type = IMT_CONTACT;
 				// Trzeba upewniæ siê, ¿e oba pola s¹ wype³nione
 				if (msgCC._changed.net || msgCC._changed.uid) {
-					if (!msgCC._oldUID) msgCC._oldUID = Tables::cnt->getCh(msgCC._cntID , CNT_UID);
+					if (!msgCC._oldUID) {
+						TLSU().stringBuff = Tables::cnt->getString(msgCC._cntID , CNT_UID);
+						msgCC._oldUID = TLSU().stringBuff.c_str();
+					}
 					if (!msgCC._changed.net && msgCC._oldNet == NET_NONE) msgCC._oldNet = Tables::cnt->getInt(msgCC._cntID , CNT_NET);
 				}
 				IMessageProcess(&msgCC , 0);
@@ -193,7 +196,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			if (msg->p1 && msg->p2 && *(char*)msg->p2) {
 				int cnt = Contacts::findContact(msg->p1,(char *)msg->p2);
 				if (cnt != -1) {
-					int r = IMessageProcess(&sIMessage_msgBox(IMI_CONFIRM, stringf(loadString(IDS_ASK_CNTOVERWRITE).c_str(), msg->p2, msg->p1, Tables::cnt->getCh(cnt, CNT_DISPLAY)).c_str(), "Dodawanie kontaktu", MB_YESNOCANCEL), 0);
+					int r = IMessageProcess(&sIMessage_msgBox(IMI_CONFIRM, stringf(loadString(IDS_ASK_CNTOVERWRITE).c_str(), msg->p2, msg->p1, Tables::cnt->getString(cnt, CNT_DISPLAY)).c_str(), "Dodawanie kontaktu", MB_YESNOCANCEL), 0);
 					switch (r) {
 						case IDNO:cnt=-1;break;
 						case IDCANCEL:return -1;
@@ -204,7 +207,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				cnt = Tables::cnt->getRowId(Tables::cnt->addRow());
 				//if (!msg->p1) msg->p2 = (int)inttostr(Tables::cnt->getInt(a , DT_C_ID));
 				if (msg->p1) Tables::cnt->setInt(cnt , CNT_NET , msg->p1);
-				if (msg->p2) Tables::cnt->setCh(cnt , CNT_UID , (char*)msg->p2);
+				if (msg->p2) Tables::cnt->setString(cnt , CNT_UID , (char*)msg->p2);
 				Tables::cnt->setInt(cnt , CNT_INTERNAL , Tables::cnt->getInt(cnt , CNT_INTERNAL)|1);
 				IMessage(IM_CNT_ADDING,NET_BC,IMT_CONTACT,cnt,0,0);
 			}
@@ -214,10 +217,10 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			ISRUNNING(); 
 			if (msg->p1>0 && (!msg->p2
 								 || UIMessage(IMI_CONFIRM
-								 ,(int)stringf(loadString(IDS_ASK_CNTREMOVE).c_str(),Tables::cnt->getCh(msg->p1,CNT_DISPLAY)).c_str()
+								 ,(int)stringf(loadString(IDS_ASK_CNTREMOVE).c_str(),Tables::cnt->getString(msg->p1,CNT_DISPLAY)).c_str()
 								 ,0))) 
 			{
-				Messages::removeMessage(&sMESSAGESELECT(Tables::cnt->getInt(msg->p1,CNT_NET),Tables::cnt->getStr(msg->p1,CNT_UID).c_str(),MT_MESSAGE,0,MF_SEND),-1);
+				Messages::removeMessage(&sMESSAGESELECT(Tables::cnt->getInt(msg->p1,CNT_NET),Tables::cnt->getString(msg->p1,CNT_UID).c_str(),MT_MESSAGE,0,MF_SEND),-1);
 				IMessage(IM_CNT_REMOVE, NET_BC, IMT_CONTACT, msg->p1, msg->p2, 0);
 				bool result = Tables::cnt->removeRow(msg->p1);
 				IMessage(IM_CNT_REMOVED, NET_BC, IMT_CONTACT, msg->p1, msg->p2, 0);
@@ -361,7 +364,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			sc.sender = 0;
 			IMessageProcess(&sc,0);
 			if (sc.status != -1) Tables::cnt->setInt(sc.cntID , CNT_STATUS , (Tables::cnt->getInt(sc.cntID , CNT_STATUS) & ~ST_MASK) | sc.status);
-			if (sc.info) Tables::cnt->setCh(sc.cntID , CNT_STATUSINFO , sc.info);
+			if (sc.info) Tables::cnt->setString(sc.cntID , CNT_STATUSINFO , sc.info);
 			return 0;
 			}
 
@@ -434,28 +437,33 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 		case IMC_CNT_IGNORED: 
 		{
-			std::string list = Tables::cfg->getStr(0,CFG_IGNORE);
+			std::string list = Tables::cfg->getString(0,CFG_IGNORE);
 			std::string item = stringf("\n%d@%s\n",msg->p1,msg->p2);
 			return find_noCase(list.c_str(), item.c_str()) != std::string::npos;
 		}
 
 		case IMC_CNT_INGROUP: 
 		{
-			std::string group = (msg->p2 ? (char*)msg->p2 : Tables::cfg->getStr(0 , CFG_CURGROUP));
+			std::string group;
+			if (msg->p2) {
+				group = (char*)msg->p2;
+			} else {
+				group = Tables::cfg->getString(0 , CFG_CURGROUP);
+			}
 			if (group.empty()) { // sprawdzamy grupê pust¹
 				if (Tables::cfg->getInt(0, CFG_UIALLGROUPS_NOGROUP)) {
-					return Tables::cnt->getStr(msg->p1 , CNT_GROUP).empty(); // wpuszczamy tylko puste...
+					return Tables::cnt->getString(msg->p1 , CNT_GROUP).empty(); // wpuszczamy tylko puste...
 				} else
 					return 1; // wszystkie tu pasuj¹
 			}
-			return stricmp(Tables::cnt->getStr(msg->p1 , CNT_GROUP).c_str() , group.c_str()) == 0;
+			return stricmp(Tables::cnt->getString(msg->p1 , CNT_GROUP).c_str() , group.c_str()) == 0;
 		}
 
 		case IMC_IGN_ADD:
 			ISRUNNING();
 			IMESSAGE_TS();
 			if (!UIMessage(IMC_IGN_FIND , msg->p1 , msg->p2)) {
-				std::string list = Tables::cfg->getStr(0,CFG_IGNORE);
+				std::string list = Tables::cfg->getString(0,CFG_IGNORE);
 				if (list.empty()) list = "\n";
 				list += inttostr(msg->p1) + "@";
 				list += (char*) msg->p2;
@@ -472,11 +480,11 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			ISRUNNING();
 			IMESSAGE_TS();
 			std::string item = stringf("\n%d@%s\n", msg->p1 , msg->p2);
-			std::string list = Tables::cfg->getStr(0,CFG_IGNORE);
+			std::string list = Tables::cfg->getString(0,CFG_IGNORE);
 			size_t found = find_noCase(list.c_str(), item.c_str());
 			if (found != std::string::npos) {
 				list.erase(found, item.length() - 1);
-				Tables::cfg->setStr(0, CFG_IGNORE, list);
+				Tables::cfg->setString(0, CFG_IGNORE, list);
 				Contacts::updateContact(Contacts::findContact(msg->p1 , (char*)msg->p2));
 				IMessage(IM_IGN_CHANGED , NET_BC , IMT_CONTACT , -msg->p1 , msg->p2 , 0);
 			}
@@ -485,7 +493,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 		case IMC_GRP_FIND: 
 		{
-			return find_noCase(Tables::cfg->getStr(0,CFG_GROUPS).c_str() , stringf("\n%s\n",msg->p1).c_str()) != std::string::npos;
+			return find_noCase(Tables::cfg->getString(0,CFG_GROUPS).c_str() , stringf("\n%s\n",msg->p1).c_str()) != std::string::npos;
 		}
 
 		case IMC_GRP_ADD: 
@@ -493,11 +501,11 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			ISRUNNING();
 			IMESSAGE_TS();
 			if (!UIMessage(IMC_GRP_FIND , msg->p1)) {
-				std::string list = Tables::cfg->getStr(0, CFG_GROUPS);
+				std::string list = Tables::cfg->getString(0, CFG_GROUPS);
 				if (list.empty()) list = "\n";
 				list += (char*)msg->p1;
 				list += "\n";
-				Tables::cfg->setStr(0, CFG_GROUPS, list);
+				Tables::cfg->setString(0, CFG_GROUPS, list);
 				IMessage(IM_GRP_CHANGED , NET_BC , IMT_CONTACT , 0 , 0 , 0);
 				return 1;
 			}
@@ -510,14 +518,14 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			IMESSAGE_TS();
 			std::string item = (char*)msg->p1;
 			item = "\n" + item + "\n";
-			std::string list = Tables::cfg->getStr(0, CFG_GROUPS);
+			std::string list = Tables::cfg->getString(0, CFG_GROUPS);
 			size_t found = find_noCase(list.c_str(), item.c_str());
 			if (found != std::string::npos) {
 				list.erase(found, item.length() - 1);
-				Tables::cfg->setStr(0, CFG_GROUPS, list);
+				Tables::cfg->setString(0, CFG_GROUPS, list);
 				for (unsigned int i = 1; i < (int)Tables::cnt->getRowCount() ; i++) {
-					if (!stricmp((char*)msg->p1, Tables::cnt->getStr(i,CNT_GROUP).c_str())) {
-						Tables::cnt->setStr(i, CNT_GROUP, "");
+					if (!stricmp((char*)msg->p1, Tables::cnt->getString(i,CNT_GROUP).c_str())) {
+						Tables::cnt->setString(i, CNT_GROUP, "");
 						sIMessage_CntChanged cc(IM_CNT_CHANGED , i);
 						cc._changed.group = true;
 						Ctrl->IMessage(&cc);
@@ -535,11 +543,11 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			if (!UIMessage(IMC_GRP_FIND , msg->p1) || UIMessage(IMC_GRP_FIND , msg->p2)) return 0;
 			//            IMLOG("GRP_RENAME %s %s" , msg->p1 , msg->p2);
 			// Usuwamy
-			Tables::cfg->setStr(0, CFG_GROUPS, RegEx::doReplace(("/^" + std::string((char*)msg->p1) + "$/mi").c_str(), (const char*)msg->p2, Tables::cfg->getStr(0, CFG_GROUPS).c_str(), 1) ); 
+			Tables::cfg->setString(0, CFG_GROUPS, RegEx::doReplace(("/^" + std::string((char*)msg->p1) + "$/mi").c_str(), (const char*)msg->p2, Tables::cfg->getString(0, CFG_GROUPS).c_str(), 1) ); 
 
 			for (int i = 1; i < (int)Tables::cnt->getRowCount() ; i++) {
-				if (stricmp((char*)msg->p1 , Tables::cnt->getStr(i, CNT_GROUP).c_str()) == 0) {
-					Tables::cnt->setStr(i , CNT_GROUP , (char*)msg->p2);
+				if (stricmp((char*)msg->p1 , Tables::cnt->getString(i, CNT_GROUP).c_str()) == 0) {
+					Tables::cnt->setString(i , CNT_GROUP , (char*)msg->p2);
 					sIMessage_CntChanged cc(IM_CNT_CHANGED , i);
 					cc._changed.group = true;
 					Ctrl->IMessage(&cc);
@@ -659,13 +667,21 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		case IMC_HINTERNET_OPEN: 
 		{
 			HINTERNET h;
-			CStdString proxy =  Tables::cfg->getInt(0,CFG_PROXY) ? (Tables::cfg->getStr(0,CFG_PROXY_HOST) + string(":") + (Tables::cfg->getInt(0,CFG_PROXY_PORT) ? inttostr(Tables::cfg->getInt(0,CFG_PROXY_PORT)) : "8080")) : "";
+			std::string proxy;
+			if (Tables::cfg->getInt(0,CFG_PROXY)) {
+				proxy = Tables::cfg->getString(0,CFG_PROXY_HOST) + ":";
+				if (Tables::cfg->getInt(0,CFG_PROXY_PORT)) {
+					proxy += inttostr(Tables::cfg->getInt(0,CFG_PROXY_PORT));
+				} else {
+					proxy += "8080";
+				}
+			}
 			h = InternetOpen(msg->p1 ? (char*)msg->p1 : "Konnekt", proxy.empty() ? INTERNET_OPEN_TYPE_DIRECT : INTERNET_OPEN_TYPE_PROXY , proxy.empty()? 0 : proxy.c_str(), 0, 0);
 			if (!proxy.empty() && Tables::cfg->getInt(0,CFG_PROXY_AUTH)) {
-				std::string login = Tables::cfg->getStr(0,CFG_PROXY_LOGIN);
+				std::string login = Tables::cfg->getString(0,CFG_PROXY_LOGIN);
 				InternetSetOption(h, INTERNET_OPTION_PROXY_USERNAME,
 					(void*)login.c_str(), login.length() + 1);
-				std::string pass = Tables::cfg->getStr(0,CFG_PROXY_PASS);
+				std::string pass = Tables::cfg->getString(0,CFG_PROXY_PASS);
 				InternetSetOption(h, INTERNET_OPTION_PROXY_PASSWORD,
 					(void*)pass.c_str(), pass.length() + 1);
 			}

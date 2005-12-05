@@ -374,15 +374,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\include\callstack.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="3"/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\connections.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -555,9 +546,6 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\konnekt\konnekt_defs.cpp">
 			</File>
 			<File
 				RelativePath=".\main.cpp">
@@ -847,6 +835,22 @@
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
 			</File>
+			<Filter
+				Name="External"
+				Filter="">
+				<File
+					RelativePath="..\include\callstack.cpp">
+					<FileConfiguration
+						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\konnekt\konnekt_defs.cpp">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"

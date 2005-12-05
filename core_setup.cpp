@@ -102,7 +102,7 @@ namespace Konnekt {
 		cnt->setColumn(CNT_ACT_PARENT, ctypeInt|cflagDontSave);
 		cnt->setColumn(CNT_ACT_ID, ctypeInt|cflagDontSave);
 		cnt->setColumn(CNT_NOTIFY_MSG, ctypeInt|cflagDontSave);
-		cnt->setColumn(CNT_INTERNAL , ctypeInt|cflagDontSave , 0);
+		cnt->setColumn(CNT_INTERNAL , ctypeInt|cflagDontSave);
 		cnt->setColumn(CNT_CLIENTVERSION , ctypeInt , "ClientVersion");
 		cnt->setColumn(CNT_CLIENT , ctypeString|cflagXor , "Client");
 		cnt->setColumn(CNT_LASTACTIVITY , ctypeInt64 , "LastActivity");

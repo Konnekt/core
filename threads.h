@@ -55,6 +55,7 @@ namespace Konnekt {
 		COLORREF color;
 		CStdString name;
 		CStdString buff;
+		String stringBuff;
 		char shortBuffer [64];
 
 		struct {

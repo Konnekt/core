@@ -11,7 +11,8 @@ namespace Konnekt {namespace Contacts {
 
 void updateContact(int pos) {
 	if ((pos = Tables::cnt->getRowPos(pos))==-1) return;
-	Tables::cnt->setInt(pos, CNT_STATUS, IMessage(IMC_IGN_FIND , 0 , 0 , Tables::cnt->getInt(pos , CNT_NET), (int)Tables::cnt->getCh(pos , CNT_UID)) ? ST_IGNORED : 0, ST_IGNORED);
+	int status = Tables::cnt->getInt(pos, CNT_STATUS) & ~ST_IGNORED;
+	Tables::cnt->setInt(pos, CNT_STATUS, status | (IMessage(IMC_IGN_FIND , 0 , 0 , Tables::cnt->getInt(pos , CNT_NET), (int)Tables::cnt->getString(pos , CNT_UID).a_str()) ? ST_IGNORED : 0));
 }
 
 void updateAllContacts() {
@@ -31,9 +32,9 @@ int findContact(int p1 , char * p2) {
 			return -1;
 	}
 	if (p1 == -1) { // tylko wg. display
-		return Tables::cnt->findRow(0, DT::Find::EqStr(CNT_DISPLAY, p2));
+		return Tables::cnt->findRow(0, DT::Find::EqStr(Tables::cnt->getColumn( CNT_DISPLAY), p2));
 	} else {
-		return Tables::cnt->findRow(0, DT::Find::EqInt(CNT_NET, p1), DT::Find::EqStr(CNT_UID, p2));
+		return Tables::cnt->findRow(0, DT::Find::EqInt(Tables::cnt->getColumn( CNT_NET), p1), DT::Find::EqStr(Tables::cnt->getColumn( CNT_UID), p2));
 	}
 	/*
 	int sz = Tables::cnt->getRowCount();
