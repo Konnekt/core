@@ -368,12 +368,12 @@ namespace Konnekt { namespace Debug {
 			RE_COLOR(RGB(0x0,80,0));
 			RE_ADD(stringf("\r\nMSG %x %s from '%s' to '%s' [%s]\r\n", msg->getInt(i,MSG_ID) 
 				, IMessage(IM_PLUG_NETNAME,msg->getInt(i,MSG_NET),IMT_PROTOCOL)
-				, msg->getCh(i,MSG_FROMUID)
-				, msg->getCh(i,MSG_TOUID)
-				, msg->getStr(i,MSG_BODY).substr(0,30).c_str()));
+				, msg->getString(i,MSG_FROMUID).c_str()
+				, msg->getString(i,MSG_TOUID).c_str()
+				, msg->getString(i,MSG_BODY).substr(0,30).c_str()));
 			RE_BOLD(0);
 			RE_COLOR(RGB(0,0,0));
-			RE_ADD("EXT []" + msg->getStr(i , MSG_EXT) + "\r\n");
+			RE_ADD("EXT []" + msg->getString(i , MSG_EXT) + "\r\n");
 			int flag = msg->getInt(i,MSG_FLAG);
 			RE_ADD(stringf("Type=%d  flag=%x " , msg->getInt(i,MSG_TYPE)
 				, flag));

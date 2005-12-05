@@ -357,16 +357,27 @@ namespace Konnekt { namespace Debug {
 		ind.resize(indent[GetCurrentThreadId()] , LOG_TAB);
 		if (Debug::logFile) {
 			if (!IMfinished) fprintf(Debug::logFile , "\n");
+
+
+			static Stamina::Time64 lastLog(false);
+			Stamina::Time64 now(true);
+			// co 5 minut, lub o ka¿dej pe³nej godzinie wstawia pe³n¹ datê
+			if (now - lastLog > 60*5 || (int)(lastLog / 86400) < (int)(now / 86400)) {
+				fprintf(Debug::logFile, "[%s] ------------ ", now.strftime("%c").c_str());
+			}
+			lastLog = now;
+
+
 #ifdef __LOGFULL
-			fprintf(Debug::logFile , "%s[%s] %s -> %s\t | %s\t | %s %s\t | %s %s"
-				, ind.c_str() , IMD.nr.c_str() , IMD.sender.c_str() , IMD.receiver.c_str()
+			fprintf(Debug::logFile , "%s[%s:%03d][%s] %s -> %s\t | %s\t | %s %s\t | %s %s"
+				, ind.c_str() , now.strftime("%M:%S").c_str(), GetTickCount() / 1000, IMD.nr.c_str() , IMD.sender.c_str() , IMD.receiver.c_str()
 				, IMD.id.c_str() , IMD.net.c_str() , IMD.type.c_str()
 				, IMD.p1.c_str() , IMD.p2.c_str()
 				);
 #else
 			if (msg->id == IMC_LOG)
-				fprintf(Debug::logFile , "%s## [%s] \t %s"
-				, ind.c_str() , IMD.sender.c_str()
+				fprintf(Debug::logFile , "%s[%s:%03d]## [%s] \t %s"
+				, ind.c_str() , now.strftime("%M:%S").c_str(), GetTickCount() / 1000, IMD.sender.c_str()
 				, IMD.p1.c_str()
 				);
 			else
