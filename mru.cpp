@@ -84,7 +84,7 @@ namespace Konnekt { namespace MRU {
 		oTableImpl dt(tableMRU);
 		dt->load();
 
-		tRowId row = dt->findRow(0, DT::Find::EqStr(MRU_ID, mru->name));
+		tRowId row = dt->findRow(0, DT::Find::EqStr(dt->getColumn(MRU_ID), mru->name));
 		// Zerujemy wszystkie bufory.
 		int i = 0;
 		while (i<mru->count && mru->values[i]) {
@@ -92,7 +92,7 @@ namespace Konnekt { namespace MRU {
 			i++;
 		}
 		if (row == DT::rowNotFound) return 0; // Udalo sie znalezc NIC, ale udalo :]
-		string entry = dt->getStr(row , MRU_VALUE);
+		string entry = dt->getString(row , MRU_VALUE);
 		if (entry.empty()) return 0;
 		if (*(entry.end()-1) == MRU_SEPCHAR) entry.erase(entry.end()-1);
 		size_t current = 0;
@@ -151,13 +151,13 @@ namespace Konnekt { namespace MRU {
 			TableLocker lock(dt);
 			dt->load();
 
-			tRowId row = dt->findRow(0, DT::Find::EqStr(MRU_ID, mru->name));
+			tRowId row = dt->findRow(0, DT::Find::EqStr(dt->getColumn(MRU_ID), mru->name));
 
 			if (row==-1) {
 				row = dt->addRow();
-				dt->setStr(row, MRU_ID, mru->name);
+				dt->setString(row, MRU_ID, mru->name);
 			}
-			dt->setStr(row , MRU_VALUE, entry);
+			dt->setString(row , MRU_VALUE, entry);
 			dt->lateSave(true);
 		}
 		delete [] MRU2.values;

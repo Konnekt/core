@@ -4,6 +4,7 @@
 #include "contacts.h"
 #include "plugins.h"
 #include "imessage.h"
+#include "threads.h"
 
 using namespace Stamina;
 using namespace Tables;
@@ -20,10 +21,10 @@ namespace Konnekt { namespace Messages {
 		msg->lockData(pos);
 		msg->setInt(pos , MSG_NET , m->net);
 		msg->setInt(pos , MSG_TYPE , m->type);
-		msg->setCh(pos , MSG_FROMUID , m->fromUid);
-		msg->setCh(pos , MSG_TOUID , m->toUid);
-		msg->setCh(pos , MSG_BODY , m->body);
-		msg->setCh(pos , MSG_EXT  , m->ext);
+		msg->setString(pos , MSG_FROMUID , m->fromUid);
+		msg->setString(pos , MSG_TOUID , m->toUid);
+		msg->setString(pos , MSG_BODY , m->body);
+		msg->setString(pos , MSG_EXT  , m->ext);
 		msg->setInt(pos , MSG_FLAG , m->flag);
 		msg->setInt(pos , MSG_ACTIONP , m->action.parent);
 		msg->setInt(pos , MSG_ACTIONI , m->action.id);
@@ -111,10 +112,16 @@ messagedelete:
 		m.id = msg->getInt(pos , MSG_ID);
 		m.net = msg->getInt(pos , MSG_NET);
 		m.type = msg->getInt(pos , MSG_TYPE);
-		m.fromUid = msg->getCh(pos , MSG_FROMUID);
-		m.toUid = msg->getCh(pos , MSG_TOUID);
-		m.body = msg->getCh(pos , MSG_BODY);
-		m.ext = msg->getCh(pos , MSG_EXT);
+
+		TLSU().mbFromUid = msg->getString(pos , MSG_FROMUID);
+		TLSU().mbToUid = msg->getString(pos , MSG_TOUID);
+		TLSU().mbBody = msg->getString(pos , MSG_BODY);
+		TLSU().mbExt = msg->getString(pos , MSG_EXT);
+
+		m.fromUid = (char*)TLSU().mbFromUid.c_str();
+		m.toUid = (char*)TLSU().mbToUid.c_str();
+		m.body = (char*)TLSU().mbBody.c_str();
+		m.ext = (char*)TLSU().mbExt.c_str();
 		if (dup) {
 			m.fromUid = strdup(m.fromUid);
 			m.toUid = strdup(m.toUid);
@@ -134,12 +141,17 @@ messagedelete:
 		TableLocker lock(msg, i);
 		int flag = msg->getInt(i , MSG_FLAG);
 		int type = msg->getInt(i , MSG_TYPE);
-		char * uid = flag & MF_SEND? msg->getCh(i , MSG_TOUID) : msg->getCh(i, MSG_FROMUID);
+		string uid;
+		if (flag & MF_SEND) {
+			uid = msg->getString(i , MSG_TOUID);
+		} else {
+			uid = msg->getString(i, MSG_FROMUID);
+		}
 
 		int r =
 			(!mw->type || mw->type==-1 || ((unsigned int)msg->getInt(i , MSG_TYPE) == mw->type))
 			&& (mw->net==NET_BC || (msg->getInt(i , MSG_NET) == mw->net) || (!mw->net && type&MT_MASK_NOTONLIST))
-			&& (!mw->uid||!strcmp(uid,mw->uid) || (!*mw->uid && type&MT_MASK_NOTONLIST))
+			&& (!mw->uid||uid == mw->uid || (!*mw->uid && type&MT_MASK_NOTONLIST))
 			&& ((flag & mw->wflag) == mw->wflag)
 			&& (!(flag & mw->woflag))
 			&& (mw->id==-1||mw->id==0||msg->getInt(i,MSG_ID)==mw->id)
@@ -249,7 +261,7 @@ messagedelete:
 		int found=0;
 		while (i>=0) {
 			//    IMLOG("net %d uid %s == NET %d UID %s" , mn->net , mn->uid , msg->getInt(i , MSG_NET) , Msg.getch(i , MSG_FROMUID));
-			if ((msg->getInt(i , MSG_NET) == mn->net && !strcmp(msg->getCh(i , MSG_FROMUID),mn->uid))
+			if ((msg->getInt(i , MSG_NET) == mn->net && msg->getString(i , MSG_FROMUID) == mn->uid)
 				|| (!mn->net && !*mn->uid && msg->getInt(i,MSG_TYPE)&MT_MASK_NOTONLIST)
 				)
 			{

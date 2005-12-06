@@ -68,8 +68,8 @@ namespace Konnekt {
 		int __stdcall RecallIMTS(HANDLE th , bool wait , sIMessage_base * msg , int plugID);
 		void __stdcall WMProcess();
 		void * __stdcall GetTempBuffer(unsigned int size);
-		bool __stdcall DTget(tTable db , unsigned int row , unsigned int col , struct Tables::Value * value);
-		bool __stdcall DTset(tTable db , unsigned int row , unsigned int col , struct Tables::Value * value);
+		bool __stdcall DTget(tTable db , unsigned int row , unsigned int col , struct Tables::OldValue * value);
+		bool __stdcall DTset(tTable db , unsigned int row , unsigned int col , struct Tables::OldValue * value);
 		unsigned short __stdcall DTlock(tTable db , unsigned int row , int reserved);
 		unsigned short __stdcall DTunlock(tTable db , unsigned int row , int reserved);
 		int __stdcall getLevel() {return 1;}

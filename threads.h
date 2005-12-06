@@ -32,21 +32,26 @@ namespace Konnekt {
 		class cUserThread * Thread;
 	};
 
-	struct cDLLTempBuffer {
-		void * buff; 
-		unsigned int size;
+	class DLLTempBuffer {
+	public:
 
-		void * GetBuffer(unsigned int wantSize) {
-			if (wantSize > this->size) {
-				//if (buff) free(buff);
-				buff = realloc(buff, wantSize);
-				this->size = wantSize;
-			}
-			return buff;
+		void * getBuffer(unsigned int wantSize) {
+			_pool[_current].resize(wantSize + 1, 0);
+			void *b = _pool[_current].getBuffer(); 
+			_current = (_current+1) % poolSize;
+			return b;
 		}
 
-		cDLLTempBuffer() {buff = 0; size = 0;}
-		~cDLLTempBuffer() {if (buff) free(buff);}
+		DLLTempBuffer() {
+			_pool.resize(poolSize);
+			_current = 0;
+		}
+		~DLLTempBuffer() {}
+	private:
+		std::vector<Stamina::ByteBuffer> _pool;
+		int _current;
+		const static int poolSize = 5;
+
 	};
 
 	class cUserThread {
@@ -58,12 +63,14 @@ namespace Konnekt {
 		String stringBuff;
 		char shortBuffer [64];
 
+		std::string mbFromUid, mbToUid, mbBody, mbExt;
+
 		struct {
 			int code; 
 			int position;
 		} error;
 
-		map <unsigned int , cDLLTempBuffer> Buffers; 
+		map <unsigned int , DLLTempBuffer> buffers; 
 		void setError(int code) {
 			error.code = code; 
 			error.position=lastIM.inMessage;

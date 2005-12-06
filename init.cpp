@@ -27,7 +27,7 @@ using namespace Stamina;
 
 namespace Konnekt {
 
-	const char* const coreLibraries = "/^(msvc.+|smemory|stamina|devil.*|zlib)\.dll$/i";
+	const char* const coreLibraries = "/^(msvc.+|smemory|stamina|devil.*|zlib)\\.dll$/i";
 
 	/*HACK: Przenoszenie bibliotek z katalogu g³ównego...*/
 	void moveAdditionalLibraries() {
@@ -273,8 +273,8 @@ namespace Konnekt {
 
 		checkVersions();
 		IMLOG("--- Versions checked ---");
-		Tables::cfg->setStr(0, CFG_APPFILE, appFile);
-		Tables::cfg->setStr(0, CFG_APPDIR, appPath);
+		Tables::cfg->setString(0, CFG_APPFILE, appFile);
+		Tables::cfg->setString(0, CFG_APPDIR, appPath);
 		IMessage(IM_UI_PREPARE,NET_BC,IMT_ALL,0,0 , 0);
 		IMLOG("--- UI prepared ---");
 		IMessage(IM_START ,NET_BC,IMT_ALL, 0, 0,1);

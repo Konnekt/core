@@ -12,6 +12,7 @@
 #include "unique.h"
 
 #include <stamina\Thread.h>
+#include <stamina\Exception.h>
 
 using namespace Stamina;
 
@@ -68,54 +69,78 @@ namespace Konnekt {
 #define CTRL_SETDT Tables::oTable DT (Tables::getTable((tTableId)db));\
 	if (!DT) _fatal("Table access denied , or table doesn\'t exist")
 
-	bool __stdcall  cCtrl1::DTget(tTable db , unsigned int row , unsigned int col , Tables::Value * value) {
+	bool __stdcall  cCtrl1::DTget(tTable db , unsigned int row , unsigned int col , Tables::OldValue * value) {
 		if (!value) return false;
 		CTRL_SETDT;
-		if (value->type == DT_CT_PCHAR && !value->vCChar && value->buffSize==0)
-			value->vCChar = TLSU().shortBuffer;
-		return DT->get(row , col , *value);
+
+		if (value->type == DT_CT_UNKNOWN) {
+			value->type = DT->getColumn(col)->getType();
+		}
+
+		switch (value->type) {
+			case DT_CT_INT:
+				value->vInt = DT->getInt(row, col);
+				return true;
+			case DT_CT_64:
+				value->vInt64 = DT->getInt64(row, col);
+				return true;
+			case DT_CT_STRING:
+				String s = DT->getString(row, col);
+				if (!value->vChar || !value->buffSize) {
+					value->vChar = (char*)this->GetTempBuffer(s.getLength() + 1);
+                    value->buffSize = s.getLength() + 1;
+				}
+				strncpy(value->vChar, s.a_str(), value->buffSize);
+				value->vChar[value->buffSize-1] = 0;
+				return true;
+		};
+		return false;
 
 	}
 
-	bool __stdcall  cCtrl1::DTset(tTable db , unsigned int row , unsigned int col , Tables::Value * value) {
+	bool __stdcall  cCtrl1::DTset(tTable db , unsigned int row , unsigned int col , Tables::OldValue * value) {
 		if (!value) return false;
 		CTRL_SETDT;
-		return DT->set(row , col , *value);
+
+		switch (value->type) {
+			case DT_CT_INT:
+				DT->setInt(row, col, value->vInt);
+				return true;
+			case DT_CT_64:
+				DT->setInt64(row, col, value->vInt64);
+				return true;
+			case DT_CT_STRING:
+				DT->setString(row, col, value->vCChar);
+				return true;
+		}
+
+		return false;
 
 	}
 
 	int __stdcall   cCtrl1::DTgetOld(tTable db , unsigned int row , unsigned int col) {
-		CTRL_SETDT;
-		return (int)DT->get(row,col, DT::Value());
+		throw ExceptionDeprecated("DTgetOld");
+		//return (int)this->DTget(row,col, &DT::OldValue());
 	}
 	int __stdcall   cCtrl1::DTsetOld(tTable db , unsigned int row , unsigned int col , int value , int mask) {
-		CTRL_SETDT;
-		if (!mask) {
-			if (db==DTCNT && col == CNT_STATUS) mask = ST_MASK;
-			else mask = -1;
-		}  
-		DT::Value v;
-		v.vInt = value;
-		if (mask == -1)
-			return DT->set(row , col , v);
-		else
-			return DT->set(row , col, v);
+		throw ExceptionDeprecated("DTsetOld");
 	}
 
 
 	int __stdcall cCtrl1::DTgetType (tTable db , unsigned int col) {
 		CTRL_SETDT;
-		return DT->getColType(col);
+		return DT->getColumn(col)->getType();
 	}
 
 	int __stdcall cCtrl1::DTgetNameID(tTable db , const char * name) {
 		CTRL_SETDT;
-		return DT->getColId(name);
+		return DT->getColumn(name)->getId();
 
 	}
 	const char * __stdcall cCtrl1::DTgetName(tTable db , unsigned int col) {
 		CTRL_SETDT;
-		return DT->getColName(col);
+		TLSU().buff = DT->getColumn(col)->getName().a_str();
+		return TLSU().buff.c_str();
 	}
 
 
@@ -175,7 +200,7 @@ namespace Konnekt {
 
 
 	void * __stdcall cCtrl1::GetTempBuffer(unsigned int size) {
-		return TLSU().Buffers[this->ID()].GetBuffer(size);
+		return TLSU().buffers[this->ID()].getBuffer(size);
 	}
 
 	int __stdcall cCtrl1::Sleep(unsigned int time) {
@@ -246,7 +271,7 @@ namespace Konnekt {
 		return Unique::getId(domainId, name);
 	}
 	const char * cCtrl1::getName(Unique::tDomainId domainId, Unique::tId id) {
-		TLSU().buff = Unique::getName(domainId, id);
+		TLSU().buff = Unique::getName(domainId, id).a_str();
 		return TLSU().buff.c_str();
 	}
 

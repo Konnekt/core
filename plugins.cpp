@@ -31,7 +31,7 @@ namespace Konnekt {
 		plg->setColumn(PLG::md5, ctypeString | cflagXor);
 		plg->setColumn(PLG::sig, ctypeString | cflagXor);
 		plg->setColumn(PLG::load, ctypeInt);
-		plg->setColumn(PLG::isNew, ctypeInt | cflagDontSave, -1);
+		plg->setColumn(PLG::isNew, ctypeInt | cflagDontSave)->setInt(rowDefault, -1);
 	}
 
 
@@ -166,14 +166,14 @@ namespace Konnekt {
 		return 0;
 	}
 	void checkVersions(void) {
-		string ver = Tables::cfg->getStr(0 , CFG_VERSIONS);
+		string ver = Tables::cfg->getString(0 , CFG_VERSIONS);
 		unsigned int prevVer = findVersion(ver , "CORE" , versionNumber);
 		if (versionNumber > prevVer) updateCore(prevVer);
 		for (int i = 0; i<Plug.size(); i++) {
 			prevVer = findVersion(ver , CStdString(Plug[i].file).ToLower() , Plug[i].version.getInt());
 			if (Plug[i].version.getInt() > prevVer) {Plug[i].IMessage(IM_PLUG_UPDATE , prevVer);}
 		}
-		Tables::cfg->setStr(0 , CFG_VERSIONS , ver);
+		Tables::cfg->setString(0 , CFG_VERSIONS , ver);
 	}
 
 
@@ -196,7 +196,7 @@ namespace Konnekt {
 						p = plg->addRow();
 						plg->setInt(p , PLG::isNew , 1);
 					} else plg->setInt(p , PLG::isNew , 0);
-					plg->setStr(p , PLG::file , plugDir + ff.found().getFileName());
+					plg->setString(p , PLG::file , plugDir + ff.found().getFileName());
 					i++;
 				}
 		}
@@ -214,7 +214,7 @@ namespace Konnekt {
 			} // usuwa nie istniejaca wtyczke
 			if (plg->getInt(i , PLG::load) !=1 ) 
 				continue;
-			if (!Plug.PlugIN(plg->getCh(i , PLG::file))) {
+			if (!Plug.PlugIN(plg->getString(i , PLG::file).c_str())) {
 				plg->setInt(i , PLG::load , -1);
 				newOne = 1;
 			}
