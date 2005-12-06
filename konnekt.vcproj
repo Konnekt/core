@@ -848,6 +848,9 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\konnekt\core_tables.cpp">
+				</File>
+				<File
 					RelativePath="..\konnekt\konnekt_defs.cpp">
 				</File>
 			</Filter>

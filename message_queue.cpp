@@ -113,15 +113,19 @@ messagedelete:
 		m.net = msg->getInt(pos , MSG_NET);
 		m.type = msg->getInt(pos , MSG_TYPE);
 
-		TLSU().mbFromUid = msg->getString(pos , MSG_FROMUID);
-		TLSU().mbToUid = msg->getString(pos , MSG_TOUID);
-		TLSU().mbBody = msg->getString(pos , MSG_BODY);
-		TLSU().mbExt = msg->getString(pos , MSG_EXT);
+		String& mbFromUid = TLSU().buffer().getString(true);
+		String& mbToUid = TLSU().buffer().getString(true);
+		String& mbBody = TLSU().buffer().getString(true);
+		String& mbExt = TLSU().buffer().getString(true);
+		mbFromUid = msg->getString(pos , MSG_FROMUID);
+		mbToUid = msg->getString(pos , MSG_TOUID);
+		mbBody = msg->getString(pos , MSG_BODY);
+		mbExt = msg->getString(pos , MSG_EXT);
 
-		m.fromUid = (char*)TLSU().mbFromUid.c_str();
-		m.toUid = (char*)TLSU().mbToUid.c_str();
-		m.body = (char*)TLSU().mbBody.c_str();
-		m.ext = (char*)TLSU().mbExt.c_str();
+		m.fromUid = (char*)mbFromUid.c_str();
+		m.toUid = (char*)mbToUid.c_str();
+		m.body = (char*)mbBody.c_str();
+		m.ext = (char*)mbExt.c_str();
 		if (dup) {
 			m.fromUid = strdup(m.fromUid);
 			m.toUid = strdup(m.toUid);

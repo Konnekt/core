@@ -224,8 +224,7 @@ namespace Konnekt {
 		Tables::oTableImpl plg(tablePlugins);
 		for (int i = 0; i<count; i++) {
 			int id = ListView_GetItemData(item , i);
-			CStdString file = plg->getStr(i, PLG::file);
-			file.erase( 0, file.find_last_of('\\')+1 );
+			CStdString file = getFileName(plg->getString(i, PLG::file));
 			file.ToLower();
 			ListView_SetCheckState(item , i , (std::find(list.begin(), list.end(), file) != list.end()));
             
@@ -272,7 +271,7 @@ namespace Konnekt {
 			if (plg->getInt(i, PLG::isNew)>=0) {
 				li.iItem=0x7FFF;
 
-				FileVersion fv(plg->getStr(i, PLG::file));
+				FileVersion fv(plg->getString(i, PLG::file));
 
 				//li.pszText = ch?ch+1:Plg.getch(i , PLG_FILE);
 				std::string internalName = fv.getString("InternalName");
@@ -297,7 +296,7 @@ namespace Konnekt {
 				//ListView_SetItemText(item , pos , 1 , (LPSTR)fvi.InternalName.c_str());
 				ListView_SetString(item, pos, 1, (LPSTR)fv.getString("FileDescription").c_str());
 
-				ListView_SetString(item , pos , 2 , (LPSTR)getFileName(plg->getStr(i, PLG::file)).c_str());
+				ListView_SetString(item , pos , 2 , (LPSTR)getFileName(plg->getString(i, PLG::file)).c_str());
 				ListView_SetString(item , pos , 3 , (LPSTR)fv.getFileVersion().getString().c_str());
 				ListView_SetString(item , pos , 4 , (LPSTR)fv.getString("CompanyName").c_str());
 				ListView_SetString(item , pos , 5 , (LPSTR)fv.getString("URL").c_str());

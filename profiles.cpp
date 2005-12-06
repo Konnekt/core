@@ -191,7 +191,9 @@ namespace Konnekt {
 				continue;
 			}
 			// Usuwamy zbêdne flagi
-			msg->setInt(i, MSG_FLAG, 0, MF_PROCESSING|MF_OPENED);
+			int newFlag = msg->getInt(i, MSG_FLAG);
+			newFlag &= ~(MF_PROCESSING|MF_OPENED);
+			msg->setInt(i, MSG_FLAG, newFlag);
 		}
 		msg->unlockData(Tables::allRows);
 	}

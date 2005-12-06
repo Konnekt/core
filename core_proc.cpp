@@ -177,8 +177,9 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				// Trzeba upewniæ siê, ¿e oba pola s¹ wype³nione
 				if (msgCC._changed.net || msgCC._changed.uid) {
 					if (!msgCC._oldUID) {
-						TLSU().stringBuff = Tables::cnt->getString(msgCC._cntID , CNT_UID);
-						msgCC._oldUID = TLSU().stringBuff.c_str();
+						String& temp = TLSU().buffer().getString(true);
+						temp = Tables::cnt->getString(msgCC._cntID , CNT_UID);
+						msgCC._oldUID = temp.c_str();
 					}
 					if (!msgCC._changed.net && msgCC._oldNet == NET_NONE) msgCC._oldNet = Tables::cnt->getInt(msgCC._cntID , CNT_NET);
 				}
@@ -217,7 +218,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			ISRUNNING(); 
 			if (msg->p1>0 && (!msg->p2
 								 || UIMessage(IMI_CONFIRM
-								 ,(int)stringf(loadString(IDS_ASK_CNTREMOVE).c_str(),Tables::cnt->getString(msg->p1,CNT_DISPLAY)).c_str()
+								 ,(int)stringf(loadString(IDS_ASK_CNTREMOVE).c_str(),Tables::cnt->getString(msg->p1,CNT_DISPLAY).c_str()).c_str()
 								 ,0))) 
 			{
 				Messages::removeMessage(&sMESSAGESELECT(Tables::cnt->getInt(msg->p1,CNT_NET),Tables::cnt->getString(msg->p1,CNT_UID).c_str(),MT_MESSAGE,0,MF_SEND),-1);
@@ -524,7 +525,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				list.erase(found, item.length() - 1);
 				Tables::cfg->setString(0, CFG_GROUPS, list);
 				for (unsigned int i = 1; i < (int)Tables::cnt->getRowCount() ; i++) {
-					if (!stricmp((char*)msg->p1, Tables::cnt->getString(i,CNT_GROUP).c_str())) {
+					if (Tables::cnt->getString(i,CNT_GROUP).equal((char*)msg->p1, true)) {
 						Tables::cnt->setString(i, CNT_GROUP, "");
 						sIMessage_CntChanged cc(IM_CNT_CHANGED , i);
 						cc._changed.group = true;

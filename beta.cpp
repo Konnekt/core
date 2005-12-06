@@ -193,7 +193,9 @@ namespace Konnekt { namespace Beta {
 
 		setStats(0);
 
-		if (beta->getString(0 , BETA_LOGIN).empty() && !beta->getInt(0 , BETA_ANONYMOUS)) showBeta();
+		if (beta->getString(0 , BETA_LOGIN).empty() && !beta->getInt(0 , BETA_ANONYMOUS)) {
+			showBeta();
+		}
 		betaLogin = beta->getString(0, BETA_LOGIN);
 		betaPass = beta->getString(0, BETA_PASSMD5);
 		anonymous = beta->getInt(0 , BETA_ANONYMOUS);

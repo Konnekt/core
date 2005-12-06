@@ -35,22 +35,35 @@ namespace Konnekt {
 	class DLLTempBuffer {
 	public:
 
+		String& getString(bool getNew) {
+			if (getNew) {
+				_current = (_current+1) % _pool.size();
+			}
+			String& s = _pool[_current];
+			return s;
+		}
+
 		void * getBuffer(unsigned int wantSize) {
-			_pool[_current].resize(wantSize + 1, 0);
-			void *b = _pool[_current].getBuffer(); 
-			_current = (_current+1) % poolSize;
-			return b;
+			String& s = this->getString(wantSize != 0);
+			return s.useBuffer<char>(wantSize);
+		}
+
+		void setPoolSize(int newSize) {
+			_pool.resize(newSize);
+		}
+		int getPoolSize() {
+			return _pool.size();
 		}
 
 		DLLTempBuffer() {
-			_pool.resize(poolSize);
+			this->setPoolSize(poolInitSize);
 			_current = 0;
 		}
 		~DLLTempBuffer() {}
 	private:
-		std::vector<Stamina::ByteBuffer> _pool;
+		std::vector<Stamina::String> _pool;
 		int _current;
-		const static int poolSize = 5;
+		const static int poolInitSize = 6;
 
 	};
 
@@ -59,24 +72,26 @@ namespace Konnekt {
 		sIMTS lastIM;
 		COLORREF color;
 		CStdString name;
-		CStdString buff;
-		String stringBuff;
-		char shortBuffer [64];
-
-		std::string mbFromUid, mbToUid, mbBody, mbExt;
 
 		struct {
 			int code; 
 			int position;
 		} error;
 
-		map <unsigned int , DLLTempBuffer> buffers; 
+		DLLTempBuffer& buffer(unsigned int id = 0) {
+			return this->_buffers[id];
+		}
+
 		void setError(int code) {
 			error.code = code; 
 			error.position=lastIM.inMessage;
 		}
 		cUserThread();
 		~cUserThread();
+
+	private:
+		map <unsigned int , DLLTempBuffer> _buffers; 
+
 	};
 
 

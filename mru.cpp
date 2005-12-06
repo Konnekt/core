@@ -67,7 +67,7 @@ namespace Konnekt { namespace MRU {
 		if (!mru || !mru->name || !mru->name[0] || !mru->count
 			/*|| !mru->buffSize || !mru->values || !mru->values[0]*/) return 0;
 			if (mru->flags & MRU_GET_USETEMP) mru->flags |= MRU_GET_ONEBUFF;
-		char * temp = mru->flags & MRU_GET_USETEMP ? TLSU().buff.GetBuffer(2048) : mru->buffer;
+		char * temp = mru->flags & MRU_GET_USETEMP ? (char*)TLSU().buffer().getBuffer(2048) : mru->buffer;
 		size_t tempSize = mru->flags & MRU_GET_USETEMP ? 2048 : mru->buffSize;
 		if (!temp || tempSize < (size_t)(4*mru->count + mru->count)) return 0;
 		if (mru->flags & MRU_GET_ONEBUFF) {

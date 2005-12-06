@@ -139,8 +139,9 @@ namespace Konnekt {
 	}
 	const char * __stdcall cCtrl1::DTgetName(tTable db , unsigned int col) {
 		CTRL_SETDT;
-		TLSU().buff = DT->getColumn(col)->getName().a_str();
-		return TLSU().buff.c_str();
+		String& buff = TLSU().buffer().getString(true);
+		buff = DT->getColumn(col)->getName();
+		return buff.c_str();
 	}
 
 
@@ -200,7 +201,7 @@ namespace Konnekt {
 
 
 	void * __stdcall cCtrl1::GetTempBuffer(unsigned int size) {
-		return TLSU().buffers[this->ID()].getBuffer(size);
+		return TLSU().buffer(this->ID()).getBuffer(size);
 	}
 
 	int __stdcall cCtrl1::Sleep(unsigned int time) {
@@ -271,8 +272,9 @@ namespace Konnekt {
 		return Unique::getId(domainId, name);
 	}
 	const char * cCtrl1::getName(Unique::tDomainId domainId, Unique::tId id) {
-		TLSU().buff = Unique::getName(domainId, id).a_str();
-		return TLSU().buff.c_str();
+		String& buff = TLSU().buffer().getString(true);
+		buff = Unique::getName(domainId, id).a_str();
+		return buff.c_str();
 	}
 
 	bool cCtrl1::idInRange(Unique::tDomainId domainId, Unique::tRangeId rangeId, Unique::tId id) {

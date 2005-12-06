@@ -74,7 +74,7 @@ namespace Konnekt { namespace Tables {
 		this->_dt.setXor1Key(XOR_KEY);
 		this->_loaded = false;
 		this->_columnsSet = false;
-		this->_dt.setInterface(iface);
+		this->_dt.setInterface(iface.get());
 	}
 
 	void __stdcall TableImpl::release() {
