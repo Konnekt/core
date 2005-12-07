@@ -23,6 +23,7 @@
 
 #include <Stamina\Logger.h>
 #include <Stamina\Exception.h>
+#include <Stamina\Debug.h>
 #include "KLogger.h"
 
 
@@ -190,6 +191,9 @@ namespace Konnekt {
 #ifdef __DEBUG
 		if (Debug::logFile) {
 			fprintf(Debug::logFile , "\n\nGracefull Exit\n");
+
+			Stamina::debugDumpObjects(new LoggerFile(Debug::logFile, Stamina::logAll));
+
 			fclose(Debug::logFile);
 			unlink(logPath + "konnekt_bck.log");
 			rename(logPath + "konnekt.log" , logPath + "konnekt_bck.log");

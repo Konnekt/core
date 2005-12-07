@@ -27,6 +27,9 @@ namespace Konnekt { namespace Tables {
 	oTable global;
 
 	void deinitialize() {
+		cfg.reset();
+		cnt.reset();
+		global.reset();
 		tables.unregisterAll();
 	}
 
@@ -210,6 +213,13 @@ namespace Konnekt { namespace Tables {
 				FileBin fb;
 				fb.warningDialogs = false;
 				fb.assign(_dt);
+
+				mainLogger->log(Stamina::logFunc, "Tables", "load", "%s", file.c_str());
+
+				if (getOpt(optMakeBackups)) {
+					fb.makeBackups = true;
+				}
+
 				if (this->getOpt(optDiscardLoadedColumns) == false && this->_columnsSet == false) {
 					result = fb.loadAll(file);
 				} else {
@@ -262,6 +272,9 @@ namespace Konnekt { namespace Tables {
 			if (getOpt(optUseTemporary)) {
 				fb.useTempFile = true;
 			}
+
+			mainLogger->log(Stamina::logFunc, "Tables", "save", "%s", file.c_str());
+
 			result = fb.save(file, op);
 		}
 		return result;
@@ -343,6 +356,7 @@ namespace Konnekt { namespace Tables {
 		if (this->getOpt(optAutoSave)) {
 			this->save();
 		}
+		__super::destroy();
 	}
 
 	bool __stdcall TableImpl::unregisterTable() {
@@ -375,8 +389,11 @@ namespace Konnekt { namespace Tables {
 		}
 
 		// do listy znanych hase³...
-		iface->addDigest(digest);
+		addPasswordDigest(digest);
+	}
 
+	void TableList::addPasswordDigest(const Stamina::MD5Digest& digest) {
+		iface->addDigest(digest);
 	}
 
 	oTable TableList::registerTable(oPlugin owner, tTableId tableId, enTableOptions tableOpts) {

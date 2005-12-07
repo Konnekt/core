@@ -226,6 +226,7 @@ namespace Konnekt { namespace Beta {
 		once = true;
 		statTimer.stop();
 		setStats(0);
+
 	}
 
 	void setStats(__time64_t forTime) {

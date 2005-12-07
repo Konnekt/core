@@ -234,6 +234,7 @@ namespace Konnekt { namespace Tables {
 
 		void saveAll(bool force = false);
 		void setProfilePassword(const Stamina::MD5Digest& digest);
+		void addPasswordDigest(const Stamina::MD5Digest& digest);
 
 		void unregisterAll();
 

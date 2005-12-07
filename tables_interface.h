@@ -32,19 +32,36 @@ namespace Konnekt { namespace Tables {
 
 			__super::showFileMessage(file, _message, _title, error);
 		}
-		
+
+		char* resultToString(Result res) {
+			switch (res) {
+				case iInterface::fail:
+					return "fail";
+				case iInterface::failQuiet:
+					return "failQuiet";
+				case iInterface::retry:
+					return "retry";
+			};
+			return "unknown";
+		}
 
 		virtual Result handleFailedLoad(FileBase* file, DTException& e, int retry) {
 			mainLogger->log(Stamina::logError, "Tables", "failedLoad", "%s (%s)", e.getReason().a_str(), file->getFilename().a_str());
-			return __super::handleFailedLoad(file, e, retry);
+			Result res = __super::handleFailedLoad(file, e, retry);
+			mainLogger->log(Stamina::logError, "Tables", "failedLoad", "=%s %s (%s)", resultToString(res), e.getReason().a_str(), file->getFilename().a_str());
+			return res;
 		}
 		virtual Result handleFailedSave(FileBase* file, DTException& e, int retry) {
 			mainLogger->log(Stamina::logError, "Tables", "failedSave", "%s (%s)", e.getReason().a_str(), file->getFilename().a_str());
-			return __super::handleFailedSave(file, e, retry);
+			Result res = __super::handleFailedSave(file, e, retry);
+			mainLogger->log(Stamina::logError, "Tables", "failedSave", "=%s %s (%s)", resultToString(res), e.getReason().a_str(), file->getFilename().a_str());
+			return res;
 		}
 		virtual Result handleFailedAppend(FileBase* file, DTException& e, int retry) {
 			mainLogger->log(Stamina::logError, "Tables", "failedAppend", "%s (%s)", e.getReason().a_str(), file->getFilename().a_str());
-			return __super::handleFailedAppend(file, e, retry);
+			Result res = __super::handleFailedAppend(file, e, retry);
+			mainLogger->log(Stamina::logError, "Tables", "failedAppend", "=%s %s (%s)", resultToString(res), e.getReason().a_str(), file->getFilename().a_str());
+			return res;
 		}
 
 		virtual Result handleRestoreBackup(FileBin* file, DTException& e, int retry) {
@@ -59,7 +76,7 @@ namespace Konnekt { namespace Tables {
 				String title = "Wyst¹pi³ problem podczas wczytywania pliku (" + Stamina::getFileName( file->getFilename() ) + ")";
 				String msg = "Znalaz³em kopiê zapasow¹ tego pliku z dnia " + date.strftime("%d-%m-%Y %H:%M:%S") + "\r\n\r\nCzy chcesz jej u¿yæ?";
 				if (MessageBox(0, msg.c_str(), title.c_str(), MB_ICONWARNING | MB_OKCANCEL) == IDCANCEL) {
-					return iInterface::failQuiet;
+					return iInterface::fail;
 				}
 			}
 			mainLogger->log(Stamina::logError, "Tables", "restoreBackup", "%s -> %s", found.a_str(), file->getFilename().a_str());

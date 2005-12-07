@@ -35,7 +35,7 @@ namespace Konnekt {
 		global->setFilename("global.dtb");
 		global->setDirectory();
 
-
+		Tables::tables.addPasswordDigest(passwordDigest);
 	}
 
 
