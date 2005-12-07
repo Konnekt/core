@@ -369,22 +369,32 @@ namespace Konnekt { namespace Debug {
 
 
 #ifdef __LOGFULL
-			fprintf(Debug::logFile , "%s[%s:%03d][%s] %s -> %s\t | %s\t | %s %s\t | %s %s"
+			fprintf(Debug::logFile , "%s[%s:%03d] [%s] %s -> %s\t | %s\t | %s %s\t | %s %s"
 				, ind.c_str() , now.strftime("%M:%S").c_str(), GetTickCount() % 1000, IMD.nr.c_str() , IMD.sender.c_str() , IMD.receiver.c_str()
 				, IMD.id.c_str() , IMD.net.c_str() , IMD.type.c_str()
 				, IMD.p1.c_str() , IMD.p2.c_str()
 				);
 #else
-			if (msg->id == IMC_LOG)
-				fprintf(Debug::logFile , "%s[%s:%03d]## [%s] \t %s"
-				, ind.c_str() , now.strftime("%M:%S").c_str(), GetTickCount() / 1000, IMD.sender.c_str()
+			if (msg->id == IMC_LOG) {
+				string thread;
+				if (mainThread.isCurrent() == false) {
+					thread = "/";
+					if (TLSU().name.empty()) {
+						thread += inttostr(GetCurrentThreadId(), 16, 4);
+					} else {
+						thread += TLSU().name;
+					}
+				}
+				fprintf(Debug::logFile , "%s[%s:%03d] ## [%s%s] \t %s"
+				, ind.c_str() , now.strftime("%M:%S").c_str(), GetTickCount() % 1000, IMD.sender.c_str(), thread.c_str()
 				, IMD.p1.c_str()
 				);
-			else
+			} else {
 				fprintf(Debug::logFile , "%s[%s] %s -> %s\t | %s\t | %s %s "
 				, ind.c_str() , IMD.nr.c_str() , IMD.sender.c_str() , IMD.receiver.c_str()
 				, IMD.id.c_str() , IMD.p1.c_str() , IMD.p2.c_str()
 				);
+			}
 #endif
 			fflush(Debug::logFile);
 		}

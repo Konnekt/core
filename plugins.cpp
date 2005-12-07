@@ -190,7 +190,7 @@ namespace Konnekt {
 		while (ff.find())
 		{
 			if (stricmp("ui.dll" , ff.found().getFileName().c_str())) {
-				int p = plg->findRow(0, DT::Find::EqStr(PLG::file, plugDir + ff.found().getFileName()));
+				tRowId p = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), plugDir + ff.found().getFileName())).getId();
 					if (p == DT::rowNotFound) {
 						newOne = true;
 						p = plg->addRow();
@@ -237,7 +237,7 @@ namespace Konnekt {
 		if (MessageBox(0 , info , "Konnekt" , MB_TASKMODAL | MB_TOPMOST | MB_ICONERROR | MB_YESNO) == IDYES)
 		{ 
 			Tables::oTableImpl plg(tablePlugins);
-			int pl = plg->findRow(0, DT::Find::EqStr(PLG::file, this->file));
+			tRowId pl = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), this->file)).getId();
 			if (pl == DT::rowNotFound) return;
 			plg->setInt(pl , PLG::load , -1);
 			plg->save();

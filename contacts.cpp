@@ -32,9 +32,9 @@ int findContact(int p1 , char * p2) {
 			return -1;
 	}
 	if (p1 == -1) { // tylko wg. display
-		return Tables::cnt->findRow(0, DT::Find::EqStr(Tables::cnt->getColumn( CNT_DISPLAY), p2));
+		return Tables::cnt->findRow(0, DT::Find::EqStr(Tables::cnt->getColumn( CNT_DISPLAY), p2)).getId();
 	} else {
-		return Tables::cnt->findRow(0, DT::Find::EqInt(Tables::cnt->getColumn( CNT_NET), p1), DT::Find::EqStr(Tables::cnt->getColumn( CNT_UID), p2));
+		return Tables::cnt->findRow(0, DT::Find::EqInt(Tables::cnt->getColumn( CNT_NET), p1), DT::Find::EqStr(Tables::cnt->getColumn( CNT_UID), p2)).getId();
 	}
 	/*
 	int sz = Tables::cnt->getRowCount();

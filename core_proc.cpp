@@ -310,7 +310,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			int senderID = Plug.FindID(po->sender);
 			if (ID == -1 || senderID == -1) return 0;
 			Tables::oTableImpl plg(tablePlugins);
-			tRowId pl = plg->findRow(0, DT::Find::EqStr(PLG::file, Plug[ID].file.c_str()));
+			tRowId pl = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), Plug[ID].file.c_str())).getId();
 			if (pl == DT::rowNotFound) return 0;
 			if (po->_unload & sIMessage_plugOut::euNextStart) {
 				plg->setInt(pl , PLG::load , -1);

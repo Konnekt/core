@@ -327,7 +327,7 @@ namespace Konnekt {
 		id = Plug.FindID(id);
 		if (id == -1) return;
 		Tables::oTableImpl plg(tablePlugins);
-		int pl = plg->findRow(0, DT::Find::EqStr(PLG::file, Plug[id].file));
+		tRowId pl = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), Plug[id].file)).getId();
 		if (pl == DT::rowNotFound) return;
 		CStdString msg = loadString(IDS_ERR_DLL);
 		msg.Format(msg , Plug[id].file.c_str() , reason);

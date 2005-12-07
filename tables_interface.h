@@ -18,7 +18,7 @@ namespace Konnekt { namespace Tables {
 
 		}
 
-		Result confirmFileError(FileBase* file, const StringRef& message, const StringRef& title, DTException* e) {
+		Result confirmFileError(FileBase* file, const StringRef& message, const StringRef& title, DTException& e) {
 			Result result = __super::confirmFileError(file, message, title, e);
 
 			mainLogger->log(Stamina::logError, "Tables", "confirmFileError", "%s :: %s (%s) - %d", title.a_str(), message.a_str(), file->getFilename().a_str(), result);
@@ -34,20 +34,20 @@ namespace Konnekt { namespace Tables {
 		}
 		
 
-		virtual Result handleFailedLoad(FileBase* file, DTException* e, int retry) {
-			mainLogger->log(Stamina::logError, "Tables", "failedLoad", "%s (%s)", e->getReason().a_str(), file->getFilename().a_str());
+		virtual Result handleFailedLoad(FileBase* file, DTException& e, int retry) {
+			mainLogger->log(Stamina::logError, "Tables", "failedLoad", "%s (%s)", e.getReason().a_str(), file->getFilename().a_str());
 			return __super::handleFailedLoad(file, e, retry);
 		}
-		virtual Result handleFailedSave(FileBase* file, DTException* e, int retry) {
-			mainLogger->log(Stamina::logError, "Tables", "failedSave", "%s (%s)", e->getReason().a_str(), file->getFilename().a_str());
+		virtual Result handleFailedSave(FileBase* file, DTException& e, int retry) {
+			mainLogger->log(Stamina::logError, "Tables", "failedSave", "%s (%s)", e.getReason().a_str(), file->getFilename().a_str());
 			return __super::handleFailedSave(file, e, retry);
 		}
-		virtual Result handleFailedAppend(FileBase* file, DTException* e, int retry) {
-			mainLogger->log(Stamina::logError, "Tables", "failedAppend", "%s (%s)", e->getReason().a_str(), file->getFilename().a_str());
+		virtual Result handleFailedAppend(FileBase* file, DTException& e, int retry) {
+			mainLogger->log(Stamina::logError, "Tables", "failedAppend", "%s (%s)", e.getReason().a_str(), file->getFilename().a_str());
 			return __super::handleFailedAppend(file, e, retry);
 		}
 
-		virtual Result handleRestoreBackup(FileBin* file, DTException* e, int retry) {
+		virtual Result handleRestoreBackup(FileBin* file, DTException& e, int retry) {
 
 			Date64 date;
 			String found = file->findLastBackupFile("", &date);

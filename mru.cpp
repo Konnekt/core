@@ -84,7 +84,7 @@ namespace Konnekt { namespace MRU {
 		oTableImpl dt(tableMRU);
 		dt->load();
 
-		tRowId row = dt->findRow(0, DT::Find::EqStr(dt->getColumn(MRU_ID), mru->name));
+		tRowId row = dt->findRow(0, DT::Find::EqStr(dt->getColumn(MRU_ID), mru->name)).getId();
 		// Zerujemy wszystkie bufory.
 		int i = 0;
 		while (i<mru->count && mru->values[i]) {
@@ -151,7 +151,7 @@ namespace Konnekt { namespace MRU {
 			TableLocker lock(dt);
 			dt->load();
 
-			tRowId row = dt->findRow(0, DT::Find::EqStr(dt->getColumn(MRU_ID), mru->name));
+			tRowId row = dt->findRow(0, DT::Find::EqStr(dt->getColumn(MRU_ID), mru->name)).getId();
 
 			if (row==-1) {
 				row = dt->addRow();

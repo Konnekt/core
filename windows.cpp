@@ -107,11 +107,11 @@ namespace Konnekt {
 				case IDOK: 
 				{
 					CStdString login , pass;
-					GetDlgItemText(hwnd , IDC_COMBO , login.GetBuffer(255) , 255);
-					GetDlgItemText(hwnd , IDC_PASS1 , pass.GetBuffer(255) , 255);
+					GetDlgItemText(hwnd , IDC_COMBO , login.GetBuffer(256) , 255);
+					GetDlgItemText(hwnd , IDC_PASS1 , pass.GetBuffer(256) , 255);
 					login.ReleaseBuffer();
 					pass.ReleaseBuffer();
-					if (start_profile != login) {
+					/*if (start_profile != login) {*/
 						profile = login;
 						// zapisujemy na potrzeby kolejnego sprawdzania...
 						if (pass.empty())
@@ -122,7 +122,7 @@ namespace Konnekt {
 						ShowWindow(hwnd , SW_HIDE);
 						EndDialog(hwnd , setProfile(0));
 						return 1;
-					} else {
+					/*} else {
 						if (MD5Digest(pass) != passwordDigest) {
 							IMessage(IMI_ERROR , 0 , 0 , (int)loadString(IDS_ERR_BADPASSWORD).c_str());
 							//exit(0);
@@ -130,12 +130,8 @@ namespace Konnekt {
 							if (++badPass >= 3) 
 								gracefullExit();
 							break;
-							/*                         else {
-							ShowWindow(hwnd , SW_HIDE);
-							EndDialog(hwnd , setProfile(0));
-							}*/
 						}
-					}
+					}*/
 					EndDialog(hwnd , IDCANCEL);
 					return 1;}
 				case IDCANCEL:

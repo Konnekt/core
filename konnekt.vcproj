@@ -20,7 +20,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;KONNEKT_SDK_NOEXPORT;KONNEKT_SDK_BUILD_CORE;__BETA;STAMINA_DEBUG;__WITHDEBUGALL"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;KONNEKT_SDK_NOEXPORT;KONNEKT_SDK_BUILD_CORE;__BETA;__WITHDEBUGALL"
 				StringPooling="TRUE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
