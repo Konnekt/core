@@ -51,17 +51,14 @@ namespace Konnekt {
 		return IMessageProcess(msg , 0);
 	}
 
-	int __stdcall cCtrl1::IMessageDirect(unsigned int plug , sIMessage_base * msg) {
-		msg->sender = this->ID();
-		int i=Plug.FindID(plug);
-		if (i<0) {_err("IMessage sent in space ...");
-		TLSU().setError(IMERROR_BADPLUG);return 0;}
-		/*
-		if (msg->id < IM_SHARE && (msg->sender != ui_sender && plug!=msg->sender)
-		&& !(!plug && msg->id<IM_BASE)) 
-		{IMBadSender(msg , plug);return 0;}
-		*/
-		return Konnekt::IMessageDirect(Plug[i],msg);
+	int __stdcall cCtrl1::IMessageDirect(unsigned int plugId , sIMessage_base * msg) {
+		Plugin* plugin = plugins.get(plugId);
+		if (plugin == 0) {
+			_err("IMessage sent in space ...");
+			TLSU().setError(IMERROR_BADPLUG);
+			return 0;
+		}
+		return plugin->sendIMessage(this, msg);
 	}
 
 //#define CTRL_SETDT CdTable * DT = (db==DTCFG)?&Cfg : (db==DTCNT)?&Cnt : (db==DTMSG)?&Msg : 0;\
@@ -347,13 +344,11 @@ namespace Konnekt {
 	}
 
 
-	cCtrl_ * createPluginCtrl() {
-		return new cCtrl1;
+	cCtrl_ * createPluginCtrl(Plugin& plugin) {
+		return new cCtrl1(plugin);
 	}
-	cCtrl_ * createCorePluginCtrl() {
-		cCtrl3 * c = new cCtrl3;
-		c->setCtrl(0, 0);
-		return c;
+	cCtrl_ * createCorePluginCtrl(Plugin& plugin) {
+		return new cCtrl3(plugin);
 	}
 
 

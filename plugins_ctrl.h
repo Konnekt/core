@@ -9,18 +9,19 @@ namespace Konnekt {
 	class cCtrl_ : public cCtrlEx{
 		friend class cCtrl1;
 	public:
+
 		//   virtual ~cCtrl_(){};
 		int __stdcall getLevel() {return 0;}
-		void setCtrl(int id , void * handle);
 
-		unsigned int __stdcall ID(){return _ID;}  ///< Identyfikator wtyczki
+		unsigned int __stdcall ID(){return _plugin.getId();}  ///< Identyfikator wtyczki
 		HINSTANCE __stdcall hInst(){return Stamina::getHInstance();}   ///  Uchwyt procesu (HINSTANCE)
-		HINSTANCE __stdcall hDll(){return _hDll;}   ///  Uchwyt biblioteki.
+		HINSTANCE __stdcall hDll(){return _plugin.getDllInstance();}   ///  Uchwyt biblioteki.
 		int __stdcall getError(); ///< Zwraca kod ostatniego bledu
 		void __stdcall setError(int err_code);
 		bool __stdcall isRunning() {return ::isRunning;} ///< Ustawia kod b³êdu.
 
-		cCtrl_() {warn_cnt = 0; err_cnt = 0; 
+		cCtrl_(Plugin& plugin):_plugin(plugin) {
+			warn_cnt = 0; err_cnt = 0; 
 			debugLevel = DBG_ALL;
 #ifdef __DEBUG
 			debugLevel |= DBG_DEBUG;
@@ -37,8 +38,7 @@ namespace Konnekt {
 		string last_warn , last_err;      // Ostatni blad i ostrzezenie
 	private:
 		unsigned int warn_cnt , err_cnt;  // Liczniki ostrzezen i bledow
-		unsigned int _ID;
-		HINSTANCE _hDll;
+		Plugin& _plugin;
 		unsigned int debugLevel;
 	};
 
@@ -53,6 +53,9 @@ namespace Konnekt {
 			void * param;
 			std::string name;
 		};
+
+		cCtrl1(Plugin& plugin):cCtrl_(plugin) {
+		}
 
 		// Inne
 		int __stdcall IMessage(sIMessage_base * msg);
@@ -107,12 +110,20 @@ namespace Konnekt {
 	// cCtrl z funkcjami troche wyzszego poziomu
 	class cCtrl2 : public cCtrl1 {
 	public:
+
+		cCtrl2(Plugin& plugin):cCtrl1(plugin) {
+		}
+
 		int __stdcall getLevel() {return 2;}
 	};
 
 	// cCtrl - odpowiednik cCtrlEx
 	class cCtrl3 : public cCtrl2 {
 	public:
+
+		cCtrl3(Plugin& plugin):cCtrl3(plugin) {
+		}
+
 		int __stdcall getLevel() {return 3;}
 
 		void __stdcall PlugOut(unsigned int id , const char * reason , bool restart = 1);

@@ -14,8 +14,8 @@ namespace Konnekt { namespace Tables {
 	class Interface_konnekt: public Interface_passList {
 	public:
 
-		Interface_konnekt() {
-
+		Interface_konnekt(bool silent = false) {
+			_silent = silent;
 		}
 
 		Result confirmFileError(FileBase* file, const StringRef& message, const StringRef& title, DTException& e) {
@@ -47,24 +47,30 @@ namespace Konnekt { namespace Tables {
 
 		virtual Result handleFailedLoad(FileBase* file, DTException& e, int retry) {
 			mainLogger->log(Stamina::logError, "Tables", "failedLoad", "%s (%s)", e.getReason().a_str(), file->getFilename().a_str());
+			if (_silent) return fail;
 			Result res = __super::handleFailedLoad(file, e, retry);
 			mainLogger->log(Stamina::logError, "Tables", "failedLoad", "=%s %s (%s)", resultToString(res), e.getReason().a_str(), file->getFilename().a_str());
 			return res;
 		}
 		virtual Result handleFailedSave(FileBase* file, DTException& e, int retry) {
 			mainLogger->log(Stamina::logError, "Tables", "failedSave", "%s (%s)", e.getReason().a_str(), file->getFilename().a_str());
+			if (_silent) return fail;
+
 			Result res = __super::handleFailedSave(file, e, retry);
 			mainLogger->log(Stamina::logError, "Tables", "failedSave", "=%s %s (%s)", resultToString(res), e.getReason().a_str(), file->getFilename().a_str());
 			return res;
 		}
 		virtual Result handleFailedAppend(FileBase* file, DTException& e, int retry) {
 			mainLogger->log(Stamina::logError, "Tables", "failedAppend", "%s (%s)", e.getReason().a_str(), file->getFilename().a_str());
+			if (_silent) return fail;
+
 			Result res = __super::handleFailedAppend(file, e, retry);
 			mainLogger->log(Stamina::logError, "Tables", "failedAppend", "=%s %s (%s)", resultToString(res), e.getReason().a_str(), file->getFilename().a_str());
 			return res;
 		}
 
 		virtual Result handleRestoreBackup(FileBin* file, DTException& e, int retry) {
+			if (_silent) return fail;
 
 			Date64 date;
 			String found = file->findLastBackupFile("", &date);
@@ -85,6 +91,7 @@ namespace Konnekt { namespace Tables {
 		}
 
 		virtual Stamina::MD5Digest askForPassword(FileBase* file, int retry) {
+			if (_silent) return MD5Digest();
 
 			if (Plug.size() > 0) {
 
@@ -104,8 +111,19 @@ namespace Konnekt { namespace Tables {
 			}
 		}
 
+	private:
+		bool _silent;
+
+	};
+
+	class Interface_konnekt_silent: public Interface_konnekt {
+	public:
+		Interface_konnekt_silent():Interface_konnekt(true) {
+
+		}
 	};
 
 	extern StaticObj<Interface_konnekt> iface;
+	extern StaticObj<Interface_konnekt_silent> ifaceSilent;
 
 } }

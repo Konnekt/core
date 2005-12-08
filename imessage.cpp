@@ -108,20 +108,26 @@ imp_return:
 		return sum;
 	}
 
-	int directIMessage(cPlug & plug, sIMessage_base * msg){
-		if (!plug.running && msg->id != IM_PLUG_DEINIT) {TLSU().setError(IMERROR_BADPLUG);return 0;}
-		TLSU().lastIM.enterMsg(msg , plug.ID);
+
+	int __stdcall Plugin::sendIMessage(sIMessage_base*im) {
+
+		if (this->_running == false && im->id != IM_PLUG_DEINIT) {
+			TLSU().setError(IMERROR_BADPLUG);
+			return 0;
+		}
+		TLSU().lastIM.enterMsg(im , this->_id);
 		//  lastIM.receiver =
 #ifdef __DEBUG
-		int pos=IMDebug(msg,plug.ID,0);
+		int pos = IMDebug(im, this->_id, 0);
 #endif
-		int result = plug.IMessageProc(msg);
+		int result = this->callIMessageProc(im);
 #ifdef __DEBUG
-		IMDebugResult(msg,pos,result);
+		IMDebugResult(im, pos, result);
 #endif
 		//  lastIM.plugID = msg->sender;
 		TLSU().lastIM.leaveMsg();
 		return result;
+
 	}
 
 };

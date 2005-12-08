@@ -320,8 +320,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			CStdString nameSender = Plug[senderID].GetName();
 			CStdString reason = po->_reason;
 			if (po->_unload & sIMessage_plugOut::euNow) {
-				Plug.PlugOUT(ID);
-				Plug.Plug.erase(Plug.Plug.begin() + ID);
+				plugins.plugOut(plugins[ID]);
 			}
 
 			CStdString msg = loadString(IDS_INF_PLUGOUT);

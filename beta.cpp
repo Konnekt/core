@@ -193,9 +193,12 @@ namespace Konnekt { namespace Beta {
 
 		setStats(0);
 
+		/*
 		if (beta->getString(0 , BETA_LOGIN).empty() && !beta->getInt(0 , BETA_ANONYMOUS)) {
 			showBeta();
 		}
+		*/
+
 		betaLogin = beta->getString(0, BETA_LOGIN);
 		betaPass = beta->getString(0, BETA_PASSMD5);
 		anonymous = beta->getInt(0 , BETA_ANONYMOUS);
@@ -388,7 +391,7 @@ namespace Konnekt { namespace Beta {
 		CStdString instancePath = appPath;
 		instancePath = Stamina::RegEx::doGet("#^((?:[a-z]:\\\\)|(?:\\\\{2}.+?\\\\.+?\\\\))#i", instancePath, 1, instancePath);
 		if (GetVolumeInformation(instancePath , 0 , 0 , &serialNumberInstance , 0 , 0 , 0 , 0)) {
-			return MD5_64(inttostr(serialNumberInstance) + appPath);
+			return MD5_64(inttostr(serialNumberInstance) + appPath.ToLower());
 		} else {
 			return info_serialSystem();
 		}

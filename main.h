@@ -27,7 +27,6 @@
 #define TIMEOUT_DIAL  20000
 #define TIMEOUT_RETRY Tables::cfg->getInt(0,CFG_TIMEOUT_RETRY)  // 60000
 
-#define PLUG_MAX_COUNT 0x80
 
 #define MYWM_CORE WM_USER + 28510
 #define MYWM_CORECOUNT 20

@@ -15,7 +15,7 @@ using namespace Stamina;
 
 namespace Konnekt {
 
-	cPlugs Plug;
+	Plugins plugins;
 
 	tTableId tablePlugins;
 
@@ -35,145 +35,392 @@ namespace Konnekt {
 	}
 
 
-	int cPlugs::FindID (unsigned int id , int start) {
-		if (id < PLUG_MAX_COUNT) // mamy pozycjê...
-			return id;
-		for (Plug_it_t Plug_it=Plug.begin()+start; Plug_it!=Plug.end(); Plug_it++)
-			if (Plug_it->ID==id) return Plug_it-Plug.begin();
-		return -1;
-	}
+	// --------------------------------------------------------------------
 
-
-
-
-	int cPlugs::Find (int net , unsigned int type , int start) {
-		for (Plug_it_t Plug_it=Plug.begin()+start; Plug_it!=Plug.end(); Plug_it++)
-			if ((type==-1 || (Plug_it->type & type)==type) && (net==-1 || net==-2 || Plug_it->net==net) ) return Plug_it-Plug.begin();
-		return -1;
-	}
-
-
-	std::string cPlugs::Name (unsigned int h) {
-		if (!h) return "CORE";
-		if (h<3) return stringf("___BC%u",h-1);
-		int pos=FindID(h);
-		if (pos>=0) return Plug[pos].name;
-		else return stringf("%#.4x",h);
-	}
-	int cPlugs::PlugIN(const char * file , const char * cert , int ex) {
-		HMODULE hModule;
-		cPlug dll;
-		IMLOG("* plugin - %s" , file);
-		try {
-			dll.priority = PLUGP_NONE;
-			dll.Ctrl = 0;
-			hModule = LoadLibrary(file);
-
-			if (!hModule) {
-				string err = "Load Failed [";
-				int errNo = GetLastError();
-				err += inttostr(errNo);
-				err += "] ";
-				err += getErrorMsg(errNo);
-				//strcpy(TLS().buff , err.c_str());
-				throw ExceptionString(err);
-			}
-			dll.IMessageProc=(fIMessageProc)GetProcAddress(hModule , "IMessageProc");
-			if (!dll.IMessageProc) {
-				dll.IMessageProc=(fIMessageProc)GetProcAddress(hModule , "_IMessageProc@4");
-				if (!dll.IMessageProc)
-					throw ExceptionString("IMessageProc not found!");
-			}
-
-			dll.file = file;
-			dll.hModule=hModule;
-			//	if (Plug.size() < 1) { // ID dla UI jest inne od pozosta³ych
-			//		dll.ID = Plug.size(); 
-			//	} else {
-			dll.ID=(unsigned int)Plug.size()+PLUG_MAX_COUNT; // <=0x80 to identyfikatory... Do 127 wtyczek!
-			//	}
-			/*    if (cert) {
-			char * ch = (char*)IMessageDirect(dll,IM_PLUG_CERT , 0 , 0);
-			if (!ch || strcmp(cert , ch)) throw "Unsuplied CERT";
-			}*/
-			dll.running = true;
-			dll.type=IMessageDirect(dll,IM_PLUG_TYPE , 0 , 0 , 0);
-			dll.version = Version( safeChar(IMessageDirect(dll,IM_PLUG_VERSION , 0 , 0 , 0)) );
-			if (dll.version.empty()) {
-				FileVersion fv(dll.file);
-				dll.version = fv.getFileVersion();
-			}
-			dll.sig=safeChar(IMessageDirect(dll,IM_PLUG_SIG , 0 , 0 , 0));
-			//    dll.core_v=safeChar(IMessageDirect(dll,IM_PLUG_CORE_V , 0 , 0 , 0));
-			//    dll.ui_v=safeChar(IMessageDirect(dll,IM_PLUG_UI_V , 0 , 0 , 0));
-
-			dll.net=IMessageDirect(dll,IM_PLUG_NET , 0 , 0);
-			dll.name=safeChar(IMessageDirect(dll,IM_PLUG_NAME , 0 , 0 , 0));
-			dll.netname=safeChar(IMessageDirect(dll,IM_PLUG_NETNAME , 0 , 0 , 0));
-
-			if (IMessageDirect(dll,IM_PLUG_SDKVERSION , 0 , 0 , 0) < KONNEKT_SDK_V) throw ExceptionString("Wtyczka przygotowana zosta³a dla starszej wersji API. Poszukaj nowszej wersji!");
-
-			if (Plug.size() > 0 && dll.net==0) throw ExceptionString("Bad Net value!");
-			if (dll.sig=="" || dll.name=="") throw ExceptionString("Sig|Name required!");
-			//    if (dll.core_v!="" && dll.core_v!=core_v) throw "incompatible Core";
-			//    if (ui_v!="" && dll.ui_v!="" && dll.ui_v!=ui_v) throw "incompatible UserInterface";
-			if (Plug.size()==0) {//ui_v=dll.sig;
-			ui_sender=dll.ID;
-			}
-			dll.Ctrl = ex? createCorePluginCtrl() : createPluginCtrl();
-			dll.Ctrl->setCtrl(dll.ID , hModule);
-			dll.running = true;
-			if (!IMessageDirect(dll,IM_PLUG_INIT , (tIMP)(dll.Ctrl) , (tIMP)dll.hModule , 0))
-				throw ExceptionString("IM_INIT failed");
-			if (ex) IMessageDirect(dll,IM_PLUG_INITEX , (tIMP)(dll.Ctrl) , 0 , 0);
-
-			int pos = this->push(dll);
-
-			if (dll.net == -1) { /* odpytujemy raz jeszcze, sam nas o to prosi³... */
-				Plug[pos].net =IMessageDirect(dll,IM_PLUG_NET , 0 , 0);
-				Plug[pos].name=safeChar(IMessageDirect(dll,IM_PLUG_NAME , 0 , 0 , 0));
-				Plug[pos].netname=safeChar(IMessageDirect(dll,IM_PLUG_NETNAME , 0 , 0 , 0));
-				if (Plug[pos].name=="") throw ExceptionString("Sig|Name required!");
-			}
-			// Wtyczka zostala zatwierdzona i dodana
-
-			//    cPlug & plg = Plug[Plug.size()-1];
-
-
-		} catch (Exception& e) {
-			if (dll.Ctrl) {delete dll.Ctrl;dll.Ctrl = 0;}
-			if (hModule) FreeLibrary(hModule);
-			CStdString errMsg;
-			errMsg.Format(loadString(IDS_ERR_DLL).c_str() , file , e.getReason().c_str());
-			int ret = MessageBox(NULL , errMsg , loadString(IDS_APPNAME).c_str() , MB_ICONWARNING|MB_YESNOCANCEL|MB_TASKMODAL);
-			if (ret == IDCANCEL) abort();
-			return ret == IDYES? 0 : -1;
+	Plugin::~Plugin() {
+		if (_ctrl) {
+			delete _ctrl;
 		}
-		return 1;
+		if (_module && !isVirtual()) {
+			FreeLibrary(_module);
+		}
+	}
+
+	void Plugin::initVirtual(Plugin& owner, void* imessageObject, void* imessageProc) {
+		_owner = &owner;
+		_imessageObject = imessageObject;
+		_imessageProc = imessageProc;
+		_file = _owner->_file;
+		_module = _owner->_module;
+		_version = _owner->_version;
+		this->initData();
+	}
+
+	void Plugin::initClassic(StringRef& file, void* imessageProc) {
+		_owner = 0;
+		_imessageObject = 0;
+	
+		_file = file;
+		FileVersion fv(file);
+		this->_version = fv.getFileVersion();
+
+		_module = LoadLibrary(file);
+
+		if (!_module) {
+			string err = "B³¹d podczas ³adowania [";
+			int errNo = GetLastError();
+			err += inttostr(errNo);
+			err += "] ";
+			err += getErrorMsg(errNo);
+			//strcpy(TLS().buff , err.c_str());
+			throw ExceptionString(err);
+		}
+
+		if (imessageProc) {
+			_imessageProc = imessageProc;
+		} else {
+			_imessageProc = (fIMessageProc)GetProcAddress(_module , "IMessageProc");
+		}
+
+		if (!_imessageProc) {
+			_imessageProc=(fIMessageProc)GetProcAddress(_module , "_IMessageProc@4");
+			if (!_imessageProc) {
+				throw ExceptionString("Ten plik najprawdopodobniej nie jest wtyczk¹!");
+			}
+		}
+
+		this->initData();
+
+	}
+
+	void Plugin::initData() {
+		static uniqueId = pluginsDynamicIdStart;
+		uniqueId++;
+		if (this->_id == pluginNotFound) {
+			this->_id = uniqueId;
+		}
+		this->_debugColor = getUniqueColor(plugins.count(), 4, 0xFF, true, true);
+		this->_running = false;
+		this->_priority = priorityNone;
+
+
+		this->_type = (enIMessageType) this->IMessage(IM_PLUG_TYPE);
+		if (this->_version.empty()) {
+			this->_version = Version( safeChar(this->IMessage(IM_PLUG_VERSION)) );
+		}
+		this->_sig = safeChar(this->IMessage(IM_PLUG_SIG));
+		this->_net = this->IMessage(IM_PLUG_NET);
+		this->_name = safeChar(this->IMessage(IM_PLUG_NAME));
+		this->_netName = safeChar(this->IMessage(IM_PLUG_NETNAME));
+
+		if (this->IMessage(IM_PLUG_SDKVERSION) < KONNEKT_SDK_V) { 
+			throw ExceptionString("Wtyczka przygotowana zosta³a dla starszej wersji API. Poszukaj nowszej wersji!");
+		}
+
+		if (this->getId() != pluginCore && this->getId() != pluginUI && dll.net==0) throw ExceptionString("Z³a wartoœæ NET!");
+		if (_sig == "" || _name == "") throw ExceptionString("Brakuje nazwy, lub wartoœci SIG!");
+
+		if (RegEx::doMatch("/^[A-Z0-9_]{3,12}$/i", _sig) == 0) throw ExceptionString("Wartoœæ SIG nie spe³nia wymagañ!");
+
+		if (plugins.findSig(_sig) != 0) {
+			throw ExceptionString("Wartoœæ SIG jest ju¿ zajêta!");
+		}
+
+	}
+
+	void Plugin::run() {
+		if (this->getId() == pluginCore || this->getId() == pluginUI) {
+			this->_ctrl = createCorePluginCtrl(*this);
+		} else {
+			this->_ctrl = createPluginCtrl(*this);
+		}
+		this->_running = true;
+		if (this->IMessage(IM_PLUG_INIT, (tIMP)this->_ctrl, (tIMP)this->_id, 0) == 0) {
+			throw ExceptionString("Inicjalizacja siê nie powiod³a!");
+		}
+	}
+
+	void Plugin::deinitialize() {
+		IMessage(IM_PLUG_PLUGOUT , NET_BROADCAST , IMT_ALL , this->getId() , 0 );
+		bool nofree = this->IMessage(IM_PLUG_DONTFREELIBRARY);
+		this->_running=false;
+		this->IMessage(IM_PLUG_DEINIT);
+		if (nofree) {
+			_module = 0;
+		}
 	}
 
 
-	int cPlugs::PlugOUT(int nr) {
-		//  if (Plug[nr].type & IMT_PROTOCOL)
-		IMessage(IM_PLUG_PLUGOUT , NET_BROADCAST , IMT_ALL , Plug[nr].ID , 0 );
-		bool nofree = IMessageDirect(Plug[nr], IM_PLUG_DONTFREELIBRARY, 0, 0, 0);
-		Plug[nr].running=false;
-		IMessageDirect(Plug[nr],IM_PLUG_DEINIT , 0 , 0 , 0);
-		if (!nofree)
-			FreeLibrary((HMODULE)Plug[nr].hModule);
-		delete Plug[nr].Ctrl;
-		Plug[nr].Ctrl = 0;
+
+	inline int Plugin::callIMessageProc(sIMessage_base*im) {
+		if (_imessageObject == 0) {
+			return ((fIMessageProc)_imessageProc)(im);
+		} else {
+			typedef int (__stdcall*fIMessageProcObject)(void*, sIMessage_base * msg);
+			return ((fIMessageProcObject)_imessageProc)(_imessageObject, im);
+		}
+	}
+
+	bool __stdcall Plugin::plugOut(const cCtrl* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload) {
+		Stamina::mainLogger->log(Stamina::logWarn, "Plugin", "plugOut", "unload=%d reason=\"%s\"", unload, reason.a_str());
+
+		if (mainThread.isCurrent() == false) {
+			threadInvoke(mainThread, boost::bind(Plugin::plugOut, this, sender, reason, quiet, unload));
+			return true;
+		}
+
+		Tables::oTableImpl plg(tablePlugins);
+		tRowId pl = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), this->getDllFile())).getId();
+		if (pl == DT::rowNotFound) return false; // dziwna sprawa :)
+		if (unload & iPlugin::poUnloadOnNextStart) {
+			plg->setInt(pl , PLG::load , -1);
+			plg->save();
+		}
+
+		String namePlug = this->getName();
+		String nameSender = sender->getPlugin()->getName();
+		
+		bool result = true;
+
+		if (unload & iPlugin::poUnloadNow) {
+			if (this->canPlugOut()) {
+				plugins.plugOut(*this);
+			} else {
+				result = false;
+			}
+		}
+
+		if (!quiet) {
+			CStdString msg = loadString(IDS_INF_PLUGOUT);
+			msg.Format(msg, nameSender, namePlug, reason, "");
+		}
+
+		MessageBox(NULL, msg, loadString(IDS_APPNAME).c_str(), MB_ICONWARNING|MB_TASKMODAL|MB_OK);
+		
+		return result;
+	}
+
+
+
+	void Plugin::madeError(const StringRef& msg , unsigned int severity) {
+		String info = L"Wtyczka \"" + this->_name + L"\" zrobi³a bubu:\r\n" + msg + L"\r\n\r\nPrzejmujemy siê tym?";
+		if (MessageBoxW(0 , info.w_str() , L"Konnekt" , MB_TASKMODAL | MB_TOPMOST | MB_ICONERROR | MB_YESNO) == IDYES)
+		{ 
+			Tables::oTableImpl plg(tablePlugins);
+			tRowId pl = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), this->_file)).getId();
+			if (pl == DT::rowNotFound) return;
+			plg->setInt(pl , PLG::load , -1);
+			plg->save();
+			if (!Konnekt::running) {
+				deinitialize();
+			} else {
+				deinitialize();
+				restart();
+			}
+		}
+	}
+
+
+	// --------------------------------------------------------------------
+
+	int Plugins::getIndex(tPluginId id) {
+		if (id < pluginsMaxCount) {
+			if ((unsigned)id >= _list.size()) {
+				return pluginNotFound;
+			}
+			return id;
+		}
+		for (tList::iterator it = _list.begin(); it != _list.end(); ++it) {
+			if ((*it)->getId() == id) return it - _list.begin();
+		}
+		return pluginNotFound;
+	}
+
+	tPluginId Plugins::getId(int id) {
+		if (id > pluginsMaxCount) {
+			return (tPluginId)id;
+		}
+		if (id > 0 && id < _list.size()) {
+			(*_list[i])->getId();
+		} else {
+			return pluginNotFound;
+		}
+	}
+
+
+	int Plugins::findPlugin(tNet net , enIMessageType type , unsigned int start) {
+		for (tList::iterator it = _list.begin() + start; it != _list.end(); ++it) {
+			if ((type == -1 || ((*it)->_type & type)==type) && (net == Net::broadcast || net == Net::first || (*it)->_net == net)) {
+				return it - _list.begin();
+			}
+		}
+		return pluginNotFound;
+	}
+
+	Plugin* Plugins::findSig(const StringRef& sig) {
+		for (tList::iterator it = _list.begin() + start; it != _list.end(); ++it) {
+			if ((*it)->getSig().equal(sig, true)) {
+				return &(*it);
+			}
+		}
 		return 0;
 	}
-	void checkVersions(void) {
-		string ver = Tables::cfg->getString(0 , CFG_VERSIONS);
-		unsigned int prevVer = findVersion(ver , "CORE" , versionNumber);
-		if (versionNumber > prevVer) updateCore(prevVer);
-		for (int i = 0; i<Plug.size(); i++) {
-			prevVer = findVersion(ver , CStdString(Plug[i].file).ToLower() , Plug[i].version.getInt());
-			if (Plug[i].version.getInt() > prevVer) {Plug[i].IMessage(IM_PLUG_UPDATE , prevVer);}
+
+
+
+	String Plugins::getName(tPluginId id) {
+		if (h == 0) return "CORE";
+		if (h < 3) return stringf("___BC%u", id - 1);
+		int pos = this->getIndex(id);
+		if (pos >= 0) {
+			return _list[pos].getName();
+		} else {
+			return stringf("%#.4x",h);
 		}
-		Tables::cfg->setString(0 , CFG_VERSIONS , ver);
+	}
+
+
+	bool Plugins::plugInClassic(const StringRef& filename) {
+	}
+
+	bool Plugins::plugInVirtual(Plugin& owner, void* object, void* proc) {
+	}
+
+	bool Plugins::plugOut(Plugin& plugin) {
+	}
+
+
+
+	void Plugins::plugInClassic(const StringRef& filename, void* imessageProc, tPluginId pluginId) {
+		ptrPlugin plugin (new Plugin(pluginId));
+		try {
+			plugin->initClassic(filename, imessageProc);
+			plugin->run();
+			_list.push_back(plugin);
+		} catch (Exception& e) {
+			mainLogger->log(logError, "Plugins", "plugInClassic", "\"%s\" failed: \"%s\"", filename.a_str(), e.getReason().a_str());
+			throw e;
+		}
+	}
+
+	void Plugins::plugInVirtual(Plugin& owner, void* object, void* proc, tPluginId pluginId) {
+		ptrPlugin plugin (new Plugin(pluginId));
+		try {
+			plugin->initVirtual(owner, object, proc);
+			plugin->run();
+			_list.push_back(plugin);
+		} catch (Exception& e) {
+			mainLogger->log(logError, "Plugins", "plugInVirtual", "\"%s\" failed: \"%s\"", owner.getName().a_str(), e.getReason().a_str());
+			throw e;
+		}
+	}
+
+	bool Plugins::plugOut(Plugin& plugin, bool removeFromList) {
+		plugin.deinitialize();
+		if (removeFromList) {
+			for (tList::iterator it = _list.begin(); it != _list.end(); ++it) {
+				if (it->get() == &plugin) {
+					_list.erase(it);
+					return true;
+				}
+			}
+			bool pluginOnList = false;
+			S_ASSERT(pluginOnList == true);
+		}
+	}
+
+
+	void Plugins::sortPlugins(void) {
+		// Na poczatku wszystkie wtyczki maja 0 dziêki czemu bêdziemy je
+		// trzymaæ na samym koñcu listy przez ca³y czas...
+		tList::iterator it = _list.begin();
+		while (it != _list.end()) {
+			ptrPlugin current = *it;
+			Plugin* plugin = *current;
+			if (plugin->getId() == pluginCore || plugin->getId() == pluginUI) {
+				plugin->_priority = priorityCore;
+				continue;
+			}
+
+			// sprawdzamy priorytety
+			plugin->_priority = (enPluginPriority)plugin->IMessage(IM_PLUG_PRIORITY);
+			if (!plugin->_priority || plugin->_priority > priorityHighest) {
+				plugin->_priority = priorityStandard;
+			}
+			// usuwamy, ¿eby nie przeszkadza³...
+			it = _list.erase(it);
+			// szukamy teraz, gdzie go wrzucic... na pewno gdzies wczesniej
+			tList::iterator ins = _list.begin();
+			while (ins != _list.end() && (*ins)->getPriority() >= plugin->_priority) {
+				ins++;
+			}
+
+			_list.insert(ins , current);
+			if (it != _list.end()) {
+				it ++;
+			}
+		}
+	}
+
+
+	// --------------------------------------------------------------------
+
+
+	void checkVersions(void) {
+
+		using namespace Tables;
+		oTable state = registerTable(Ctrl, "PluginState", optPrivate |  optDiscardLoadedColumns | opt);
+		state->setFilename("plg_state.dtb");
+		state->setDirectory();
+
+		state->setColumn("sig", ctypeString);
+		state->setColumn("file", ctypeString);
+		state->setColumn("version", ctypeInt);
+		state->setColumn("last", ctypeInt64);
+		state->load();
+
+		bool useOldMethod = (state->getRowCount() == 0);
+
+		string ver;
+		if (useOldMethod) {
+			ver = Tables::cfg->getString(0 , CFG_VERSIONS);
+			if (ver.empty()) {
+				useOldMethod = false;
+			} else {
+				unsigned int prevVer = findVersion(ver , "CORE" , versionNumber);
+				if (versionNumber > prevVer) updateCore(prevVer);
+			}
+		}
+
+		for (int i = 0; i < plugins.count(); i++) {
+			if (plugins[i].isVirtual()) continue;
+
+			oRow row = state->findRow(0, DT::Find::EqStr( state->getColumn("sig"), plugins[i].getSig() ));
+
+			if (row.isValid() == false) {
+				row = state->addRow();
+				state->setString("sig", plugins[i].getSig());
+			}
+
+			if (useOldMethod) {
+				prevVer = findVersion(ver, plugins[i].getDllFile().toLower() , plugins[i].getVersion().getInt());
+			} else {
+				prevVer = row->getInt("version");
+			}
+
+			row->setInt("version", plugins[i].getVersion().getInt());
+			row->setString("file", plugins[i].getDllFile().toLower());
+			row->setInt64("last", Stamina::Time64(true));
+
+			if (plugins[i].getVersion().getInt() > prevVer) {
+				plugins[i].sendIMessage(Ctrl, &sIMessage_2params(IM_PLUG_UPDATE , prevVer));
+			}
+		}
+		Tables::cfg->setString(0 , CFG_VERSIONS , "");
+		Tables::cfg->save();
+
+		state->save();
+		state->unregisterTable();
 	}
 
 
@@ -214,77 +461,35 @@ namespace Konnekt {
 			} // usuwa nie istniejaca wtyczke
 			if (plg->getInt(i , PLG::load) !=1 ) 
 				continue;
-			if (!Plug.PlugIN(plg->getString(i , PLG::file).c_str())) {
-				plg->setInt(i , PLG::load , -1);
-				newOne = 1;
+			String file = plg->getString(i , PLG::file);
+			try {
+				plugins.plugInClassic(file);
+			} catch (Exception& e) {
+
+				CStdString errMsg;
+				errMsg.Format(loadString(IDS_ERR_DLL).c_str(), file.a_str() , e.getReason().a_str());
+				int ret = MessageBox(NULL , errMsg , loadString(IDS_APPNAME).c_str() , MB_ICONWARNING|MB_YESNOCANCEL|MB_TASKMODAL);
+				if (ret == IDCANCEL) abort();
+				if (ret == IDYES) {
+					plg->setInt(i , PLG::load , -1);
+					newOne = 1;
+				}
 			}
 		}
         plg->save();
 		IMLOG("- Plug.sort");
-		Plug.sort();
+		plugins.sortPlugins();
 		//  if (newOne)
 		//    IMessageDirect(Plug[0] , IMI_DLGPLUGS , 2);
 
 
 	}
-	const char * cPlug::GetName() {
-		return (const char*)this->IMessage(IM_PLUG_NAME);
-	}
-
-
-	void cPlug::madeError(const CStdString msg , unsigned int severity) {
-		CStdString info = "Wtyczka \""+this->name+"\" zrobi³a bubu:\r\n" + string(msg) + "\r\n\r\nPrzejmujemy siê tym?";
-		if (MessageBox(0 , info , "Konnekt" , MB_TASKMODAL | MB_TOPMOST | MB_ICONERROR | MB_YESNO) == IDYES)
-		{ 
-			Tables::oTableImpl plg(tablePlugins);
-			tRowId pl = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), this->file)).getId();
-			if (pl == DT::rowNotFound) return;
-			plg->setInt(pl , PLG::load , -1);
-			plg->save();
-			if (!running) {
-				deinitialize();
-			} else {
-				deinitialize();
-				restart();
-			}
-		}
-	}
 
 
 	// ---------------------------------------------
 
-	void cPlugs::sort(void) {
-		// Na poczatku wszystkie wtyczki maja 0 dziêki czemu bêdziemy je
-		// trzymaæ na samym koñcu listy przez ca³y czas...
-		Plug_it_t it = Plug.begin()+1;
-		while (it != Plug.end()) {
-			// sprawdzamy priorytety
-			it->priority = (PLUGP_enum)it->IMessage(IM_PLUG_PRIORITY , 0 , 0);
-			if (!it->priority || it->priority > PLUGP_HIGHEST) it->priority=PLUGP_STANDARD;
-			// szukamy teraz, gdzie go wrzucic... na pewno gdzies wczesniej
-			Plug_it_t ins = Plug.begin()+1;
-			while (ins != it && ins->priority >= it->priority) {ins++;}
-			if (ins!=it) {
-				int pos = it - Plug.begin();
-				Plug.insert(ins , *it);
-				it = Plug.erase(Plug.begin() + pos + 1);
-				//            it++; // na pewno wrzucamy wczesniej, wiec sie troche przesunelo...
-				cPlug temp2 = *it;
-				continue;
-			}
-			it ++;
-		}
-	}
 
 
 
-	int cPlug::IMessage(unsigned int id , int p1 , int p2 , unsigned int sender) {
-		return IMessageDirect(*this , id,p1,p2,sender);
-	}
-
-
-	cPlug::cPlug() {
-		this->debugColor = getUniqueColor(Plug.size(), 4, 0xFF, true, true);
-	}
 
 };

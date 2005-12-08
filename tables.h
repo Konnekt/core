@@ -66,9 +66,9 @@ namespace Konnekt { namespace Tables {
 		unsigned int __stdcall getColCount();
 		void __stdcall lockData(tRowId rowId , int reserved=0);
 		void __stdcall unlockData(tRowId rowId , int reserved=0);
-		oColumn __stdcall setColumn(const oPlugin& plugin, tColId colId , tColType type, const StringRef& name = StringRef());
+		oColumn __stdcall setColumn(const cCtrl* plugin, tColId colId , tColType type, const StringRef& name = StringRef());
 		oColumn __stdcall setColumn(tColId colId , tColType type, const StringRef& name = StringRef()) {
-			return this->setColumn(Ctrl->getPlugin(), colId, type, name);
+			return this->setColumn(Ctrl, colId, type, name);
 		}
 
 		oRow __stdcall addRow(tRowId rowId = rowNotFound);

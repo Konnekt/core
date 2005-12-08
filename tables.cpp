@@ -16,6 +16,7 @@ namespace Konnekt { namespace Tables {
 	TableList tables;
 
 	StaticObj<Interface_konnekt> iface;
+	StaticObj<Interface_konnekt_silent> ifaceSilent;
 
 /*	CdTable Msg;
 	CdTable Cfg;
@@ -35,9 +36,10 @@ namespace Konnekt { namespace Tables {
 
 	int setColumn(sIMessage_setColumn * sc) {
 		oTable dt((tTableId)sc->_table);
-		if (!dt) return 0;
+		Plugin* plugin = plugins.get(sc->sender);
+		if (!dt || !plugin) return 0;
 		// jest b³¹d gdy kolumna istnieje i nie by³a za³adowana...
-		oColumn col = dt->setColumn((tColId)sc->_id, (tColType)sc->_type, sc->_name);
+		oColumn col = dt->setColumn(plugin->getCtrl(), (tColId)sc->_id, (tColType)sc->_type, sc->_name);
 
 		if (sc->_def) {
 			switch(sc->_type & ctypeMask) {
@@ -77,7 +79,6 @@ namespace Konnekt { namespace Tables {
 		this->_dt.setXor1Key(XOR_KEY);
 		this->_loaded = false;
 		this->_columnsSet = false;
-		this->_dt.setInterface(iface.get());
 	}
 
 	void __stdcall TableImpl::release() {
@@ -132,7 +133,7 @@ namespace Konnekt { namespace Tables {
 		return _dt.unlock(rowId);
 	}
 
-	oColumn __stdcall TableImpl::setColumn(const oPlugin& plugin, tColId colId , tColType type, const StringRef& name) {
+	oColumn __stdcall TableImpl::setColumn(const cCtrl* plugin, tColId colId , tColType type, const StringRef& name) {
 		ObjLocker lock(this);
 		K_ASSERT(_dt.getRowCount() == 0); // nie mo¿emy u¿yæ getRowCount bo jest w nim assertLoaded!
 		oColumn col = _dt.getColumn(colId);
@@ -317,6 +318,10 @@ namespace Konnekt { namespace Tables {
 
 		if (option & optUseCurrentPassword) {
 			this->_dt.setPasswordDigest(passwordDigest);
+		}
+
+		if (option & optSilent) {
+			this->_dt.setInterface(enabled ? ifaceSilent.get() : iface.get());
 		}
 
 		return !enabled;

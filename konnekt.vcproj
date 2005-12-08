@@ -979,19 +979,16 @@
 			Name="DOC"
 			Filter="">
 			<File
-				RelativePath="..\doc\doc_changelog.h">
+				RelativePath="..\doc\pages\doc_changelog.h">
 			</File>
 			<File
-				RelativePath="..\doc\doc_devel.h">
+				RelativePath="..\doc\pages\doc_devel.h">
 			</File>
 			<File
-				RelativePath="..\doc\doc_func.h">
+				RelativePath="..\doc\pages\doc_func.h">
 			</File>
 			<File
-				RelativePath="..\doc\doc_main.h">
-			</File>
-			<File
-				RelativePath=".\doc_styleguide.h">
+				RelativePath="..\doc\pages\doc_main.h">
 			</File>
 		</Filter>
 		<File
