@@ -317,7 +317,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_ERR_NOUI            "Wymagany ui.dll"
+    IDS_ERR_NOUI            "Wymagany ui.dll\r\n\r\n%s"
     IDS_ERR_NONET           "Wymagany net.dll"
     IDS_ERR_DLL             "Wyst¹pi³ b³¹d podczas ³adowania %s\r\nJe¿eli naciœniesz [TAK] plugin ten\r\nnie bêdzie ³adowany ponownie.\r\n----------------\r\n\r\n%s"
     IDS_ERR_FILENOTFOUND    "Plik %s nie mo¿e zostac znaleziony!"

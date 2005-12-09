@@ -847,12 +847,6 @@
 							UsePrecompiledHeader="0"/>
 					</FileConfiguration>
 				</File>
-				<File
-					RelativePath="..\konnekt\core_tables.cpp">
-				</File>
-				<File
-					RelativePath="..\konnekt\konnekt_defs.cpp">
-				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -908,9 +902,6 @@
 			</File>
 			<File
 				RelativePath=".\profiles.h">
-			</File>
-			<File
-				RelativePath=".\pseudo_export.h">
 			</File>
 			<File
 				RelativePath=".\stdafx.h">

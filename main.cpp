@@ -26,6 +26,7 @@
 #include <Stamina\Debug.h>
 #include "KLogger.h"
 
+#include <Konnekt\Lib.h>
 
 #pragma comment(lib,"Ws2_32.lib")
 
@@ -52,7 +53,6 @@ namespace Konnekt {
 
 	HANDLE hMainThread;
 	unsigned long MainThreadID; 
-	unsigned int ui_sender;
 	bool canQuit = true;
 	bool running = false;
 	bool isRunning = true;
@@ -149,12 +149,10 @@ namespace Konnekt {
 		}
 #endif
 		catch (exception_plug e) {
-			int pos = Plug.FindID(e.id);              
-			if (pos>=0) Plug[pos].madeError(e.msg , e.severity);
+			if (plugins.exists(e.id)) plugins[e.id].madeError(e.msg , e.severity);
 		}
 		catch (exception_plug2 e) {
-			int pos = Plug.FindID(e.id);              
-			if (pos>=0) Plug[pos].madeError(e.msg , e.severity);
+			if (plugins.exists(e.id)) plugins[e.id].madeError(e.msg , e.severity);
 		}
 		/*    #if !defined(__NOCATCH)
 		catch (...) {
@@ -291,9 +289,6 @@ namespace Konnekt {
 #endif
 
 		showArgumentsHelp(false);
-
-		Ctrl = createCorePluginCtrl();
-		Konnekt::CtrlEx = (cCtrlEx*)Ctrl;
 
 		initializePaths();
 

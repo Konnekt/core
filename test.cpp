@@ -15,15 +15,15 @@ public:
 		IMDEBUG(DBG_TEST, "%s::dtor", id.c_str());
 		counter--;
 	}
-	bool __stdcall hold() {
+	bool hold() {
 		IMDEBUG(DBG_TEST, "%s::hold", id.c_str());
 		return parent_type::hold();
 	}
-	void __stdcall release() {
+	void release() {
 		IMDEBUG(DBG_TEST, "%s::release", id.c_str());
 		parent_type::release();
 	}
-	void __stdcall destroy() {
+	void destroy() {
 		IMDEBUG(DBG_TEST, "%s::destroy", id.c_str());
 		parent_type::destroy();
 	}
@@ -36,7 +36,7 @@ class TestClassObj2: public TestClassObj {
 public:
 	TestClassObj2(const CStdString & id):TestClassObj(id) {
 	}
-	void __stdcall destroy() {
+	void destroy() {
 		{
 			IMDEBUG(DBG_TEST_TITLE, "%s::destroy_rec.test", id.c_str());
 			Stamina::SharedPtr<TestClassObj2> test2(*this);

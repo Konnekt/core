@@ -132,7 +132,7 @@ namespace Konnekt { namespace Debug {
 			IMD.p1 = "0x" + inttostr(msg->p1 , 16);
 			IMD.p2 = "0x" + inttostr(msg->p2 , 16);
 			IMD.nr=inttostr(IMlogsize);
-			IMD.sender=Plug.Name(msg->sender);
+			IMD.sender=plugins.getName(msg->sender).a_str();
 			IMD.net= (msg->net==NET_BC)?"BC" : inttostr(msg->net);
 			IMD.type=inttostr(msg->type,2,12);
 		}  
@@ -352,7 +352,7 @@ namespace Konnekt { namespace Debug {
 		//cThread thread_copy = TLS();
 		sIMDebug IMD;
 		IMDebug_transform(IMD , msg,result,TLSU().error.code);
-		IMD.receiver=Plug.Name(rcvr);
+		IMD.receiver=plugins.getName((tPluginId)rcvr).a_str();
 		string ind;
 		ind.resize(indent[GetCurrentThreadId()] , LOG_TAB);
 		if (Debug::logFile) {

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include <Stamina\Image.h>
+#include <Stamina\Logger.h>
 
 #include "plugins.h"
 #include "imessage.h"
@@ -9,6 +10,7 @@
 #include "tables.h"
 #include "tools.h"
 #include "profiles.h"
+#include "threads.h"
 #include "argv.h"
 
 using namespace Stamina;
@@ -46,6 +48,11 @@ namespace Konnekt {
 		}
 	}
 
+	int Plugin::getPluginIndex() {
+		return plugins.getIndex(this->_id);
+	}
+
+
 	void Plugin::initVirtual(Plugin& owner, void* imessageObject, void* imessageProc) {
 		_owner = &owner;
 		_imessageObject = imessageObject;
@@ -56,7 +63,7 @@ namespace Konnekt {
 		this->initData();
 	}
 
-	void Plugin::initClassic(StringRef& file, void* imessageProc) {
+	void Plugin::initClassic(const StringRef& file, void* imessageProc) {
 		_owner = 0;
 		_imessageObject = 0;
 	
@@ -64,7 +71,7 @@ namespace Konnekt {
 		FileVersion fv(file);
 		this->_version = fv.getFileVersion();
 
-		_module = LoadLibrary(file);
+		_module = LoadLibrary(file.a_str());
 
 		if (!_module) {
 			string err = "B³¹d podczas ³adowania [";
@@ -95,9 +102,8 @@ namespace Konnekt {
 
 	void Plugin::initData() {
 		static uniqueId = pluginsDynamicIdStart;
-		uniqueId++;
 		if (this->_id == pluginNotFound) {
-			this->_id = uniqueId;
+			this->_id = (tPluginId)uniqueId++;
 		}
 		this->_debugColor = getUniqueColor(plugins.count(), 4, 0xFF, true, true);
 		this->_running = false;
@@ -109,7 +115,7 @@ namespace Konnekt {
 			this->_version = Version( safeChar(this->IMessage(IM_PLUG_VERSION)) );
 		}
 		this->_sig = safeChar(this->IMessage(IM_PLUG_SIG));
-		this->_net = this->IMessage(IM_PLUG_NET);
+		this->_net = (tNet)this->IMessage(IM_PLUG_NET);
 		this->_name = safeChar(this->IMessage(IM_PLUG_NAME));
 		this->_netName = safeChar(this->IMessage(IM_PLUG_NETNAME));
 
@@ -117,10 +123,10 @@ namespace Konnekt {
 			throw ExceptionString("Wtyczka przygotowana zosta³a dla starszej wersji API. Poszukaj nowszej wersji!");
 		}
 
-		if (this->getId() != pluginCore && this->getId() != pluginUI && dll.net==0) throw ExceptionString("Z³a wartoœæ NET!");
+		if (this->getId() != pluginCore && this->getId() != pluginUI && _net == Net::none) throw ExceptionString("Z³a wartoœæ NET!");
 		if (_sig == "" || _name == "") throw ExceptionString("Brakuje nazwy, lub wartoœci SIG!");
 
-		if (RegEx::doMatch("/^[A-Z0-9_]{3,12}$/i", _sig) == 0) throw ExceptionString("Wartoœæ SIG nie spe³nia wymagañ!");
+		if (RegEx::doMatch("/^[A-Z0-9_]{3,12}$/i", _sig.a_str()) == 0) throw ExceptionString("Wartoœæ SIG nie spe³nia wymagañ!");
 
 		if (plugins.findSig(_sig) != 0) {
 			throw ExceptionString("Wartoœæ SIG jest ju¿ zajêta!");
@@ -135,13 +141,13 @@ namespace Konnekt {
 			this->_ctrl = createPluginCtrl(*this);
 		}
 		this->_running = true;
-		if (this->IMessage(IM_PLUG_INIT, (tIMP)this->_ctrl, (tIMP)this->_id, 0) == 0) {
+		if (this->IMessage(IM_PLUG_INIT, (tIMP)this->_ctrl, (tIMP)this->_id) == 0) {
 			throw ExceptionString("Inicjalizacja siê nie powiod³a!");
 		}
 	}
 
 	void Plugin::deinitialize() {
-		IMessage(IM_PLUG_PLUGOUT , NET_BROADCAST , IMT_ALL , this->getId() , 0 );
+		Ctrl->IMessage(IM_PLUG_PLUGOUT, Net::broadcast, imtAll, this->getId());
 		bool nofree = this->IMessage(IM_PLUG_DONTFREELIBRARY);
 		this->_running=false;
 		this->IMessage(IM_PLUG_DEINIT);
@@ -161,7 +167,7 @@ namespace Konnekt {
 		}
 	}
 
-	bool __stdcall Plugin::plugOut(const cCtrl* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload) {
+	bool Plugin::plugOut(cCtrl* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload) {
 		Stamina::mainLogger->log(Stamina::logWarn, "Plugin", "plugOut", "unload=%d reason=\"%s\"", unload, reason.a_str());
 
 		if (mainThread.isCurrent() == false) {
@@ -184,7 +190,7 @@ namespace Konnekt {
 
 		if (unload & iPlugin::poUnloadNow) {
 			if (this->canPlugOut()) {
-				plugins.plugOut(*this);
+				plugins.plugOut(*this, true);
 			} else {
 				result = false;
 			}
@@ -193,9 +199,9 @@ namespace Konnekt {
 		if (!quiet) {
 			CStdString msg = loadString(IDS_INF_PLUGOUT);
 			msg.Format(msg, nameSender, namePlug, reason, "");
+			MessageBox(NULL, msg, loadString(IDS_APPNAME).c_str(), MB_ICONWARNING|MB_TASKMODAL|MB_OK);
 		}
 
-		MessageBox(NULL, msg, loadString(IDS_APPNAME).c_str(), MB_ICONWARNING|MB_TASKMODAL|MB_OK);
 		
 		return result;
 	}
@@ -203,7 +209,7 @@ namespace Konnekt {
 
 
 	void Plugin::madeError(const StringRef& msg , unsigned int severity) {
-		String info = L"Wtyczka \"" + this->_name + L"\" zrobi³a bubu:\r\n" + msg + L"\r\n\r\nPrzejmujemy siê tym?";
+		String info = String(L"Wtyczka \"") + this->_name + L"\" zrobi³a bubu:\r\n" + msg + L"\r\n\r\nPrzejmujemy siê tym?";
 		if (MessageBoxW(0 , info.w_str() , L"Konnekt" , MB_TASKMODAL | MB_TOPMOST | MB_ICONERROR | MB_YESNO) == IDYES)
 		{ 
 			Tables::oTableImpl plg(tablePlugins);
@@ -241,7 +247,7 @@ namespace Konnekt {
 			return (tPluginId)id;
 		}
 		if (id > 0 && id < _list.size()) {
-			(*_list[i])->getId();
+			return _list[id]->getId();
 		} else {
 			return pluginNotFound;
 		}
@@ -257,10 +263,20 @@ namespace Konnekt {
 		return pluginNotFound;
 	}
 
+	Plugin* Plugins::findName(const StringRef& name) {
+		for (tList::iterator it = _list.begin(); it != _list.end(); ++it) {
+			if ((*it)->getName().equal(name, true)) {
+				return &*(*it);
+			}
+		}
+		return 0;
+	}
+
+
 	Plugin* Plugins::findSig(const StringRef& sig) {
-		for (tList::iterator it = _list.begin() + start; it != _list.end(); ++it) {
+		for (tList::iterator it = _list.begin(); it != _list.end(); ++it) {
 			if ((*it)->getSig().equal(sig, true)) {
-				return &(*it);
+				return &*(*it);
 			}
 		}
 		return 0;
@@ -269,26 +285,15 @@ namespace Konnekt {
 
 
 	String Plugins::getName(tPluginId id) {
-		if (h == 0) return "CORE";
-		if (h < 3) return stringf("___BC%u", id - 1);
+		if (id == pluginCore) return "CORE";
+		if (id < 3) return stringf("___BC%u", id - 1);
 		int pos = this->getIndex(id);
 		if (pos >= 0) {
-			return _list[pos].getName();
+			return _list[pos]->getName();
 		} else {
-			return stringf("%#.4x",h);
+			return stringf("%#.4x",id);
 		}
 	}
-
-
-	bool Plugins::plugInClassic(const StringRef& filename) {
-	}
-
-	bool Plugins::plugInVirtual(Plugin& owner, void* object, void* proc) {
-	}
-
-	bool Plugins::plugOut(Plugin& plugin) {
-	}
-
 
 
 	void Plugins::plugInClassic(const StringRef& filename, void* imessageProc, tPluginId pluginId) {
@@ -297,7 +302,7 @@ namespace Konnekt {
 			plugin->initClassic(filename, imessageProc);
 			plugin->run();
 			_list.push_back(plugin);
-		} catch (Exception& e) {
+		} catch (ExceptionString& e) {
 			mainLogger->log(logError, "Plugins", "plugInClassic", "\"%s\" failed: \"%s\"", filename.a_str(), e.getReason().a_str());
 			throw e;
 		}
@@ -309,7 +314,7 @@ namespace Konnekt {
 			plugin->initVirtual(owner, object, proc);
 			plugin->run();
 			_list.push_back(plugin);
-		} catch (Exception& e) {
+		} catch (ExceptionString& e) {
 			mainLogger->log(logError, "Plugins", "plugInVirtual", "\"%s\" failed: \"%s\"", owner.getName().a_str(), e.getReason().a_str());
 			throw e;
 		}
@@ -326,7 +331,9 @@ namespace Konnekt {
 			}
 			bool pluginOnList = false;
 			S_ASSERT(pluginOnList == true);
+			return false;
 		}
+		return true;
 	}
 
 
@@ -336,7 +343,7 @@ namespace Konnekt {
 		tList::iterator it = _list.begin();
 		while (it != _list.end()) {
 			ptrPlugin current = *it;
-			Plugin* plugin = *current;
+			Plugin* plugin = &*current;
 			if (plugin->getId() == pluginCore || plugin->getId() == pluginUI) {
 				plugin->_priority = priorityCore;
 				continue;
@@ -362,6 +369,9 @@ namespace Konnekt {
 		}
 	}
 
+	void Plugins::cleanUp() {
+		_list.clear();
+	}
 
 	// --------------------------------------------------------------------
 
@@ -369,7 +379,7 @@ namespace Konnekt {
 	void checkVersions(void) {
 
 		using namespace Tables;
-		oTable state = registerTable(Ctrl, "PluginState", optPrivate |  optDiscardLoadedColumns | opt);
+		oTable state = registerTable(Ctrl, "PluginState", optPrivate |  optDiscardLoadedColumns);
 		state->setFilename("plg_state.dtb");
 		state->setDirectory();
 
@@ -399,21 +409,23 @@ namespace Konnekt {
 
 			if (row.isValid() == false) {
 				row = state->addRow();
-				state->setString("sig", plugins[i].getSig());
+				state->setString(row, "sig", plugins[i].getSig());
 			}
+
+			int prevVer;
 
 			if (useOldMethod) {
 				prevVer = findVersion(ver, plugins[i].getDllFile().toLower() , plugins[i].getVersion().getInt());
 			} else {
-				prevVer = row->getInt("version");
+				prevVer = state->getInt(row, "version");
 			}
 
-			row->setInt("version", plugins[i].getVersion().getInt());
-			row->setString("file", plugins[i].getDllFile().toLower());
-			row->setInt64("last", Stamina::Time64(true));
+			state->setInt(row, "version", plugins[i].getVersion().getInt());
+			state->setString(row, "file", plugins[i].getDllFile().toLower());
+			state->setInt64(row, "last", Stamina::Time64(true));
 
 			if (plugins[i].getVersion().getInt() > prevVer) {
-				plugins[i].sendIMessage(Ctrl, &sIMessage_2params(IM_PLUG_UPDATE , prevVer));
+				plugins[i].IMessage(IM_PLUG_UPDATE , prevVer);
 			}
 		}
 		Tables::cfg->setString(0 , CFG_VERSIONS , "");

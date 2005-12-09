@@ -9,13 +9,6 @@ using namespace Konnekt::Debug;
 
 namespace Konnekt {
 
-	void IMBadSender(sIMessage_base * msg , int rcvr) {
-		TLSU().setError(IMERROR_BADSENDER);
-#ifdef __DEBUG
-		IMLOG("! IMERROR_BADSENDER  %s->%s ID=%d NOT ALLOWED" , Plug.Name(msg->sender).c_str() , Plug.Name(rcvr) , msg->id);
-#endif
-	}
-
 	int processIMessage(sIMessage_base * msg , int BCStart=0) {
 		// Rozsyla wiadomosci
 		int result ,  pos;
@@ -36,16 +29,16 @@ namespace Konnekt {
 				TLSU().lastIM.msg = 0;  
 		} else
 			if (msg->id < IM_BASE || msg->type==0) {
-				result=IMessageDirect(Plug[0] , msg);
+				result = plugins[pluginUI].sendIMessage(msg);
 			}
 			else
 				//  if (msg->id >= IM_SHARE || (msg->sender==0 || msg->sender==ui_sender))
 			{
 				if (msg->net!=NET_BROADCAST) {
 					pos=BCStart-1;
-					while ((pos=Plug.Find(msg->net , msg->type , pos+1))>=BCStart)
+					while ((pos=plugins.findPlugin(msg->net , msg->type , pos+1))>=BCStart)
 					{ // Znajduje pierwszy plugin ktory obsluzy wiadomosc
-						result=IMessageDirect(Plug[pos],msg);
+						result = plugins[pos].sendIMessage(msg);
 						if (!TLSU().error.code) break;
 					}
 				} else {
@@ -54,8 +47,8 @@ namespace Konnekt {
 					int deb=IMDebug(msg,1+BCStart,0);
 #endif
 					pos=BCStart-1;
-					while ((pos=Plug.Find(msg->net , msg->type , pos+1))>=BCStart)
-						IMessageDirect(Plug[pos],msg);
+					while ((pos=plugins.findPlugin(msg->net , msg->type , pos+1))>=BCStart)
+						plugins[pos].sendIMessage(msg);
 #ifdef __DEBUG
 					IMDebugResult(msg,deb , 0,1);
 #endif
@@ -76,40 +69,10 @@ imp_return:
 			*/
 			return result;
 	}
-	int * broadcastIMessage(unsigned int id , unsigned int type , int p1 , int p2 , int & count , int BCStart=1) {
-		// Zwraca tablice wynikow BroadCast'a
-		int * res = new int [MAX_PLUGS];
-		count=0;
-		int result;
-#ifdef __DEBUG
-		int deb=IMDebug(&sIMessage(id,-1,type,p1,p2),1+BCStart,0);
-#endif
-		int pos=BCStart-1;
-		while ((pos=Plug.Find(-1 , type , pos+1))>=BCStart)
-		{
-			//	   cUserThread * ut = &TLSU();
-			//   IMLOG("Sum tlsuthred=%x cid=%x %x . ecode=%d epos=%d" , TLSU().lastIM.Thread , GetCurrentThreadId() , &TLSU() , TLSU().error.code , TLSU().error.position);
-			result=IMessageDirect(Plug[pos],&sIMessage(id,p1,p2));
-			//   IMLOG("Sum pos=%d result=0x%x count=%d ecode=%d epos=%d" , pos , result , count , TLSU().error.code , TLSU().error.position);
-			if (!TLSU().error.code) {res[count]=result; count++;}
-		}
-#ifdef __DEBUG
-		IMDebugResult(&sIMessage(id,-1,type,p1,p2),deb , count,1);
-#endif
-		return res;
-	}
-
-	int sumIMessage(unsigned int id , unsigned int type , int p1 , int p2 , int BCStart) {
-		int count , sum=0;
-		int * res=IMessageBC(id , type , p1 , p2 , count , BCStart);
-		for (int i=0;i<count;i++) sum+=res[i];
-		delete [] res;
-		// Zwraca sume wynikow BroadCast'a
-		return sum;
-	}
 
 
-	int __stdcall Plugin::sendIMessage(sIMessage_base*im) {
+
+	int Plugin::sendIMessage(sIMessage_base*im) {
 
 		if (this->_running == false && im->id != IM_PLUG_DEINIT) {
 			TLSU().setError(IMERROR_BADPLUG);

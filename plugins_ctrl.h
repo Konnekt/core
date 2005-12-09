@@ -2,7 +2,6 @@
 
 #include "main.h"
 #include "konnekt_sdk.h"
-#include "konnekt_sdk.h"
 
 namespace Konnekt {
 #pragma pack(push , 1)
@@ -13,9 +12,9 @@ namespace Konnekt {
 		//   virtual ~cCtrl_(){};
 		int __stdcall getLevel() {return 0;}
 
-		unsigned int __stdcall ID(){return _plugin.getId();}  ///< Identyfikator wtyczki
+		tPluginId __stdcall ID(){return _plugin.getId();}  ///< Identyfikator wtyczki
 		HINSTANCE __stdcall hInst(){return Stamina::getHInstance();}   ///  Uchwyt procesu (HINSTANCE)
-		HINSTANCE __stdcall hDll(){return _plugin.getDllInstance();}   ///  Uchwyt biblioteki.
+		HINSTANCE __stdcall hDll(){return _plugin.getDllModule();}   ///  Uchwyt biblioteki.
 		int __stdcall getError(); ///< Zwraca kod ostatniego bledu
 		void __stdcall setError(int err_code);
 		bool __stdcall isRunning() {return ::isRunning;} ///< Ustawia kod b³êdu.
@@ -104,6 +103,9 @@ namespace Konnekt {
 		void __stdcall onThreadStart(const char* name=0);
 		void __stdcall onThreadEnd();
 
+		unsigned int __stdcall getPluginsCount() {
+			return plugins.count();
+		}
 
 	};
 
@@ -121,7 +123,7 @@ namespace Konnekt {
 	class cCtrl3 : public cCtrl2 {
 	public:
 
-		cCtrl3(Plugin& plugin):cCtrl3(plugin) {
+		cCtrl3(Plugin& plugin):cCtrl2(plugin) {
 		}
 
 		int __stdcall getLevel() {return 3;}

@@ -290,17 +290,17 @@ namespace Konnekt { namespace Beta {
 
 	string info_plugins(bool withFilenames = false) {
 		string s;
-		for (unsigned int i=0; i<Plug.Plug.size(); i++) {
-			//FileVersionInfo(Plug[i].file.c_str() , TLS().buff);
+		for (unsigned int i=0; i < plugins.count(); i++) {
+			if (plugins[i].isVirtual() || plugins[i].getId() == pluginCore) continue;
 			if (!s.empty()) {
 				s += ',';
 			}
-			s += RegEx::doReplace("/[^a-zA-Z0-9_]/", "_", Plug[i].sig.c_str());
+			s += RegEx::doReplace("/[^a-zA-Z0-9_]/", "_", plugins[i].getSig().c_str());
 			if (withFilenames) {
-				s += "(" + getFileName(Plug[i].file) + ")";
+				s += "(" + getFileName(plugins[i].getDllFile()) + ")";
 			}
 			s += " ";
-			s += inttostr(Plug[i].version.getInt(),16);
+			s += inttostr(plugins[i].getVersion().getInt(),16);
 		}
 		return s;
 	}
@@ -905,11 +905,11 @@ namespace Konnekt { namespace Beta {
 #ifdef __DEBUG
 		// Wypisuje informacje o aktualnym/ostatnim IMessage
 		if (!running || !TLSU().lastIM.inMessage) {
-			msg+=stringf("\n%sIM: %d(0x%x , 0x%x)(%dB) [%s->%s]\n" , TLSU().lastIM.inMessage?"in":"last" , TLSU().lastIM.debug.id , TLSU().lastIM.debug.p1 , TLSU().lastIM.debug.p2 , TLSU().lastIM.debug.size , Plug.Name(TLSU().lastIM.debug.sender).c_str() , Plug.Name(TLSU().lastIM.debug.rcvr));
+			msg+=stringf("\n%sIM: %d(0x%x , 0x%x)(%dB) [%s->%s]\n" , TLSU().lastIM.inMessage?"in":"last" , TLSU().lastIM.debug.id , TLSU().lastIM.debug.p1 , TLSU().lastIM.debug.p2 , TLSU().lastIM.debug.size , plugins.getName((tPluginId)TLSU().lastIM.debug.sender).c_str() , plugins.getName((tPluginId)TLSU().lastIM.debug.rcvr));
 		} else {
 			Debug::sIMDebug IMD;
 			Debug::IMDebug_transform(IMD , TLSU().lastIM.msg , 0 , 0);
-			msg+=stringf("\ninIM[%d]: %s(%.50s | %.50s)(%dB) [%s->%s]\n" , TLSU().lastIM.inMessage , IMD.id.c_str() , IMD.p1.c_str() , IMD.p2.c_str() , TLSU().lastIM.debug.size , IMD.sender.c_str() , Plug.Name(TLSU().lastIM.debug.rcvr).c_str());
+			msg+=stringf("\ninIM[%d]: %s(%.50s | %.50s)(%dB) [%s->%s]\n" , TLSU().lastIM.inMessage , IMD.id.c_str() , IMD.p1.c_str() , IMD.p2.c_str() , TLSU().lastIM.debug.size , IMD.sender.c_str() , plugins.getName((tPluginId)TLSU().lastIM.debug.rcvr).c_str());
 
 		}
 #endif

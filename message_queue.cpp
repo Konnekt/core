@@ -41,8 +41,11 @@ namespace Konnekt { namespace Messages {
 		//if (*m->toUid) {m->flag |= MF_SEND;}
 
 		if (!(m->flag & MF_SEND) && !(m->type & MT_MASK_NOTONLIST) && *m->fromUid && Contacts::findContact(m->net , m->fromUid)<0) {
-			if (!IMessageDirect(Plug[0] , IMI_MSG_NOTINLIST , (int)m))
-			{notinlist = true;handler=-1;goto messagedelete;}
+			if (!ICMessage(IMI_MSG_NOTINLIST , (int)m)) {
+				notinlist = true;
+				handler=-1;
+				goto messagedelete;
+			}
 		}
 		// obs³u¿enie najpierw UI
 		r = IMessageDirect(Plug[0],IM_MSG_RCV,(int)m);

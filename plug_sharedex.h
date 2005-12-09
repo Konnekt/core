@@ -3,6 +3,9 @@
 
 #pragma pack(push, 1)
 
+namespace Konnekt {
+
+
      struct sPlugInfo {
         char file [101];
         char version [51];
@@ -40,21 +43,23 @@
 
 struct exception_plug {
     const char * msg;
-    unsigned int id;
+    tPluginId id;
     unsigned int severity;
-    exception_plug(const char * msg , unsigned int id , unsigned int severity):msg(msg),id(id),severity(severity) {}
+    exception_plug(const char * msg , tPluginId id , unsigned int severity):msg(msg),id(id),severity(severity) {}
 };
 #ifdef _STRING_
 struct exception_plug2 {
     std::string msg;
-    unsigned int id;
+    tPluginId id;
     unsigned int severity;
-    exception_plug2(std::string msg , unsigned int id , unsigned int severity):msg(msg),id(id),severity(severity) {}
+    exception_plug2(std::string msg , tPluginId id , unsigned int severity):msg(msg),id(id),severity(severity) {}
 };
 #endif
 
 
 #define CNT_INTERNAL_adding 1
+
+}
 
 #pragma pack(pop)
 

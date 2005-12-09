@@ -41,50 +41,50 @@ namespace Konnekt { namespace Tables {
 
 		TableImpl(oPlugin owner, tTableId tableId, enTableOptions tableOpts);
 
-		virtual void __stdcall release();
+		virtual void release();
 
-		int __stdcall getRowPos(tRowId rowId);
-		int __stdcall getRowId(unsigned int rowPos);
-		oRow __cdecl _findRow(unsigned int startPos, int argCount, ...);
+		int getRowPos(tRowId rowId);
+		int getRowId(unsigned int rowPos);
+		oRow _findRow(unsigned int startPos, int argCount, ...);
 
 
-		virtual oRow __stdcall getRow(tRowId rowId) {
+		virtual oRow getRow(tRowId rowId) {
 			return _dt.getRow(rowId).get();
 		}
-		virtual oColumn __stdcall getColumn(tColId colId) {
+		virtual oColumn getColumn(tColId colId) {
 			return _dt.getColumn(colId);
 		}
-		virtual oColumn __stdcall getColumn(const Stamina::StringRef& colName) {
+		virtual oColumn getColumn(const Stamina::StringRef& colName) {
 			return _dt.getColumn(colName);
 		}
 
-		virtual oColumn __stdcall getColumnByPos(unsigned int colPos) {
+		virtual oColumn getColumnByPos(unsigned int colPos) {
 			return _dt.getColumns().getColumnByIndex(colPos);
 		}
 
-		unsigned int __stdcall getRowCount();
-		unsigned int __stdcall getColCount();
-		void __stdcall lockData(tRowId rowId , int reserved=0);
-		void __stdcall unlockData(tRowId rowId , int reserved=0);
-		oColumn __stdcall setColumn(const cCtrl* plugin, tColId colId , tColType type, const StringRef& name = StringRef());
-		oColumn __stdcall setColumn(tColId colId , tColType type, const StringRef& name = StringRef()) {
+		unsigned int getRowCount();
+		unsigned int getColCount();
+		void lockData(tRowId rowId , int reserved=0);
+		void unlockData(tRowId rowId , int reserved=0);
+		oColumn setColumn(cCtrl* plugin, tColId colId , tColType type, const StringRef& name = StringRef());
+		oColumn setColumn(tColId colId , tColType type, const StringRef& name = StringRef()) {
 			return this->setColumn(Ctrl, colId, type, name);
 		}
 
-		oRow __stdcall addRow(tRowId rowId = rowNotFound);
-		bool __stdcall removeRow(tRowId rowId);
-		void __stdcall reset();
-		void __stdcall resetData();
-		void __stdcall unloadData();
+		oRow addRow(tRowId rowId = rowNotFound);
+		bool removeRow(tRowId rowId);
+		void reset();
+		void resetData();
+		void unloadData();
 
-		void __stdcall requestColumns(cCtrl * ctrl, unsigned int net = NET_BROADCAST, unsigned int plugType = IMT_ALL) {
+		void requestColumns(cCtrl * ctrl, tNet net = Net::broadcast,  enIMessageType plugType = imtAll) {
 			if (!ctrl) ctrl = Ctrl;
 			IM::TableIM ti(IM::setColumns, oTable(this));
 			ti.net = net;
 			ti.type = plugType;
 			ctrl->IMessage(&ti);
 		}
-		void __stdcall dataChanged(cCtrl * ctrl, tRowId rowId, unsigned int net = NET_BROADCAST, unsigned int plugType = IMT_ALL) {
+		void dataChanged(cCtrl * ctrl, tRowId rowId, tNet net = Net::broadcast, enIMessageType plugType = imtAll) {
 			if (!ctrl) ctrl = Ctrl;
 			IM::TableRow ti(IM::dataChanged, oTable(this), rowId);
 			ti.net = net;
@@ -92,38 +92,38 @@ namespace Konnekt { namespace Tables {
 			ctrl->IMessage(&ti);
 		}
 
-		bool __stdcall isLoaded() {
+		bool isLoaded() {
 			TableLocker(this);
 			return _isLoaded();
 		}
 
-		enResult __stdcall load(bool force = false, const StringRef& filePath = StringRef());
-		enResult __stdcall save(bool force = false, const StringRef& filePath = StringRef());
-		void __stdcall lateSave(bool enabled);
+		enResult load(bool force = false, const StringRef& filePath = StringRef());
+		enResult save(bool force = false, const StringRef& filePath = StringRef());
+		void lateSave(bool enabled);
 
-		bool __stdcall setOpt(enTableOptions option , bool enabled);
-		bool __stdcall getOpt(enTableOptions option) {
+		bool setOpt(enTableOptions option , bool enabled);
+		bool getOpt(enTableOptions option) {
 			TableLocker(this);
 			return (this->_opt & option) == (int)option;
 		}
 
-		void __stdcall setFilename(const StringRef& filename = StringRef()) {
+		void setFilename(const StringRef& filename = StringRef()) {
 			TableLocker(this);
 			this->_filename = filename;
 		}
-		String __stdcall getFilename() {
+		String getFilename() {
 			TableLocker(this);
 			return this->_filename;
 		}
-		void __stdcall setDirectory(const StringRef& path = StringRef());
-		String __stdcall getDirectory() {
+		void setDirectory(const StringRef& path = StringRef());
+		String getDirectory() {
 			TableLocker(this);
 			return this->_directory;
 		}
-		tTableId __stdcall getTableId() {
+		tTableId getTableId() {
 			return this->_tableId;
 		}
-		oPlugin __stdcall getTableOwner() {
+		oPlugin getTableOwner() {
 			return this->_owner;
 		}
 
@@ -131,9 +131,9 @@ namespace Konnekt { namespace Tables {
 			return this->getOpt(b);
 		}
 
-		 bool __stdcall unregisterTable();
+		 bool unregisterTable();
 
-		 virtual Stamina::DT::DataTable& __stdcall getDT() {
+		 virtual Stamina::DT::DataTable& getDT() {
 			 return _dt;
 		 }
 
@@ -142,7 +142,7 @@ namespace Konnekt { namespace Tables {
 		 }
 
 
-		void __stdcall destroy();
+		void destroy();
 
 		void broadcastEvent(tIMid imId, bool force = false);
 		void broadcastRowEvent(tIMid imId, tRowId rowId, bool force = false);
@@ -155,7 +155,7 @@ namespace Konnekt { namespace Tables {
 		}
 
 	private:
-		inline bool __stdcall _isLoaded() {
+		inline bool _isLoaded() {
 			return this->_loaded && this->_columnsSet;
 		}
 		void assertLoaded() {

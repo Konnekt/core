@@ -295,7 +295,7 @@ namespace Konnekt { namespace Debug {
 						debugLogMsg(stringf("Zaznaczenie wstawione do "+logFileName+" pod numerem %d",mark));
 					}
 					break;
-				case IDB_UI: IMessageDirect(Plug[0] , IMI_DEBUG);    
+				case IDB_UI: plugins[pluginUI].IMessageDirect(IMI_DEBUG);    
 					break;
 				case IDOK:
 					runDebugCommand();
@@ -338,12 +338,12 @@ namespace Konnekt { namespace Debug {
 		RE_COLOR(RGB(0xFF,0,0));
 		RE_ADD("WTYCZKI:");
 		RE_COLOR(0);
-		for (int i=0; i<Plug.size(); i++) {
+		for (int i=0; i < plugins.count(); i++) {
 			RE_BOLD(1);
-			RE_ADD("\r\n -> " + Plug[i].file);  
+			RE_ADD("\r\n -> " + plugins[i].getDllFile());  
 			RE_BOLD(0);
-			RE_ADD(stringf("\r\n    ID = %d hModule = 0x%x net = %d type = %x prrt = %d " , Plug[i].ID , Plug[i].hModule , Plug[i].net , Plug[i].type ,  Plug[i].priority));
-			RE_ADD(stringf("\r\n    name = \"%s\" sig=\"%s\"  v %s" , Plug[i].name.c_str() , Plug[i].sig.c_str() , Plug[i].version.getString().c_str()));
+			RE_ADD(stringf("\r\n    ID = %d hModule = 0x%x net = %d type = %x prrt = %d " , plugins[i].getId() , plugins[i].getDllModule() , plugins[i].getNet() , plugins[i].getType() ,  plugins[i].getPriority()));
+			RE_ADD(stringf("\r\n    name = \"%s\" sig=\"%s\"  v %s" , plugins[i].getName().c_str() , plugins[i].getSig().c_str() , plugins[i].getVersion().getString().c_str()));
 		}
 
 		RE_BOLD(1);
@@ -352,7 +352,7 @@ namespace Konnekt { namespace Debug {
 		RE_COLOR(0);
 		RE_BOLD(0);
 		for (Connections::tList::iterator item = Connections::getList().begin(); item != Connections::getList().end(); item++) {
-			RE_ADD(stringf("\r\n -> %s %s %d retries" , Plug.Name(item->first).c_str() , item->second.connect?"Awaiting connection":"Idle" , item->second.retry));
+			RE_ADD(stringf("\r\n -> %s %s %d retries" , plugins.getName((tPluginId)item->first).c_str() , item->second.connect?"Awaiting connection":"Idle" , item->second.retry));
 		}
 
 		RE_ADD(".\r\n");
@@ -458,7 +458,7 @@ namespace Konnekt { namespace Debug {
 		RE_BOLD(0);
 		RE_COLOR(0);
 		if (!IMfinished) RE_ADD("\r\n");
-		RE_BGCOLOR(Plug[msg->sender].debugColor);
+		RE_BGCOLOR(plugins[msg->sender].getDebugColor());
 		RE_ADD("  ");
 		RE_BGCOLOR(TLSU().color);
 		if (!ind.empty())

@@ -5,6 +5,7 @@
 #include <Stamina\ObjectImpl.h>
 // Info o wtyczce
 
+using namespace Stamina;
 
 namespace Konnekt {
 
@@ -20,16 +21,14 @@ namespace Konnekt {
 
 	void pluginsInit();
 
-
-
-
+	class cCtrl_;
 
 	class Plugin: public LockableObject<iPlugin> {
 	public:
 
 		friend class Plugins;
 
-		STAMINA_OBJECT_CLASS(Konnekt::Plugin, Stamina::iPlugin);
+		STAMINA_OBJECT_CLASS(Konnekt::Plugin, Konnekt::iPlugin);
 
 		Plugin(tPluginId pluginId = pluginNotFound) {
 			_imessageProc = 0;
@@ -43,70 +42,69 @@ namespace Konnekt {
 		}
 		~Plugin();
 
-		virtual tPluginId __stdcall getPluginId() {
+		virtual tPluginId getPluginId() {
 			return this->_id;
 		}
 
-		virtual int __stdcall getPluginIndex() {
-			return plugins.getIndex(this->_id);
-		}
+		virtual int getPluginIndex();
 
-		virtual HMODULE __stdcall getDllInstance() {
+		virtual HMODULE getDllModule() {
 			return _module;
 		}
 
-		virtual const String& __stdcall getDllFile() {
+		virtual const String& getDllFile() {
 			return _file;
 		}
 
-		virtual iPlugin* __stdcall getOwnerPlugin() {
+		virtual iPlugin* getOwnerPlugin() {
 			return _owner;
 		}
 
-		virtual tNet __stdcall getNet() {
+		virtual tNet getNet() {
 			return this->_net;
 		}
 
-		virtual enIMessageType __stdcall getType() {
+		virtual enIMessageType getType() {
 			return this->_type;
 		}
 
-		virtual Stamina::Version __stdcall getVersion() {
+		virtual Stamina::Version getVersion() {
 			return this->_version;
 		}
 
-		virtual const String& __stdcall getSig() {
+		virtual const String& getSig() {
 			return this->_sig;
 		}
 
-		virtual const String& __stdcall getName() {
+		virtual const String& getName() {
 			return this->_name;
 		}
 
-		virtual const String& __stdcall getNetName() {
+		virtual const String& getNetName() {
 			return this->_netName;
 		}
 
-		virtual enPlugPriority __stdcall getPriority() {
+		virtual enPluginPriority getPriority() {
 			return this->_priority;
 		}
 
-		virtual bool __stdcall canHotPlug() {
+		virtual bool canHotPlug() {
 			return false;
 		}
 
-		virtual bool __stdcall canPlugOut() {
+		virtual bool canPlugOut() {
 			return this->canHotPlug() || Konnekt::running == false;
 		}
 
-		int sendIMessage(cCtrl* sender, sIMessage_base* im) {
+		virtual int IMessageDirect(cCtrl* sender, sIMessage_base* im) {
 			im->sender = sender->ID();
-			this->sendIMessage(im);
+			return this->sendIMessage(im);
 		}
 
+		/** Wysy³a wiadomoœæ BEZPOŒREDNIO! */
 		int sendIMessage(sIMessage_base* im);
 
-		virtual bool __stdcall plugOut(const cCtrl* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload);
+		virtual bool plugOut(cCtrl* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload);
 
 		COLORREF getDebugColor() {
 			return _debugColor;
@@ -116,14 +114,14 @@ namespace Konnekt {
 			return _ctrl;
 		}
 
-		virtual bool __stdcall isRunning() {
+		virtual bool isRunning() {
 			return _running;
 		}
 
 		void madeError(const StringRef& msg , unsigned int severity);
 
-		int IMessage(tIMid id, int p1 = 0, int p2 = 0) {
-			return this->sendIMessage(Ctrl, &sIMessage_2params(id, p1, p2));
+		tPluginId getId() {
+			return _id;
 		}
 
 
@@ -132,7 +130,7 @@ namespace Konnekt {
 		int callIMessageProc(sIMessage_base*im);
 
 
-		void initClassic(StringRef& file, void* imessageProc = 0);
+		void initClassic(const StringRef& file, void* imessageProc = 0);
 		void initVirtual(Plugin& owner, void* imessageObject, void* imessageProc);
 		void initData();
 		void run();
@@ -183,11 +181,11 @@ namespace Konnekt {
 			if (i == pluginNotFound) {
 				throw Stamina::ExceptionString("Plugin out of range");
 			}
-			return _list[i];
+			return *_list[i];
 		}
 
-		bool exists(unsigned int i) {
-			i = this->getIndex(i);
+		bool exists(tPluginId i) {
+			i = (tPluginId) this->getIndex(i);
 			return (i != pluginNotFound && i >= 0 && i < _list.size());
 		}
 
@@ -209,15 +207,16 @@ namespace Konnekt {
 
 		int findPlugin(tNet net , enIMessageType type , unsigned int start=0);
 
+		Plugin* findName(const StringRef& name);
+
 		Plugin* findSig(const StringRef& sig);
 
 		String getName(tPluginId id);
 
 		void sortPlugins();
 
-		tPluginId getId() {
-			return _id;
-		}
+		void cleanUp();
+
 
 	private:
 

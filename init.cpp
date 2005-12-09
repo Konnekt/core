@@ -200,11 +200,26 @@ namespace Konnekt {
 		canQuit = false;
 		// Ladowanie DLL'i
 
-		if (Plug.PlugIN("ui.dll" , UI_CERT , 1)<1) {
-			MessageBox(NULL ,loadString(IDS_ERR_NOUI).c_str(),loadString(IDS_APPNAME).c_str(),MB_ICONERROR|MB_OK|MB_TASKMODAL ); 
+		// Core
+		try {
+			plugins.plugInClassic(appPath, coreIMessageProc, pluginUI);
+		} catch (Exception& e) {
+			CStdString msg;
+			msg.Format("Ten b³¹d siê nie zdarza czêsto, ale sam siebie nie mogê za³adowaæ!!!\r\n\r\n%s", e.getReason().a_str());
+			MessageBox(NULL, msg.c_str(), loadString(IDS_APPNAME).c_str(),MB_ICONERROR|MB_OK|MB_TASKMODAL ); 
 			exit(0); 
 		}
-		// if (!PlugIN("gg.dll")) {MessageBox(NULL ,resStr(IDS_ERR_NONET),STR(resStr(IDS_APPNAME)),MB_ICONERROR|MB_OK|MB_TASKMODAL);exit(0); }
+
+		// UI
+		try {
+			plugins.plugInClassic("ui.dll", 0, pluginUI);
+		} catch (Exception& e) {
+			CStdString msg;
+			msg.Format(loadString(IDS_ERR_NOUI).c_str(), e.getReason().a_str());
+			MessageBox(NULL, msg.c_str(), loadString(IDS_APPNAME).c_str(),MB_ICONERROR|MB_OK|MB_TASKMODAL ); 
+			exit(0); 
+		}
+
 		IMLOG("--- UI loaded ---");
 		if (profilesDir.empty()) setProfilesDir();
 		IMLOG("--- ProfilesDir set ---");
@@ -244,8 +259,8 @@ namespace Konnekt {
 
 		// Ustawia kolumny dla Core
 		setColumns();
-		// Ustawia kolumny interfejsu
-		IMessageDirect(Plug[0], IM_SETCOLS , 0 , 0 , 0);
+		// Ustawia kolumny Core/UI
+		IMessage(IM_SETCOLS, Net::Broadcast().onlyNet(Net::core), imtAll);
 		IMLOG("--- Core columns set ---");
 
 		// £aduje pluginy...
@@ -258,7 +273,7 @@ namespace Konnekt {
 		Tables::cnt->requestColumns(Ctrl);
 
 		// Ustawia inne wtyczki
-		IMessage(IM_SETCOLS , NET_BROADCAST , IMT_ALL , 0 , 0 , 1);
+		IMessage(IM_SETCOLS, Net::Broadcast().notNet(Net::core), imtAll);
 
 
 		IMLOG("--- Plugin columns set ---");
@@ -267,26 +282,26 @@ namespace Konnekt {
 		IMLOG("--- Profile loaded ---");
 
 		// Wyœwietla okno ustalania "trudnoœci" (o ile zajdzie taka potrzeba...)
-		IMessageDirect(Plug[0], IMI_SET_SHOWBITS , 0 , 0 , 0);
+		ICMessage(IMI_SET_SHOWBITS , 0 , 0);
 
-		hInternet = (HINTERNET) IMCore(&sIMessage_2params(IMC_HINTERNET_OPEN , (int)"Konnekt" , 0));
+		hInternet = (HINTERNET) ICMessage(IMC_HINTERNET_OPEN , (int)"Konnekt" , 0);
 
 		checkVersions();
 		IMLOG("--- Versions checked ---");
 		Tables::cfg->setString(0, CFG_APPFILE, appFile);
 		Tables::cfg->setString(0, CFG_APPDIR, appPath);
-		IMessage(IM_UI_PREPARE,NET_BC,IMT_ALL,0,0 , 0);
+		IMessage(IM_UI_PREPARE, Net::broadcast, imtAll);
 		IMLOG("--- UI prepared ---");
-		IMessage(IM_START ,NET_BC,IMT_ALL, 0, 0,1);
-		IMessageDirect(Plug[0] , IM_START);
+		IMessage(IM_START, Net::Broadcast().notNet(Net::core), imtAll);
+		IMessage(IM_START, Net::Broadcast().onlyNet(Net::core));
 		IMLOG("--- Plugins started ---");
 		if (newProfile) {
-			IMessage(IM_NEW_PROFILE , NET_BC , IMT_ALL , 0 , 0 , 0);
+			IMessage(IM_NEW_PROFILE , Net::broadcast , imtAll);
 			IMLOG("--- NEW profile passed ---");
 		}
 
 		Connections::startUp();
-		IMessage(IM_NEEDCONNECTION,NET_BC,IMT_PROTOCOL,0,0 , 0);
+		IMessage(IM_NEEDCONNECTION,Net::broadcast,imtProtocol);
 		Connections::connect();
 		IMLOG("--- Auto-Connected ---");
 		Messages::initMessages();
@@ -330,9 +345,8 @@ namespace Konnekt {
 		static bool once=0;
 		if (!once) {
 			once=true;
-			IMessage(IM_DISCONNECT , NET_BC , IMT_PROTOCOL,0,0,0);
-			IMessage(IM_END ,-1,IMT_ALL, !canWait , 0,1);
-			IMessageDirect(Plug[0] , IM_END , !canWait , 0);
+			IMessage(IM_DISCONNECT, Net::broadcast, imtProtocol);
+			IMessage(IM_END , Net::Broadcast().setReverse(),imtAll, !canWait);
 		}
 	}
 
@@ -361,10 +375,11 @@ namespace Konnekt {
 			Tables::saveProfile(false);
 			// IMLOG("-profile saved if changed");
 		}
-		for (int i=1; i<Plug.size();i++) {
-			Plug.PlugOUT(i);
+
+		// odpinamy wszystkie wtyczki...
+		for (int i = plugins.count() - 1; i >= 0; --i) {
+			plugins.plugOut(plugins[i], false);
 		}
-		Plug.PlugOUT(0);
 		IMLOG("-plugs unpluged");
 
 		Tables::deinitialize();
@@ -384,7 +399,11 @@ namespace Konnekt {
 		Debug::finish();
 	#endif
 		//	return msg.wParam;
-		delete Ctrl;
+
+		// czyœcimy listê pluginów
+		plugins.cleanUp();
+
+
 		CloseHandle(semaphore);
 		InternetCloseHandle(hInternet);
 		WSACleanup();

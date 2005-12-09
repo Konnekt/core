@@ -26,6 +26,7 @@ Obs³uga "rdzeniowych" komunikatów
 #include "unique.h"
 #include "test.h"
 #include "argv.h"
+#include "plugins_ctrl.h"
 
 using namespace Stamina;
 
@@ -41,6 +42,19 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 	//char * ch , * ch2;
 	//string str;
 	switch (msg->id) {
+
+
+		case IM_PLUG_NET:        return NET_NONE;
+		case IM_PLUG_TYPE:       return IMT_ALL & ~(IMT_MSGUI | IMT_NETSEARCH | IMT_NETUID);
+		case IM_PLUG_VERSION:    return (int)"";
+		case IM_PLUG_SDKVERSION: return KONNEKT_SDK_V;
+		case IM_PLUG_SIG:        return (int)"CORE";
+		case IM_PLUG_CORE_V:     return (int)"W98";
+		case IM_PLUG_UI_V:       return 0;
+		case IM_PLUG_NAME:       return (int)"Core";
+		case IM_PLUG_NETNAME:    return (int)"";
+		case IM_PLUG_INIT:       return Plug_Init(msg->p1,msg->p2);
+		case IM_PLUG_DEINIT:     Plug_Deinit(msg->p1,msg->p2); return 1;
 
 		case IMC_ISNEWVERSION: 
 			return newVersion;
@@ -93,7 +107,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		case IMC_SHUTDOWN: {
 			ISRUNNING();
 			IMESSAGE_TS();
-			IMLOG("- IMC_SHUTDOWN (od %s) ... " , Plug.Name(msg->sender).c_str());
+			IMLOG("- IMC_SHUTDOWN (od %s) ... " , plugins.getName(msg->sender).c_str());
 			if (!msg->p1 && (!canQuit || IMessageSum(IM_CANTQUIT , IMT_ALL , 0 , 0 , 0))) {
 				IMLOG("- IMC_SHUTDOWN anulowany");
 				return 0;
@@ -107,8 +121,8 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 		case IMC_NET_TYPE: {
 			int type = 0;
-			for (int i=0; i<Plug.size(); i++) {
-				if (Plug[i].net == msg->p1) type |= Plug[i].type;
+			for (int i = 0; i < plugins.count(); i++) {
+				if (plugins[i].getNet() == msg->p1) type |= plugins[i].getType();
 			}
 			return type;}
 
@@ -125,9 +139,9 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		case IMC_MESSAGEACK: 
 			ISRUNNING(); 
 			if (((cMessageAck*)msg->p1)->flag & MACK_NOBROADCAST) {
-				IMessageDirect(Plug[0] , IM_MSG_ACK , msg->p1 , 0); 
+				plugins[pluginUI].IMessageDirect(IM_MSG_ACK , msg->p1 , 0); 
 			} else {
-				IMessage(IM_MSG_ACK , NET_BC , IMT_MESSAGEACK , msg->p1 , 0 , 0); 
+				IMessage(IM_MSG_ACK, Net::broadcast, imtMessageAck, msg->p1, 0); 
 			}
 			return true;
 
@@ -168,7 +182,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			Contacts::updateContact(msgCC._cntID);
 			if (Tables::cnt->getInt(msgCC._cntID,CNT_INTERNAL)&1) {
 				Tables::cnt->setInt(msgCC._cntID,CNT_INTERNAL, Tables::cnt->getInt(msgCC._cntID,CNT_INTERNAL)& (~1));
-				IMessage(IM_CNT_ADD,NET_BC,IMT_CONTACT, Tables::cnt->getRowId(msgCC._cntID),0,0);
+				IMessage(IM_CNT_ADD,NET_BC,IMT_CONTACT, Tables::cnt->getRowId(msgCC._cntID),0);
 			}
 			else {
 				msgCC.id = IM_CNT_CHANGED;
@@ -210,21 +224,21 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				if (msg->p1) Tables::cnt->setInt(cnt , CNT_NET , msg->p1);
 				if (msg->p2) Tables::cnt->setString(cnt , CNT_UID , (char*)msg->p2);
 				Tables::cnt->setInt(cnt , CNT_INTERNAL , Tables::cnt->getInt(cnt , CNT_INTERNAL)|1);
-				IMessage(IM_CNT_ADDING,NET_BC,IMT_CONTACT,cnt,0,0);
+				IMessage(IM_CNT_ADDING, Net::broadcast, imtContact, cnt, 0);
 			}
 			return cnt;}
 
 		case IMC_CNT_REMOVE: 
 			ISRUNNING(); 
 			if (msg->p1>0 && (!msg->p2
-								 || UIMessage(IMI_CONFIRM
+								 || ICMessage(IMI_CONFIRM
 								 ,(int)stringf(loadString(IDS_ASK_CNTREMOVE).c_str(),Tables::cnt->getString(msg->p1,CNT_DISPLAY).c_str()).c_str()
 								 ,0))) 
 			{
 				Messages::removeMessage(&sMESSAGESELECT(Tables::cnt->getInt(msg->p1,CNT_NET),Tables::cnt->getString(msg->p1,CNT_UID).c_str(),MT_MESSAGE,0,MF_SEND),-1);
-				IMessage(IM_CNT_REMOVE, NET_BC, IMT_CONTACT, msg->p1, msg->p2, 0);
+				IMessage(IM_CNT_REMOVE, NET_BC, IMT_CONTACT, msg->p1, msg->p2);
 				bool result = Tables::cnt->removeRow(msg->p1);
-				IMessage(IM_CNT_REMOVED, NET_BC, IMT_CONTACT, msg->p1, msg->p2, 0);
+				IMessage(IM_CNT_REMOVED, NET_BC, IMT_CONTACT, msg->p1, msg->p2);
 				return result;
 			} else {
 				return 0;
@@ -259,69 +273,60 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 		case IMC_TEMPDIR: return (int)tempPath.c_str();
 
-		case IMC_PLUG_COUNT: return Plug.size();
+		case IMC_PLUG_COUNT: return plugins.count();
 
-		case IMC_PLUG_HANDLE: return (int)Plug[msg->p1].hModule;
+		case IMC_PLUG_HANDLE: return (int)plugins[msg->p1].getDllModule();
 
-		case IMC_PLUG_ID: return (int)Plug[msg->p1].ID;
+		case IMC_PLUG_ID: return (int)plugins[msg->p1].getId();
 
-		case IMC_PLUG_FILE:  return (int)Plug[msg->p1].file.c_str();
+		case IMC_PLUG_FILE:  {
+			String& temp = TLSU().buffer().getString(true);
+			temp = plugins[msg->p1].getDllFile().c_str();
+			return (int)temp.c_str();
+		}
 
-		case IMC_PLUGID_POS: return Plug.FindID(msg->p1);
+		case IMC_PLUGID_POS: return plugins.getIndex((tPluginId)msg->p1);
 
 		case IMC_PLUGID_HANDLE: {
-			int pos = Plug.FindID(msg->p1); 
-			return pos!=-1?(int)Plug[pos].hModule:0;
+			Plugin* plugin = plugins.get((tPluginId)msg->p1);
+			return plugin ? (int) plugin->getDllModule() :0;
 			}
 
 		case IMC_FINDPLUG: {
-			int pos = Plug.Find(msg->p1 , msg->p2 , 0);
+			int pos = plugins.findPlugin((tNet)msg->p1, (enIMessageType)msg->p2 , 0);
 			if (pos == -1) return 0;
-			return Plug[pos].ID;
+			return plugins[pos].getId();
 			}
 
 		case IMC_FINDPLUG_BYNAME: {
 			if (!msg->p1) {
 				return 0;
 			}
-			for (cPlugs::Plug_it_t Plug_it = Plug.Plug.begin(); Plug_it != Plug.Plug.end(); Plug_it ++) {
-				if (Plug_it->name == (char*)msg->p1) {
-					return Plug_it->ID;
-				}
-			}
-			return 0;}
+			Plugin* plugin = plugins.findName((char*) msg->p1);
+			return plugin ? plugin->getId() : 0;
+		}
 
 		case IMC_FINDPLUG_BYSIG: {
 			if (!msg->p1) {
 				return 0;
 			}
-			for (cPlugs::Plug_it_t Plug_it=Plug.Plug.begin(); Plug_it!=Plug.Plug.end(); Plug_it++) {
-				if (Plug_it->sig == (char*)msg->p1) {
-					return Plug_it->ID;
-				}
-			}
-			return 0;}
+			Plugin* plugin = plugins.findSig((char*) msg->p1);
+			return plugin ? plugin->getId() : 0;
+		}
 
 		case sIMessage_plugOut::__msgID: {
 			ISRUNNING();
 			IMESSAGE_TS();
 			sIMessage_plugOut * po = static_cast<sIMessage_plugOut*>(msgBase);
-			int ID = Plug.FindID(po->_plugID);
-			int senderID = Plug.FindID(po->sender);
-			if (ID == -1 || senderID == -1) return 0;
-			Tables::oTableImpl plg(tablePlugins);
-			tRowId pl = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), Plug[ID].file.c_str())).getId();
-			if (pl == DT::rowNotFound) return 0;
-			if (po->_unload & sIMessage_plugOut::euNextStart) {
-				plg->setInt(pl , PLG::load , -1);
-				plg->save();
-			}
-			CStdString namePlug = Plug[ID].GetName();
-			CStdString nameSender = Plug[senderID].GetName();
+			tPluginId ID = plugins.getId((tPluginId)po->_plugID);
+			tPluginId senderID = plugins.getId(po->sender);
+			if (ID == pluginNotFound || senderID == pluginNotFound) return 0;
+
 			CStdString reason = po->_reason;
-			if (po->_unload & sIMessage_plugOut::euNow) {
-				plugins.plugOut(plugins[ID]);
-			}
+			CStdString namePlug = plugins[ID].getName().a_str();
+			CStdString nameSender = plugins[senderID].getName().a_str();
+
+			plugins[ID].plugOut(plugins[senderID].getCtrl(), reason, true, (iPlugin::enPlugOutUnload)po->_unload);
 
 			CStdString msg = loadString(IDS_INF_PLUGOUT);
 			//Wtyczka %s od³¹czy³a wtyczkê %s\r\nMo¿esz j¹ przywróciæ rêcznie w opcji "wtyczki".\r\n\r\n%s\r\n\r\n%s
@@ -350,7 +355,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			sc.type = IMT_ALL;
 			sc.id = IM_STATUSCHANGE;
 			sc.plugID = sc.sender;
-			sc.sender = 0;
+			sc.sender = pluginCore;
 			return IMessageProcess(&sc , 0);
 		}
 
@@ -361,7 +366,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			sc.net = NET_BC;
 			sc.type = IMT_ALL;
 			sc.id = IM_CNT_STATUSCHANGE;
-			sc.sender = 0;
+			sc.sender = pluginCore;
 			IMessageProcess(&sc,0);
 			if (sc.status != -1) Tables::cnt->setInt(sc.cntID , CNT_STATUS , (Tables::cnt->getInt(sc.cntID , CNT_STATUS) & ~ST_MASK) | sc.status);
 			if (sc.info) Tables::cnt->setString(sc.cntID , CNT_STATUSINFO , sc.info);
@@ -430,9 +435,9 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			if (msg->p1 == -1) {
 				return IMessage(IMC_VERSION , 0,0,msg->p2);
 			}
-			if (!Plug.exists(msg->p1)) return 0;
-			if (msg->p2) {strcpy((char*)msg->p2 , Plug[msg->p1].version.getString().c_str());}
-			return Plug[msg->p1].version.getInt();
+			if (!plugins.exists((tPluginId)msg->p1)) return 0;
+			if (msg->p2) {strcpy((char*)msg->p2 , plugins[msg->p1].getVersion().getString().c_str());}
+			return plugins[msg->p1].getVersion().getInt();
 		}
 
 		case IMC_CNT_IGNORED: 
@@ -462,7 +467,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		case IMC_IGN_ADD:
 			ISRUNNING();
 			IMESSAGE_TS();
-			if (!UIMessage(IMC_IGN_FIND , msg->p1 , msg->p2)) {
+			if (!ICMessage(IMC_IGN_FIND , msg->p1 , msg->p2)) {
 				std::string list = Tables::cfg->getString(0,CFG_IGNORE);
 				if (list.empty()) list = "\n";
 				list += inttostr(msg->p1) + "@";
@@ -470,7 +475,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				list += "\n";
 
 				Contacts::updateContact(Contacts::findContact(msg->p1 , (char*)msg->p2));
-				IMessage(IM_IGN_CHANGED , NET_BC , IMT_CONTACT , msg->p1 , msg->p2 , 0);
+				IMessage(IM_IGN_CHANGED , NET_BC , IMT_CONTACT , msg->p1 , msg->p2);
 				return 1;
 			}
 			return 0;
@@ -486,7 +491,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				list.erase(found, item.length() - 1);
 				Tables::cfg->setString(0, CFG_IGNORE, list);
 				Contacts::updateContact(Contacts::findContact(msg->p1 , (char*)msg->p2));
-				IMessage(IM_IGN_CHANGED , NET_BC , IMT_CONTACT , -msg->p1 , msg->p2 , 0);
+				IMessage(IM_IGN_CHANGED , NET_BC , IMT_CONTACT , -msg->p1 , msg->p2);
 			}
 			return 0;
 		}
@@ -500,13 +505,13 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		{
 			ISRUNNING();
 			IMESSAGE_TS();
-			if (!UIMessage(IMC_GRP_FIND , msg->p1)) {
+			if (!ICMessage(IMC_GRP_FIND , msg->p1)) {
 				std::string list = Tables::cfg->getString(0, CFG_GROUPS);
 				if (list.empty()) list = "\n";
 				list += (char*)msg->p1;
 				list += "\n";
 				Tables::cfg->setString(0, CFG_GROUPS, list);
-				IMessage(IM_GRP_CHANGED , NET_BC , IMT_CONTACT , 0 , 0 , 0);
+				IMessage(IM_GRP_CHANGED , NET_BC , IMT_CONTACT , 0 , 0);
 				return 1;
 			}
 			return 0;
@@ -531,7 +536,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 						Ctrl->IMessage(&cc);
 					}
 				}
-				IMessage(IM_GRP_CHANGED , NET_BC , IMT_CONTACT , 0 , 0 , 0);
+				IMessage(IM_GRP_CHANGED , NET_BC , IMT_CONTACT , 0 , 0);
 			}
 			return 0;
 		}
@@ -540,7 +545,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		{
 			ISRUNNING();
 			IMESSAGE_TS();
-			if (!UIMessage(IMC_GRP_FIND , msg->p1) || UIMessage(IMC_GRP_FIND , msg->p2)) return 0;
+			if (!ICMessage(IMC_GRP_FIND , msg->p1) || ICMessage(IMC_GRP_FIND , msg->p2)) return 0;
 			//            IMLOG("GRP_RENAME %s %s" , msg->p1 , msg->p2);
 			// Usuwamy
 			Tables::cfg->setString(0, CFG_GROUPS, RegEx::doReplace(("/^" + std::string((char*)msg->p1) + "$/mi").c_str(), (const char*)msg->p2, Tables::cfg->getString(0, CFG_GROUPS).c_str(), 1) ); 
@@ -553,7 +558,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 					Ctrl->IMessage(&cc);
 				}
 			}
-			IMessage(IM_GRP_CHANGED , NET_BC , IMT_CONTACT , 0 , 0 , 0);
+			IMessage(IM_GRP_CHANGED , NET_BC , IMT_CONTACT , 0 , 0);
 			return 0;
 		}
 
@@ -611,7 +616,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		case IMC_CFG_CHANGED:
 			ISRUNNING();
 			IMESSAGE_TS();
-			IMessage(IM_CFG_CHANGED , NET_BC , IMT_CONFIG , 0 , 0 , 0);
+			IMessage(IM_CFG_CHANGED , NET_BC , IMT_CONFIG , 0 , 0);
 			return 0;
 
 		case IMC_SAVE_CFG:
