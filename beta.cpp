@@ -593,7 +593,7 @@ namespace Konnekt { namespace Beta {
 
 			std::string userAgent = "Konnekt-beta (" + Konnekt::versionInfo + ")";
 
-			Stamina::oInternet internet ( new Stamina::Internet((HINTERNET) IMCore(&sIMessage_2params(IMC_HINTERNET_OPEN , (int)"Konnekt-beta" , 0))) );
+			Stamina::oInternet internet ( new Stamina::Internet((HINTERNET) ICMessage(IMC_HINTERNET_OPEN , (int)"Konnekt-beta" , 0)) );
 
 			internet->setReadTimeout(centralTimeout);
 			internet->setWriteTimeout(centralTimeout);
@@ -843,11 +843,13 @@ namespace Konnekt { namespace Beta {
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
 		unsigned int current = GetCurrentThreadId();
 		HANDLE currentHandle = GetCurrentThread();
+
+		LockerCS l(threadsCS);
+
 		for (tThreads::iterator it=threads.begin(); it!=threads.end(); it++) {
-			unsigned int onlist = it->first;
-			HANDLE handle = it->second;
-			if (onlist != current && handle != currentHandle) {
-				SuspendThread(handle);
+			ThreadInfo& info = it->second;
+			if (info.thread.isCurrent() == false) {
+				info.thread.suspend();
 			}
 		}
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
@@ -904,11 +906,12 @@ namespace Konnekt { namespace Beta {
 	void imdigest(string & msg) {
 #ifdef __DEBUG
 		// Wypisuje informacje o aktualnym/ostatnim IMessage
-		if (!running || !TLSU().lastIM.inMessage) {
+		if (!running || TLSU().stack.count() == 0) {
 			msg+=stringf("\n%sIM: %d(0x%x , 0x%x)(%dB) [%s->%s]\n" , TLSU().lastIM.inMessage?"in":"last" , TLSU().lastIM.debug.id , TLSU().lastIM.debug.p1 , TLSU().lastIM.debug.p2 , TLSU().lastIM.debug.size , plugins.getName((tPluginId)TLSU().lastIM.debug.sender).c_str() , plugins.getName((tPluginId)TLSU().lastIM.debug.rcvr));
 		} else {
+			Debug::IMessageInfo(TLSU().stack.getCurrent());
 			Debug::sIMDebug IMD;
-			Debug::IMDebug_transform(IMD , TLSU().lastIM.msg , 0 , 0);
+			Debug::prepareIMessageInfo(IMD , TLSU().lastIM.msg , 0 , 0);
 			msg+=stringf("\ninIM[%d]: %s(%.50s | %.50s)(%dB) [%s->%s]\n" , TLSU().lastIM.inMessage , IMD.id.c_str() , IMD.p1.c_str() , IMD.p2.c_str() , TLSU().lastIM.debug.size , IMD.sender.c_str() , plugins.getName((tPluginId)TLSU().lastIM.debug.rcvr).c_str());
 
 		}

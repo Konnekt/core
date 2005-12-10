@@ -4,12 +4,35 @@
 
 namespace Konnekt{ namespace Debug {
 
-	struct sIMDebug {
-		CStdString id, p1, p2, result, error
-			, sender, receiver,
-			nr , net , type , thread
-			;
+	class IMessageInfo {
+	public:
+		IMessageInfo(sIMessage_base* msg) {
+			_msg = msg;
+		}
+		StringRef getId() {
+			return PassStringRef( getId(_msg->id) );
+		}
+		StringRef getNet() {
+			return PassStringRef( getNet(_msg->net) );
+		}
+		StringRef getType() {
+			return PassStringRef( getType(_msg->type) );
+		}
+		StringRef getSender() {
+			return PassStringRef( getPlugin(_msg->sender) );
+		}
+		String getData();
+		String getResult(int result);
+		static StringRef getId(tIMid id);
+		static StringRef getNet(tNet net);
+		static StringRef getType(enIMessageType type);
+		static StringRef getThread();
+		static StringRef getError(enIMessageError error);
+		static StringRef getPlugin(tPluginId plugin);
+		static StringRef getPlugin(Plugin& plugin);
 
+	private:
+		sIMessage_base* _msg;
 
 	};
 
@@ -32,12 +55,14 @@ namespace Konnekt{ namespace Debug {
 	extern bool logAll;
 	extern bool debugAll;
 
+	extern int imessageCount;
+
 #ifdef __DEBUG
-	int IMDebug(sIMessage_base * msgBase , unsigned int , int);
-	int IMDebugResult(sIMessage_base * msgBase , int pos , int res , int=0);
-	int IMDebug_transform(sIMDebug & IMD , sIMessage_base * msgBase , int result , int error);
+	int logIMessage(sIMessage_base* msg, Plugin& receiver);
+	void logIMessageResult(sIMessage_base * msg, int pos, int result, int occurence = 0);
 #endif
 
+	string logIndent(int offset = 0, char tab = '\t');
 
 	// -------------------------------  debug_window
 
@@ -58,6 +83,7 @@ namespace Konnekt{ namespace Debug {
 	void debugLogMsg(string msg);
 	void debugLogValue(string name , string value);
 	void ShowDebugWnds();
-	void debugLogStart(sIMDebug & IMD , sIMessage_base * msg , string ind);
-	void debugLogEnd(sIMDebug & IMD , sIMessage_base * msg , bool multiline , string ind);
+	void debugLogMsg(Plugin& plugin, const char* module, const char* where, const StringRef& msg);
+	void debugLogIMStart(sIMessage_base * msg, Plugin& receiver);
+	void debugLogIMEnd(sIMessage_base * msg, int result, bool multiline);
 };};

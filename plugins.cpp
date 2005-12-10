@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 #include <Stamina\Image.h>
-#include <Stamina\Logger.h>
 
 #include "plugins.h"
 #include "imessage.h"
@@ -12,6 +11,7 @@
 #include "profiles.h"
 #include "threads.h"
 #include "argv.h"
+#include "klogger.h"
 
 using namespace Stamina;
 
@@ -38,6 +38,19 @@ namespace Konnekt {
 
 
 	// --------------------------------------------------------------------
+
+	Plugin::Plugin(tPluginId pluginId = pluginNotFound) {
+		_imessageProc = 0;
+		_imessageObject = 0;
+		_module = 0;
+		_running = false;
+		_id = pluginId;
+		_priority = priorityNone;
+		_ctrl = 0;
+		_owner = 0;
+		_logger = new KLogger(*this, logAll);
+	}
+
 
 	Plugin::~Plugin() {
 		if (_ctrl) {
@@ -167,7 +180,7 @@ namespace Konnekt {
 		}
 	}
 
-	bool Plugin::plugOut(cCtrl* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload) {
+	bool Plugin::plugOut(Ctrl* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload) {
 		Stamina::mainLogger->log(Stamina::logWarn, "Plugin", "plugOut", "unload=%d reason=\"%s\"", unload, reason.a_str());
 
 		if (mainThread.isCurrent() == false) {

@@ -197,7 +197,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 					}
 					if (!msgCC._changed.net && msgCC._oldNet == NET_NONE) msgCC._oldNet = Tables::cnt->getInt(msgCC._cntID , CNT_NET);
 				}
-				IMessageProcess(&msgCC , 0);
+				IMessage(&msgCC);
 			}
 			break;}
 
@@ -211,7 +211,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			if (msg->p1 && msg->p2 && *(char*)msg->p2) {
 				int cnt = Contacts::findContact(msg->p1,(char *)msg->p2);
 				if (cnt != -1) {
-					int r = IMessageProcess(&sIMessage_msgBox(IMI_CONFIRM, stringf(loadString(IDS_ASK_CNTOVERWRITE).c_str(), msg->p2, msg->p1, Tables::cnt->getString(cnt, CNT_DISPLAY)).c_str(), "Dodawanie kontaktu", MB_YESNOCANCEL), 0);
+					int r = IMessage(&sIMessage_msgBox(IMI_CONFIRM, stringf(loadString(IDS_ASK_CNTOVERWRITE).c_str(), msg->p2, msg->p1, Tables::cnt->getString(cnt, CNT_DISPLAY)).c_str(), "Dodawanie kontaktu", MB_YESNOCANCEL), 0);
 					switch (r) {
 						case IDNO:cnt=-1;break;
 						case IDCANCEL:return -1;
@@ -356,7 +356,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			sc.id = IM_STATUSCHANGE;
 			sc.plugID = sc.sender;
 			sc.sender = pluginCore;
-			return IMessageProcess(&sc , 0);
+			return IMessage(&sc);
 		}
 
 		case IMC_CNT_SETSTATUS: {
@@ -367,7 +367,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			sc.type = IMT_ALL;
 			sc.id = IM_CNT_STATUSCHANGE;
 			sc.sender = pluginCore;
-			IMessageProcess(&sc,0);
+			IMessage(&sc);
 			if (sc.status != -1) Tables::cnt->setInt(sc.cntID , CNT_STATUS , (Tables::cnt->getInt(sc.cntID , CNT_STATUS) & ~ST_MASK) | sc.status);
 			if (sc.info) Tables::cnt->setString(sc.cntID , CNT_STATUSINFO , sc.info);
 			return 0;
@@ -573,7 +573,6 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			IMESSAGE_TS();
 			deinitialize(false);
 			restart();
-			//            IMCore(IMC_SHUTDOWN , 0 , 0 , 0);
 			return 1;
 
 		case IMC_PROFILECHANGE:
@@ -713,7 +712,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			dc.net = NET_BROADCAST;
 			dc.type = IMT_ALL;
 			dc.id = IM_DEBUG_COMMAND;
-			IMessageProcess(&dc, 0);
+			IMessage(&dc);
 			if (msgDc->async == (sIMessage_debugCommand::duringAsynchronous)) {
 				for (int i = 0; i < msgDc->argc; i++)
 					free((char*)msgDc->argv[i]);

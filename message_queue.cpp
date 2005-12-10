@@ -48,14 +48,14 @@ namespace Konnekt { namespace Messages {
 			}
 		}
 		// obs³u¿enie najpierw UI
-		r = IMessageDirect(Plug[0],IM_MSG_RCV,(int)m);
+		r = plugins[pluginUI].IMessageDirect(IM_MSG_RCV,(int)m);
 		if (r & IM_MSG_delete) {handler=-1;goto messagedelete;}
 		if (r & IM_MSG_ok) handler = 0;
 		for (int i=Plug.size()-1; i>0 ;i--) {
 			//    if (handler!=-1) break;
 			m->id = 0;
 			if (!(Plug[i].type & IMT_ALLMESSAGES)&&(!(Plug[i].type & IMT_MESSAGE) || (m->net && Plug[i].net && Plug[i].net!=m->net))) continue;
-			r = IMessageDirect(Plug[i],IM_MSG_RCV,(int)m);
+			r = plugins[i].IMessageDirect(IM_MSG_RCV,(int)m);
 			if (r & IM_MSG_delete) {handler=-1;goto messagedelete;} // Wiadomosc nie zostaje dodana
 			if (r & IM_MSG_ok) {
 				handler = /*(Plug[i].type & IMT_MSGUI && !(m->flag & MF_SEND)) ? 0 :*/ i;
@@ -77,7 +77,7 @@ messagedelete:
 				ha.cnt = 0;
 				ha.name = m->flag & MF_SEND? "nie wys³ane" : (notinlist?"spoza listy":"nie obs³u¿one");
 				ha.session = 0;
-				IMessageDirect(Plug[0] , IMI_HISTORY_ADD , (int)&ha);
+				plugins[pluginUI].IMessageDirect(IMI_HISTORY_ADD , (int)&ha);
 			}  
 			IMLOG("_Wiadomosc bez obslugi lub usunieta - %.50s...",m->body);
 			if (load) msg->removeRow(pos);
@@ -215,7 +215,7 @@ messagedelete:
 			r = IM_MSG_ok;
 			if (!(m->flag & MF_OPENED) && !notifyOnly) {
 				if (m->flag & MF_SEND) { // Wysylamy
-					r = IMessageDirect(Plug[msg->getInt(id , MSG_HANDLER)],IM_MSG_SEND,(int)m);
+					r = plugins[msg->getInt(id , MSG_HANDLER)].IMessageDirect(IM_MSG_SEND,(int)m);
 				} else {
 					// sprawdzanie listy
 					//      IMLOG("CHECK %d %s = %d" , m->net , m->fromUid , CFindContact(m->net , m->fromUid));
@@ -223,7 +223,7 @@ messagedelete:
 						r=IM_MSG_delete;  // Jezeli jest spoza listy powinna zostac usunieta
 					//          IMessageDirect(Plug[0] , IMI_MSG_NOTINLIST , (int)m);
 					else
-						r = IMessageDirect(Plug[msg->getInt(id , MSG_HANDLER)],IM_MSG_OPEN,(int)m);
+						r = plugins[msg->getInt(id , MSG_HANDLER)].IMessageDirect(IM_MSG_OPEN,(int)m);
 				}
 			} // MF_OPENED
 			if (r & IM_MSG_delete) {
@@ -253,7 +253,7 @@ messagedelete:
 		}
 		if (m) messageFree(m, false);
 		m = 0;
-		IMessageDirect(Plug[0],IMI_NOTIFY,NOTIFY_AUTO);
+		ICMessage(IMI_NOTIFY,NOTIFY_AUTO);
 		//notify.clear();
 		if (siz != msg->getRowCount()) msg->lateSave(true);
 		return;
@@ -349,7 +349,7 @@ messagedelete:
 		IMessageDirect(Plug[0],IMI_NOTIFY,IMessage(IMC_FINDCONTACT,0,0,notify_it->first,(int)(notify_it->second.c_str())));
 		}
 		*/
-		IMessageDirect(Plug[0],IMI_NOTIFY,NOTIFY_AUTO);
+		ICMessage(IMI_NOTIFY,NOTIFY_AUTO);
 
 		return c;
 

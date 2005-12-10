@@ -5,27 +5,22 @@
 
 namespace Konnekt {
 #pragma pack(push , 1)
-	class cCtrl_ : public cCtrlEx{
-		friend class cCtrl1;
+	class Controler_ : public ControlerEx{
+		friend class Controler1;
 	public:
 
-		//   virtual ~cCtrl_(){};
+		//   virtual ~Controler_(){};
 		int __stdcall getLevel() {return 0;}
 
 		tPluginId __stdcall ID(){return _plugin.getId();}  ///< Identyfikator wtyczki
 		HINSTANCE __stdcall hInst(){return Stamina::getHInstance();}   ///  Uchwyt procesu (HINSTANCE)
 		HINSTANCE __stdcall hDll(){return _plugin.getDllModule();}   ///  Uchwyt biblioteki.
-		int __stdcall getError(); ///< Zwraca kod ostatniego bledu
-		void __stdcall setError(int err_code);
+		enIMessageError __stdcall getError(); ///< Zwraca kod ostatniego bledu
+		void __stdcall setError(enIMessageError err_code);
 		bool __stdcall isRunning() {return ::isRunning;} ///< Ustawia kod b³êdu.
 
-		cCtrl_(Plugin& plugin):_plugin(plugin) {
+		Controler_(Plugin& plugin):_plugin(plugin) {
 			warn_cnt = 0; err_cnt = 0; 
-			debugLevel = DBG_ALL;
-#ifdef __DEBUG
-			debugLevel |= DBG_DEBUG;
-
-#endif
 		}
 
 		int getWarnCnt() {return warn_cnt;}
@@ -38,12 +33,11 @@ namespace Konnekt {
 	private:
 		unsigned int warn_cnt , err_cnt;  // Liczniki ostrzezen i bledow
 		Plugin& _plugin;
-		unsigned int debugLevel;
 	};
 
 
-	// cCtrl ze zdefiniowanymi funkcjami dla zwyklych dll'ek
-	class cCtrl1 : public cCtrl_ {
+	// Controler ze zdefiniowanymi funkcjami dla zwyklych dll'ek
+	class Controler1 : public Controler_ {
 	public:
 
 		struct BeginThreadParam {
@@ -53,7 +47,7 @@ namespace Konnekt {
 			std::string name;
 		};
 
-		cCtrl1(Plugin& plugin):cCtrl_(plugin) {
+		Controler1(Plugin& plugin):Controler_(plugin) {
 		}
 
 		// Inne
@@ -107,23 +101,27 @@ namespace Konnekt {
 			return plugins.count();
 		}
 
+		class Stamina::Logger* __stdcall getLogger();
+		void __stdcall logMsg(enDebugLevel level, const char* module, const char* where, const char* msg);
+
+
 	};
 
-	// cCtrl z funkcjami troche wyzszego poziomu
-	class cCtrl2 : public cCtrl1 {
+	// Controler z funkcjami troche wyzszego poziomu
+	class Controler2 : public Controler1 {
 	public:
 
-		cCtrl2(Plugin& plugin):cCtrl1(plugin) {
+		Controler2(Plugin& plugin):Controler1(plugin) {
 		}
 
 		int __stdcall getLevel() {return 2;}
 	};
 
-	// cCtrl - odpowiednik cCtrlEx
-	class cCtrl3 : public cCtrl2 {
+	// Controler - odpowiednik ControlerEx
+	class Controler3 : public Controler2 {
 	public:
 
-		cCtrl3(Plugin& plugin):cCtrl2(plugin) {
+		Controler3(Plugin& plugin):Controler2(plugin) {
 		}
 
 		int __stdcall getLevel() {return 3;}

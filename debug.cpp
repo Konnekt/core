@@ -17,7 +17,7 @@ namespace Konnekt { namespace Debug {
 	CStdString logPath;
 	CStdString logFileName; // nazwa pliku z logiem
 	FILE * logFile;
-	int IMlogsize = 0;
+	int imessageCount = 0;
 	string stackTrace="";
 	unsigned int threadId = 0;
 	bool debugAll = false;
@@ -105,364 +105,286 @@ namespace Konnekt { namespace Debug {
 	} __initializer;
 
 
+// -------------------------------------------------------------------------
 
-
-
-
-
-	// __declspec (thread) char imclog_buff [20000];
-
-	int IMDebug_transform(sIMDebug & IMD , sIMessage_base * msgBase , int result , int error) {
-		sIMessage_2params * msg=0;
-		sIMessage_2params msgCopy;
-		if (!msgBase) {
-			IMD.result = "0x" + inttostr(result , 16);
-			IMD.error = inttostr(error);
-			IMD.thread = inttostr(GetCurrentThreadId() , 26);
-			return 0;
+	String IMessageInfo::getData() {
+		int p1;
+		int p2;
+		if (_msg->s_size >= sizeof(sIMessage_2params)) {
+			p1 = static_cast<sIMessage_2params*>(_msg)->p1;
+			p2 = static_cast<sIMessage_2params*>(_msg)->p2;
 		} else {
-			if (msgBase->s_size >= sizeof(sIMessage_2params)) {
-				msg = static_cast<sIMessage_2params*>(msgBase);
-			} else {
-				memcpy(&msgCopy , msgBase , sizeof(sIMessage_base));
-				msgCopy.p1 = msgCopy.p2 = 0;
-				msg = &msgCopy;
-			}
-			IMD.id = inttostr(msg->id);
-			IMD.p1 = "0x" + inttostr(msg->p1 , 16);
-			IMD.p2 = "0x" + inttostr(msg->p2 , 16);
-			IMD.nr=inttostr(IMlogsize);
-			IMD.sender=plugins.getName(msg->sender).a_str();
-			IMD.net= (msg->net==NET_BC)?"BC" : inttostr(msg->net);
-			IMD.type=inttostr(msg->type,2,12);
-		}  
-		cMessage * m;
-		char * ch;
-		switch (msg->id) {
-		case IMC_LOG :
-			if (!msg->p1) return 0;
-			IMD.id = "IMC_LOG";
-			ch = (char*)msg->p1;
-			//             if (ch[strlen(ch)-1]=='\n') ch[strlen(ch)-1]=0;
-			if (ch[0] && ch[1] && ch[0] != ch[1]) {
-				switch(ch[0]) {
-					case '-': IMD.p1 = "--- " + string(ch+1) + " ---";break;
-					case '>': IMD.p1 = "  -> " + string(ch+1);break;
-					case '<': IMD.p1 = "  >> " + string(ch+1) + " <<";break;
-					case '!': IMD.p1 = "!!! " + string(ch+1) + " !!!";break;
-					case '_': IMD.p1 = "    " + string(ch+1);break;
-					case '#': IMD.p1 = "  # " + string(ch+1);break;
-					case '*': IMD.p1 = "  * " + string(ch+1);break;
-					default: IMD.p1 = "   " + string(ch);
-				}
-			} else {
-				IMD.p1 = ch;
-			}
-			IMD.p2="";
-			break;
-#ifdef __WITHDEBUGALL
-		case IMC_THREADSTART:IMD.id="IMC_THREADSTART"; break;
-		case IMC_THREADEND:IMD.id="IMC_THREADEND"; break;
-		case IM_THREADSTART:IMD.id="IM_THREADSTART"; break;
-		case IM_THREADEND:IMD.id="IM_THREADEND"; break;
-
-		case IM_PLUG_INIT:IMD.id="IM_PLUG_INIT"; break;
-
-		case IMI_WARNING :
-			IMD.id = "IMI_WARNING";
-			if (!msg->p1) return 0;
-			stringf(IMD.p1.c_str() , "\"%.2000s\"" , msg->p1);
-			break;
-		case IMI_ERROR :
-			IMD.id = "IMI_ERROR";
-			if (!msg->p1) return 0;
-			stringf(IMD.p1.c_str() , "\"%.2000s\"" , msg->p1);
-			break;
-		case IMI_PREPARE :
-			IMD.id = "IMI_PREPARE";
-			break;
-			//        case IMI_UIINVALIDATE :
-			//             sprintf(IMD.id , "IMI_UIINVALIDATE");
-			//             break;
-		case IMI_ACTION :
-			IMD.id = "IMI_ACTION";
-			if (!msg->p1 || !msg->p2) return 0;
-			stringf(IMD.p1.c_str() , "%d / %d / %x" , ((sUIActionInfo*)msg->p1)->act.parent,((sUIActionInfo*)msg->p1)->act.id);
-			stringf(IMD.p2.c_str() , "\"%.2000s\"" , ((sUIActionInfo*)msg->p1)->txt);
-			break;
-		case IMI_ACTION_SET :
-			IMD.id = "IMI_ACTION_SET";
-			if (!msg->p1) return 0;
-			stringf(IMD.p1.c_str() , "%d / %d / %x m=%x" , ((sUIActionInfo*)msg->p1)->act.parent,((sUIActionInfo*)msg->p1)->act.id , ((sUIActionInfo*)msg->p1)->act.cnt , ((sUIActionInfo*)msg->p1)->mask);
-			break;	 
-
-		case IMI_REFRESH_LST :
-			IMD.id = "IMI_REFRESH_LST";
-			break;
-		case IMI_REFRESH_CNT :
-			IMD.id = "IMI_REFRESH_CNT";
-			break;
-		case IMI_NOTIFY :
-			IMD.id = "IMI_NOTIFY";
-			break;
-		case IMI_NEWNOTIFY :
-			IMD.id = "IMI_NEWNOTIFY";
-			break;
-
-		case IMC_MESSAGENOTIFY :
-			IMD.id = "IMC_MESSAGENOTIFY";
-			break;
-		case IMC_SHUTDOWN :
-			IMD.id = "IMC_SHUTDOWN";
-			break;
-		case IMC_NEWMESSAGE :
-			IMD.id = "IMC_NEWMESSAGE";
-			if (!msg->p1) return 0;
-			m = (cMessage *) msg->p1;
-			stringf(IMD.p1.c_str() , "id=%d net=%d from[\"%.50s\"] to[\"%.50s\"]" , m->id , m->net , m->fromUid , m->toUid);
-			break;
-		case IMC_MESSAGEQUEUE :
-			IMD.id = "IMC_MESSAGEQUEUE";
-			break;
-		case IMC_MESSAGEWAITING :
-			IMD.id = "IMC_MESSAGEWAITING";
-			break;
-			/*        case IMC_MESSAGEPOP :
-			IMD.id = "IMC_MESSAGEPOP");
-			break;*/
-		case IMC_MESSAGEREMOVE :
-			IMD.id = "IMC_MESSAGEREMOVE";
-			break;
-		case IMC_CNT_IGNORED :
-			IMD.id = "IMC_CNT_IGNORED";
-			if (!msg->p2) return 0;
-			stringf(IMD.p2.c_str() , "\"%.2000s\"" , msg->p2);
-			break;
-		case IMC_FINDCONTACT :
-			IMD.id = "IMC_FINDCONTACT";
-			if (!msg->p2) return 0;
-			stringf(IMD.p2.c_str() , "\"%.2000s\"" , msg->p2);
-			break;
-		case IMC_PROFILEDIR :
-			IMD.id = "IMC_PROFILEDIR";
-			if (!result) return 0;
-			stringf(IMD.result , "%.2000s" , result);
-			break;
-		case IMC_CNT_REMOVE :
-			IMD.id = "IMC_CNT_REMOVE";
-			break;
-		case IMC_CFG_SETCOL : case IMC_CNT_SETCOL : {
-			sSETCOL * sc = (sSETCOL*)msg->p1;
-			IMD.id = msgBase->id == IMC_CFG_SETCOL ? "IMC_CFG_SETCOL" : "IMC_CNT_SETCOL";
-			stringf(IMD.p1 , "id=%d type=%d def=%d name=%s" , sc->id , sc->type , sc->def , sc->name);
-			break;
-							  }
-		case sIMessage_setColumn::__msgID: {
-			sIMessage_setColumn * sc = (sIMessage_setColumn*)msgBase;
-			stringf(IMD.p1 , "table=%d id=%d type=%d def=%d name=%s" , sc->_table , sc->_id , sc->_type , sc->_def , sc->_name);
-			break;
-										   }
-		case IMI_MSG_OPEN :
-			IMD.id = "IMI_MSG_OPEN";
-			break;
-		case IM_START :
-			IMD.id = "IM_START";
-			break;
-		case IM_END :
-			IMD.id = "IM_END";
-			break;
-		case IM_UIACTION :
-			IMD.id = "IM_UIACTION";
-			if (!msg->p1) return 0;
-			stringf(IMD.p1 , "%d / %d / %x = %d" , ((sUIActionNotify_base*)msg->p1)->act.parent,((sUIActionNotify_base*)msg->p1)->act.id , ((sUIActionNotify_base*)msg->p1)->act.cnt , ((sUIActionNotify_base*)msg->p1)->code);
-			break;	 
-		case IM_CONNECT :
-			IMD.id = "IM_CONNECT";
-			break;
-		case IM_UI_PREPARE :
-			IMD.id = "IM_UI_PREPARE";
-			break;
-		case IM_MSG_OPEN :
-			IMD.id = "IM_MSG_OPEN";
-			break;
-		case IM_MSG_SEND :
-			IMD.id = "IM_MSG_SEND";
-			if (!msg->p1) return 0;
-			m = (cMessage *) msg->p1;
-			stringf(IMD.p1 , "id=%d net=%d to[\"%.50s\"]" , m->id , m->net , m->toUid);
-			break;
-		case IM_MSG_RCV :
-			IMD.id = "IM_MSG_RCV";
-			break;
-		case IM_CNT_STATUSCHANGE :
-			IMD.id = "IM_CNT_STATUSCHANGE";
-			break;
-
-			/*        case IMC_GETCNTC :
-			IMD.id = "IMC_GETCNTC");
-			sprintf(IMD.result , "\"%s\""  , safeChar(result));
-			break;
-			case IMC_SETCNTC :
-			IMD.id = "IMC_SETCNTC");
-			sprintf(IMD.p2 , "%d | \"%s\""  , ((sSETCNT*)p2)->typ , safeChar(((sSETCNT*)p2)->val));
-			break;
-			case IMC_SETCNTI :
-			IMD.id = "IMC_SETCNTI");
-			sprintf(IMD.p2 , "%d | %x & %x"  , ((sSETCNT*)p2)->typ , safeChar(((sSETCNT*)p2)->val) , ((sSETCNT*)p2)->mask);
-			break;
-			*/             
-		case IMC_IGN_DEL :
-			IMD.id = "IMC_IGN_DEL";
-			if (!msg->p1 || !msg->p2) return 0;
-			stringf(IMD.p1 , "%d@%.50s"  , msg->p1,msg->p2);
-			break;
-		case IM_AWAY :
-			IMD.id = "IM_AWAY";
-			break;
-		case IM_BACK :
-			IMD.id = "IM_BACK";
-			break;
-#endif
+			p1 = 0; p2 = 0;
 		}
-
-		return 1;
+		switch (_msg->id) {
+			case IMI_WARNING:
+			case IMI_ERROR :
+				return stringf("\"%.2000s\"", p1);
+			case IMI_ACTION : 
+			case IMI_ACTION_SET :
+				{
+				if (!p1) return "B³¹d!";
+				sUIActionInfo* ai = (sUIActionInfo*)p1;
+				return stringf("act(%d / %d / %x), txt=%s, mask=%x, p2=%x", ai->act.id, ai->act.parent, ai->act.cnt, (ai->mask & UIAIM_TXT) ? ai->txt : 0, ai->mask, p2);
+				}
+			case IMC_NEWMESSAGE :
+			case IM_MSG_SEND :
+			case IM_MSG_RCV :
+			case IM_MSG_OPEN :
+				{
+				if (!p1) return "B³¹d!";
+				cMessage * m = (cMessage *) p1;
+				return stringf("id=%d net=%d from[\"%.50s\"] to[\"%.50s\"]" , m->id , m->net , m->fromUid , m->toUid);
+				}
+			case IMC_CNT_IGNORED :
+			case IMC_FINDCONTACT :
+			case IMC_IGN_DEL :
+				return stringf("%d @ \"%.2000s\"" , p1, p2);
+			case IM_UIACTION :
+				{
+				if (!p1) return "B³¹d!";
+				sUIActionNotify_base* an = (sUIActionNotify_base*)p1;
+				return stringf("%d / %d / %x = %d" , an->act.parent,an->act.id , an->act.cnt , an->code);
+				}
+		}
+		if (_msg->s_size >= sizeof(sIMessage_2params)) {
+			return stringf("0x%x, 0x%x", p1, p2);
+		} else {
+			return "";
+		}
+	}
+	String IMessageInfo::getResult(int result) {
+		String s = "0x" + inttostr(result, 16);
+		return PassStringRef( s );
+	}
+	StringRef IMessageInfo::getId(tIMid id) {
+		switch (id) {
+			case IM_PLUG_INIT:	return "IM_PLUG_INIT";
+			case IMI_WARNING :  return "IMI_WARNING";
+			case IMI_ERROR :	return "IMI_ERROR";
+			case IMI_PREPARE :	return "IMI_PREPARE";
+			case IMI_ACTION :	return "IMI_ACTION";
+			case IMI_ACTION_SET:return "IMI_ACTION_SET";
+			case IMI_REFRESH_LST:return "IMI_REFRESH_LST";
+			case IMI_REFRESH_CNT:return "IMI_REFRESH_CNT";
+			case IMI_NOTIFY:	return "IMI_NOTIFY";
+			case IMI_NEWNOTIFY:	return "IMI_NEWNOTIFY";
+			case IMC_MESSAGENOTIFY:return "IMC_MESSAGENOTIFY";
+			case IMC_SHUTDOWN :	return "IMC_SHUTDOWN";
+			case IMC_NEWMESSAGE :return "IMC_NEWMESSAGE";
+			case IMC_MESSAGEQUEUE:return "IMC_MESSAGEQUEUE";
+			case IMC_MESSAGEWAITING:return "IMC_MESSAGEWAITING";
+			case IMC_MESSAGEREMOVE:return "IMC_MESSAGEREMOVE";
+			case IMC_CNT_IGNORED:return "IMC_CNT_IGNORED";
+			case IMC_FINDCONTACT:return "IMC_FINDCONTACT";
+			case IMC_PROFILEDIR:return "IMC_PROFILEDIR";
+			case IMC_CNT_REMOVE:return "IMC_CNT_REMOVE";
+			case IMC_CFG_SETCOL:return "IMC_CFG_SETCOL";
+			case IMC_CNT_SETCOL:return "IMC_CNT_SETCOL";
+			case IMI_MSG_OPEN :return "IMI_MSG_OPEN";
+			case IM_START:		return "IM_START";
+			case IM_END:		return "IM_END";
+			case IM_UIACTION :	return "IM_UIACTION";
+			case IM_CONNECT :	return "IM_CONNECT";
+			case IM_UI_PREPARE:	return "IM_UI_PREPARE";
+			case IM_MSG_OPEN:	return "IM_MSG_OPEN";
+			case IM_MSG_SEND:	return "IM_MSG_SEND";
+			case IM_MSG_RCV:	return "IM_MSG_RCV";
+			case IM_CNT_STATUSCHANGE:return "IM_CNT_STATUSCHANGE";
+			case IMC_IGN_DEL:	return "IMC_IGN_DEL";
+			case IM_AWAY:		return "IM_AWAY";
+			case IM_BACK :		return "IM_BACK";
+		}
+		String s;
+		if (id < IMI_BASE) { // core
+			s = inttostr(id, 10);
+		} else if (id < IM_BASE) { // imi
+			s = "IMI_BASE+" +  inttostr(id - IMI_BASE, 10);
+		} else {
+			s = "IM_BASE+" +  inttostr(id - IM_BASE, 10);
+		}
+		return PassStringRef( s );
+	}
+	StringRef IMessageInfo::getNet(tNet net) {
+		String s;
+		if (net < Net::last) {
+			s = inttostr(error, 10);
+		} else {
+			s = "0x" + inttostr(error, 16);
+		}
+		return PassStringRef( s );
+	}
+	StringRef IMessageInfo::getType(enIMessageType type) {
+		switch (error) {
+			case imtAll: return "all";
+			case imtNone: return "none";
+		}
+		String s = "0x" + inttostr(error, 16);
+		return PassStringRef( s );
+	}
+	StringRef IMessageInfo::getThread() {
+		StringRef name = TLSU().getName();
+		if (!name.empty()) {
+			return name;
+		}
+		String s = inttostr(GetCurrentThreadId(), 16);
+		return PassStringRef( s );
+	}
+	StringRef IMessageInfo::getError(enIMessageError error) {
+		switch (error) {
+			case Konnekt::errorNone: return "";
+			case Konnekt::errorNoResult: return "NoResult";
+			case Konnekt::errorThreadSafe: return "TS";
+		}
+		String s = "0x" + inttostr(error, 16, 2, true);
+		return PassStringRef( s );
+	}
+	StringRef IMessageInfo::getPlugin(tPluginId plugin) {
+		return PassStringRef( plugins.getName(plugin) );
+	}
+	StringRef IMessageInfo::getPlugin(Plugin& plugin) {
+		return plugin.getName().getRef();
 	}
 
 
-	int IMDebug(sIMessage_base * msg , unsigned int rcvr , int result) {
-		if (!debug || Debug::logFile == 0) return -1;
-		if (msg->id != IMC_LOG && !Debug::debugAll) return -1;
-		if (msg->id == IMC_THREADEND || msg->id == IMC_THREADSTART)
-			return -1;
-//		static cCriticalSection_WM CSection(WMProcess2);
-		static CriticalSection CSection;
-		//if (debugLock) CSection.lock();
-		//  if (hMainThread && (GetCurrentThreadId()!=MainThreadID)) {
-		//     Beep(200,20);//return 0;
-		//  }
-		static bool inCritical = false;
-		/*  if (inCritical) {
-		Beep(1000,10);
-		}*/
-		//EnterCriticalSection(&section_debug);
-		inCritical = true;
+// -------------------------------------------------------------------------
 
-		CSection.lock();
+	CriticalSection debugCS;
 
-		//cThread thread_copy = TLS();
-		sIMDebug IMD;
-		IMDebug_transform(IMD , msg,result,TLSU().error.code);
-		IMD.receiver=plugins.getName((tPluginId)rcvr).a_str();
-		string ind;
-		ind.resize(indent[GetCurrentThreadId()] , LOG_TAB);
+	void logTime() {
+		static Stamina::Time64 lastLog(false);
+		Stamina::Time64 now(true);
+		// co 5 minut, lub o ka¿dej pe³nej godzinie wstawia pe³n¹ datê
+		if (now - lastLog > 60*5 || (int)(lastLog / 86400) < (int)(now / 86400)) {
+			fprintf(Debug::logFile, "[%s] ------------ \n", now.strftime("%c").c_str());
+		}
+		lastLog = now;
+	}
+
+	string logIndent(int offset, char tab) {
+		string indent;
+		if (Debug::logAll) {
+			indent.resize( max(0, TLSU().stack.count() + offset), tab );
+		}
+		return indent;
+	}
+
+	int logIMessage(sIMessage_base * msg, Plugin& receiver) {
+		if (!debug) return -1;
+		if (!Debug::debugAll) return -1;
+
+		Locker lock(debugCS);
+
+		IMessageInfo info(msg);
+
 		if (Debug::logFile) {
+
 			if (!IMfinished) fprintf(Debug::logFile , "\n");
 
+			logTime();
 
-			static Stamina::Time64 lastLog(false);
-			Stamina::Time64 now(true);
-			// co 5 minut, lub o ka¿dej pe³nej godzinie wstawia pe³n¹ datê
-			if (now - lastLog > 60*5 || (int)(lastLog / 86400) < (int)(now / 86400)) {
-				fprintf(Debug::logFile, "[%s] ------------ \n", now.strftime("%c").c_str());
-			}
-			lastLog = now;
-
-
-#ifdef __LOGFULL
-			fprintf(Debug::logFile , "%s[%s:%03d] [%s] %s -> %s\t | %s\t | %s %s\t | %s %s"
-				, ind.c_str() , now.strftime("%M:%S").c_str(), GetTickCount() % 1000, IMD.nr.c_str() , IMD.sender.c_str() , IMD.receiver.c_str()
-				, IMD.id.c_str() , IMD.net.c_str() , IMD.type.c_str()
-				, IMD.p1.c_str() , IMD.p2.c_str()
+			fprintf(Debug::logFile , "%s[%s:%03d] [%s] %s -> %s\t | %s\t | %s %s\t | %s"
+				, logIndent().c_str() , now.strftime("%M:%S").c_str()
+				, GetTickCount() % 1000, inttostr(imessageCount, 10).c_str() 
+				, info.getPlugin(msg->sender).c_str() 
+				, info.getPlugin(receiver).c_str()
+				, info.getId().c_str(), info.getNet().c_str()
+				, info.getType().c_str()
+				, info.getData().c_str()
 				);
-#else
-			if (msg->id == IMC_LOG) {
-				string thread;
-				if (mainThread.isCurrent() == false) {
-					thread = "/";
-					if (TLSU().name.empty()) {
-						thread += inttostr(GetCurrentThreadId(), 16, 4);
-					} else {
-						thread += TLSU().name;
-					}
-				}
-				fprintf(Debug::logFile , "%s[%s:%03d] ## [%s%s] \t %s"
-				, ind.c_str() , now.strftime("%M:%S").c_str(), GetTickCount() % 1000, IMD.sender.c_str(), thread.c_str()
-				, IMD.p1.c_str()
-				);
-			} else {
-				fprintf(Debug::logFile , "%s[%s] %s -> %s\t | %s\t | %s %s "
-				, ind.c_str() , IMD.nr.c_str() , IMD.sender.c_str() , IMD.receiver.c_str()
-				, IMD.id.c_str() , IMD.p1.c_str() , IMD.p2.c_str()
-				);
-			}
-#endif
 			fflush(Debug::logFile);
 		}
 
-		indent[GetCurrentThreadId()] ++;
-		//TLS() = thread_copy;
-		CSection.unlock();
+		debugLogIMStart(msg, receiver);
 
-		debugLogStart(IMD , msg , ind);
 		IMfinished = false;
-		IMlogsize ++;
-		//LeaveCriticalSection(&section_debug);
-		//if (debugLock) CSection.unlock();
-		inCritical=false;
-		return IMlogsize-1;
+
+		imessageCount ++;
+
+		return imessageCount-1;
 	}
 
-	int IMDebugResult(sIMessage_base * msg , int pos , int res , int BC) {
-		if (!debug || Debug::logFile == 0) return 0;
-		if (msg->id != IMC_LOG && msg->id && !Debug::debugAll) return 0;
-		if (msg->id == IMC_THREADEND || msg->id == IMC_THREADSTART)
-			return 0;
-		if (pos<0) return 0;
-		/*  if (hMainThread && (GetCurrentThreadId()!=MainThreadID)) {
-		Beep(800,20);return 0;
-		}*/
-		static bool inCritical = false;
-		static CriticalSection_WM CSection(mainWindowsLoop);
-		if (debugLock) CSection.lock();
-		/*  if (inCritical) {
-		Beep(1000,10);
-		}*/
-		//EnterCriticalSection(&section_debug);
-		inCritical = true;
-		//cThread thread_copy = TLS();
-		sIMDebug IMD;
-		string ind;
-		ind.resize(indent[GetCurrentThreadId()] , LOG_TAB);
-		IMDebug_transform(IMD , 0,res,TLSU().error.code);
 
-		if (pos == IMlogsize-1) {
-			debugLogEnd(IMD , msg , false , ind);
-			if (msg->id == IMC_LOG)
-				fprintf(Debug::logFile , "\n");
-			else
-				fprintf(Debug::logFile , "\t= %s %s t%s\n" , IMD.result.c_str() , TLSU().error.code?(char*)IMD.error.c_str():"" , IMD.thread.c_str());
-			indent[GetCurrentThreadId()] --;
+
+
+	void logIMessageResult(sIMessage_base * msg, int pos, int result, int occurence) {
+		if (!debug || Debug::logFile == 0) return;
+		if (!Debug::debugAll) return;
+		if (pos < 0) return;
+
+		LockerCS lock (debugCS);
+
+		IMessageInfo info(msg);
+
+		if (pos == imessageCount-1) {
+			debugLogIMEnd(msg, result, false);
+			fprintf(Debug::logFile , "\t= %s %s (%s)\n", info.getResult(result).c_str(), info.getError(TLSU().stack.getError()).c_str(), info.getThread());
 			IMfinished = true;
 		} else {
-			indent[GetCurrentThreadId()] --;
-			ind.resize(indent[GetCurrentThreadId()] , LOG_TAB);
 			IMfinished = true;
-			debugLogEnd(IMD , msg , true , ind);
+			debugLogIMEnd(msg, result, true);
 			if (Debug::logFile) {
-				fprintf(Debug::logFile , "%s= %s\n" , ind.c_str() , IMD.result.c_str());
-				fflush(Debug::logFile);
+				fprintf(Debug::logFile , "%s= %s %s (%s)\n" , logIndent(-1).c_str(), info.getResult(result).c_str(), info.getError(TLSU().stack.getError()).c_str(), info.getThread());
 			}
 		}
-		//TLS() = thread_copy;
-		//LeaveCriticalSection(&section_debug);
-		inCritical = false;
-		if (debugLock) CSection.unlock();
-		return 0;
+		fflush(Debug::logFile);
 	}
 
 #endif
 
 
+	void KLogger::logMsg(Stamina::LogLevel level, const char* module, const char* where, const StringRef& msg) {
+
+		if (Debug::logFile) {
+			LockerCS lock(debugCS);
+			logTime();
+
+			string thread;
+			if (mainThread.isCurrent() == false) {
+				thread = "/";
+				if (TLSU().name.empty()) {
+					thread += inttostr(GetCurrentThreadId(), 16, 4);
+				} else {
+					thread += TLSU().name;
+				}
+			}
+
+			AString txt;
+			txt.assignCheapReference(msg);
+
+			//             if (ch[strlen(ch)-1]=='\n') ch[strlen(ch)-1]=0;
+			if (txt.length() > 1 && txt[0] != txt[2]) {
+				char * prefix = 0;
+				char * suffix = 0;
+				switch(txt[0]) {
+					case '-': prefix = "--- ";  suffix = " ---"; break;
+					case '>': prefix = "  -> "; break;
+					case '<': prefix = "  >> "; suffix = " <<"; break;
+					case '!': prefix = "!!! ";  suffix = " !!!"; break;
+					case '_': prefix = "    "; break;
+					case '#': prefix = "  # "; break;
+					case '*': prefix = "  * "; break;
+					default: txt.prepend("    ");
+				};
+				if (prefix || suffix) {
+					txt.erase(0,1);
+					if (prefix) txt.prepend(prefix);
+					if (suffix) txt.append(suffix);
+				}
+			}
+
+			fprintf(Debug::logFile , "%s[%s:%03d] ## [%s%s] \t %s"
+				, Debug::logIndent().c_str(), now.strftime("%M:%S").c_str(), GetTickCount() % 1000, this->_plugin.getName().c_str(), thread.c_str()
+				, txt.a_str();
+				);
+			fflush(Debug::logFile);
+
+		}
+
+		Debug::debugLogMsg(this->_plugin, level, module, where, msg);
+
+
+	}
 
 
 };};

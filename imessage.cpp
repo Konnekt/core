@@ -9,17 +9,21 @@ using namespace Konnekt::Debug;
 
 namespace Konnekt {
 
-	int processIMessage(sIMessage_base * msg , int BCStart=0) {
+	int dispatchIMessage(sIMessage_base * msg) {
 		// Rozsyla wiadomosci
 		int result ,  pos;
 		result=0;
 		if (msg->id==0) {TLSU().setError(IMERROR_UNSUPPORTEDMSG);goto imp_return;}
+		if (msg->id == IMC_LOG) {
+			plugins[msg->sender].getLogger()->logMsg(logLog, 0, 0, (char*)(static_cast<sIMessage_2params*>(msg)->p1));
+			return 0;
+		}
 		if (msg->id < IMI_BASE) {
 
 #ifdef __DEBUG
-			int pos=IMDebug(msg,0,0);
+			int pos = logIMessage(msg,0,0);
 			result = IMCore(msg);
-			IMDebugResult(msg,pos,result);
+			logIMessageResult(msg, pos, result);
 #else
 			result=IMCore(msg);
 #endif
@@ -44,13 +48,13 @@ namespace Konnekt {
 				} else {
 					//BroadCast
 #ifdef __DEBUG
-					int deb=IMDebug(msg,1+BCStart,0);
+					int deb = logIMessage(msg,1+BCStart,0);
 #endif
 					pos=BCStart-1;
 					while ((pos=plugins.findPlugin(msg->net , msg->type , pos+1))>=BCStart)
 						plugins[pos].sendIMessage(msg);
 #ifdef __DEBUG
-					IMDebugResult(msg,deb , 0,1);
+					logIMessageResult(msg,deb , 0,1);
 #endif
 				}
 			}/* else {
@@ -70,7 +74,8 @@ imp_return:
 			return result;
 	}
 
-
+// --------------------------------------------------------
+// Plugin	
 
 	int Plugin::sendIMessage(sIMessage_base*im) {
 
@@ -78,19 +83,98 @@ imp_return:
 			TLSU().setError(IMERROR_BADPLUG);
 			return 0;
 		}
-		TLSU().lastIM.enterMsg(im , this->_id);
+		TLSU().stack.pushMsg(im, *this);
 		//  lastIM.receiver =
 #ifdef __DEBUG
-		int pos = IMDebug(im, this->_id, 0);
+		int pos = logIMessage(im, *this);
 #endif
 		int result = this->callIMessageProc(im);
 #ifdef __DEBUG
-		IMDebugResult(im, pos, result);
+		logIMessageResult(im, pos, result);
 #endif
 		//  lastIM.plugID = msg->sender;
-		TLSU().lastIM.leaveMsg();
+		TLSU().stack.popMsg();
 		return result;
 
 	}
+
+// --------------------------------------------------------
+// IMStack	
+
+	IMStackItemRecall::IMStackItemRecall(IMStackItem& item, bool waiting):IMStackItem(item._msg, item._receiver) {
+		if (waiting == false) {
+			_waitEvent = 0;
+			void * temp = malloc(_msg->s_size);
+			memcpy(temp, _msg, _msg->s_size);
+			_msg = (sIMessage_base*)temp;
+		} else {
+			_returnValue = 0;
+			_waitEvent = new Stamina::Event();
+		}
+	}
+
+	IMStackItemRecall::~IMStackItemRecall() {
+		if (isWaiting() == false) free(_msg);
+		if (_waitEvent) delete _waitEvent;
+	}
+
+	VOID CALLBACK IMStackItemRecall::threadRecaller(ULONG_PTR param) {
+		IMStackItemRecall* recall = (IMStackItemRecall*)param;
+		recall->_msg->flag = recall->_msg->flag | imfRecalled;
+
+		mainLogger->log(logDebug, 0, 0, "<T=%x", recall->getMsg()->id);
+		recall->_returnValue = plugins[recall->_receiver].sendIMessage(recall->_msg);
+		if (recall->isWaiting()) {
+			recall->_waitEvent->pulse();
+		} else {
+			delete recall;
+		}
+	}
+
+
+
+
+
+	void IMStack::pushMsg(sIMessage_base* msg, Plugin& receiver) {
+
+		this->error.code = errorNone;
+		this->_stack.push_back(IMStackItem(msg, receiver));
+
+	}
+
+	void IMStack::popMsg() {
+		if (this->error.code != errorNone && this->error.position != this->count()) {
+			this->error.code = 0;
+		}
+
+		this->_stack.pop_back();
+	}
+
+	int IMStack::recallThreadSafe(HANDLE thread, bool wait) {
+		if (!thread) thread = mainThread.getHandle();
+		S_ASSERT(this->getCurrent() != 0);
+
+		IMStackItemRecall* recall = new IMStackItemRecall(*this->getCurrent(), wait);
+
+		if (wait) {
+			this->getCurrent()->getMsg()->flag = this->getCurrent()->getMsg()->flag | imfRecalling;
+		}
+
+		mainLogger->log(logDebug, 0, 0, ">T=%x %s", recall->getMsg()->id ,  wait ? "" : " NW");
+
+		QueueUserAPC(IMStackItemRecall::threadRecaller, thread, (ULONG_PTR)recall);
+
+		if (wait) {
+			recall->wait();
+			int r = recall->getReturnValue();
+			delete recall;
+			return r;
+		} else {
+			this->setError(errorThreadSafe);
+			
+			return 0;
+		}
+	}
+
 
 };

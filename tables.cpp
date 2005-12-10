@@ -133,7 +133,7 @@ namespace Konnekt { namespace Tables {
 		return _dt.unlock(rowId);
 	}
 
-	oColumn TableImpl::setColumn(cCtrl* plugin, tColId colId , tColType type, const StringRef& name) {
+	oColumn TableImpl::setColumn(Ctrl* plugin, tColId colId , tColType type, const StringRef& name) {
 		ObjLocker lock(this);
 		K_ASSERT(_dt.getRowCount() == 0); // nie mo¿emy u¿yæ getRowCount bo jest w nim assertLoaded!
 		oColumn col = _dt.getColumn(colId);

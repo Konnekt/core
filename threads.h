@@ -10,27 +10,6 @@ namespace Konnekt {
 
 	extern Stamina::Thread mainThread;
 
-	struct sIMTS {
-		unsigned int msgID;
-		unsigned int receiver;
-		int retVal;
-		HANDLE waitEvent;
-		sIMessage_base * msg;
-		//     sIMessage temp;
-		//     char temp [2000];
-		int inMessage; // czy jest w wiadomosci
-		int plugID; // identyfikator wtyczki odbierajacej . 0 - Core
-#if defined(__DEBUG)
-		struct {int id , p1 , p2 , size , sender , rcvr;} debug;
-#endif
-
-		void set (sIMessage_base * _msg);
-		void enterMsg (sIMessage_base * _msg , unsigned int _plugID);
-		void leaveMsg ();
-		sIMTS() {msg = 0; inMessage=0; msgID = 0; receiver = 0; retVal = 0; waitEvent = 0; plugID = 0;}
-		~sIMTS() {}
-		class cUserThread * Thread;
-	};
 
 	class DLLTempBuffer {
 	public:
@@ -67,27 +46,22 @@ namespace Konnekt {
 
 	};
 
-	class cUserThread {
+	class UserThread {
 	public:
-		sIMTS lastIM;
 		COLORREF color;
-		CStdString name;
+		IMStack stack;
 
-		struct {
-			int code; 
-			int position;
-		} error;
+		StringRef getName() {
+			LockerCS l(threadsCS);
+			threads[GetCurrentThreadId()].name;
+		}
 
 		DLLTempBuffer& buffer(unsigned int id = 0) {
 			return this->_buffers[id];
 		}
 
-		void setError(int code) {
-			error.code = code; 
-			error.position=lastIM.inMessage;
-		}
-		cUserThread();
-		~cUserThread();
+		UserThread();
+		~UserThread();
 
 	private:
 		map <unsigned int , DLLTempBuffer> _buffers; 
@@ -95,13 +69,22 @@ namespace Konnekt {
 	};
 
 
-	extern Stamina::ThreadLocalStorage<cUserThread> TLSU;
-	typedef map <DWORD , HANDLE> tThreads;
+	extern Stamina::ThreadLocalStorage<UserThread> TLSU;
+
+	class ThreadInfo {
+	public:
+		ThreadInfo() {
+			data = 0;
+		}
+		Stamina::Thread thread;
+		UserThread* data;
+		std::string name;
+	}
+
+	typedef map <DWORD , ThreadInfo> tThreads;
 	extern tThreads threads;
 	extern Stamina::CriticalSection threadsCS;
 
-	VOID CALLBACK IMTSRecaller(ULONG_PTR param);
-	int RecallIMTS(sIMTS & _im , HANDLE thread , bool wait);
 
 	extern Stamina::oThreadRunner threadRunner;
 

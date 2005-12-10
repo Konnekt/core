@@ -3,6 +3,7 @@
 #include "main.h"
 #include "konnekt_sdk.h"
 #include <Stamina\ObjectImpl.h>
+#include <Stamina\Logger.h>
 // Info o wtyczce
 
 using namespace Stamina;
@@ -21,7 +22,7 @@ namespace Konnekt {
 
 	void pluginsInit();
 
-	class cCtrl_;
+	class Controler_;
 
 	class Plugin: public LockableObject<iPlugin> {
 	public:
@@ -30,16 +31,8 @@ namespace Konnekt {
 
 		STAMINA_OBJECT_CLASS(Konnekt::Plugin, Konnekt::iPlugin);
 
-		Plugin(tPluginId pluginId = pluginNotFound) {
-			_imessageProc = 0;
-			_imessageObject = 0;
-			_module = 0;
-			_running = false;
-			_id = pluginId;
-			_priority = priorityNone;
-			_ctrl = 0;
-			_owner = 0;
-		}
+		Plugin(tPluginId pluginId = pluginNotFound);
+
 		~Plugin();
 
 		virtual tPluginId getPluginId() {
@@ -96,7 +89,7 @@ namespace Konnekt {
 			return this->canHotPlug() || Konnekt::running == false;
 		}
 
-		virtual int IMessageDirect(cCtrl* sender, sIMessage_base* im) {
+		virtual int IMessageDirect(Controler* sender, sIMessage_base* im) {
 			im->sender = sender->ID();
 			return this->sendIMessage(im);
 		}
@@ -104,13 +97,16 @@ namespace Konnekt {
 		/** Wysy³a wiadomoœæ BEZPOŒREDNIO! */
 		int sendIMessage(sIMessage_base* im);
 
-		virtual bool plugOut(cCtrl* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload);
+		virtual bool plugOut(Controler* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload);
 
 		COLORREF getDebugColor() {
 			return _debugColor;
 		}
 
-		cCtrl_* getCtrl() {
+		Controler_* getControler() {
+			return _ctrl;
+		}
+		Controler_* getCtrl() {
 			return _ctrl;
 		}
 
@@ -122,6 +118,10 @@ namespace Konnekt {
 
 		tPluginId getId() {
 			return _id;
+		}
+
+		const oLogger& getLogger() {
+			return _logger;
 		}
 
 
@@ -154,7 +154,8 @@ namespace Konnekt {
 		tPluginId _id;
 		enPluginPriority _priority;
 
-		class cCtrl_ * _ctrl;
+		class Controler_ * _ctrl;
+		oLogger _logger;
 		Plugin* _owner;
 
 	};
@@ -231,8 +232,8 @@ namespace Konnekt {
 	void checkVersions(void);
 
 
-	cCtrl_ * createPluginCtrl(Plugin& plugin);
-	cCtrl_ * createCorePluginCtrl(Plugin& plugin);
+	Controler_ * createPluginCtrl(Plugin& plugin);
+	Controler_ * createCorePluginCtrl(Plugin& plugin);
 
 	void PlugsDialog(bool firstTimer = false);
 

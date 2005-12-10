@@ -318,7 +318,7 @@ namespace Konnekt {
 		//   IMessage(IM_CONNECT , NET_BC , IMT_PROTOCOL);
 
 		// Rozeslanie plug_args
-		IMessageProcess(&sIMessage_plugArgs(__argc , __argv),0);
+		IMessage(&sIMessage_plugArgs(__argc , __argv));
 
 		IMLOG("---  ---  INITIALIZATION SUCCESSFULL  ---  ---");
 		canQuit = true;

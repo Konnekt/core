@@ -440,6 +440,8 @@ namespace Konnekt { namespace Debug {
 #define COLOR_SENDER RGB(30,30,30)
 #define COLOR_RCVR   RGB(60,60,60)
 #define COLOR_LOG    RGB(0,50,0)
+#define COLOR_MODULE    RGB(0,0,150)
+#define COLOR_WHERE    RGB(0,0,200)
 #define COLOR_IM     RGB(80,80,80)
 #define COLOR_ID     RGB(00,00,80)
 #define COLOR_P      RGB(20,20,20)
@@ -448,10 +450,8 @@ namespace Konnekt { namespace Debug {
 #define COLOR_THREAD RGB(100,00,80)
 #define COLOR_NR     RGB(200,200,200)
 
-	void debugLogStart(sIMDebug & IMD , sIMessage_base * msg , string ind) {
+	void debugLogMsg(Plugin& plugin, LogLevel level, const char* module, const char* where, const StringRef& msg) {
 		if (!superUser || !Debug::log || !Debug::showLog) return;
-		if (msg->id != IMC_LOG && !Debug::logAll) return; 
-		sIMessage_2params * msg2p = static_cast<sIMessage_2params *>(msg);
 		Locker lock(windowCSection);
 		RE_();
 		RE_PREPARE();
@@ -461,84 +461,109 @@ namespace Konnekt { namespace Debug {
 		RE_BGCOLOR(plugins[msg->sender].getDebugColor());
 		RE_ADD("  ");
 		RE_BGCOLOR(TLSU().color);
-		if (!ind.empty())
-			RE_ADD(ind);
-		if (msg->id == IMC_LOG) {
-			RE_COLOR(COLOR_LOG);
-			RE_BOLD(1);
-			RE_ADD("## ");
-			RE_ADD(IMD.sender);
-
-			bool bold = false;
-			switch (msg2p->p2) {
-				case DBG_ERROR:
-					bold = true;
-					RE_COLOR(0x0000FF);
-					break;
-				case DBG_WARN:
-					bold = true;
-					RE_COLOR(RGB(0xFF, 0x99, 00));
-					break;
-				case DBG_TEST_TITLE:
-					bold = true;
-					RE_COLOR(0x800000);
-					break;
-				case DBG_TEST_PASSED:
-					bold = true;
-					RE_COLOR(0x00A000);
-					break;
-				case DBG_TEST_FAILED:
-					bold = true;
-					RE_COLOR(0x0000A0);
-					break;
-			}
-			if (!bold) RE_BOLD(0);
-			RE_ADD(" \t "+IMD.p1);
-			if (bold) RE_BOLD(1);
-		} else {
-			
-			RE_COLOR(COLOR_NR);RE_ADD(IMD.nr+" ");
-			RE_COLOR(COLOR_SENDER); RE_ADD(IMD.sender +" -");
-			RE_COLOR(COLOR_RCVR); RE_ADD("> "+IMD.receiver);
-			RE_COLOR(COLOR_IM);RE_ADD("\t | ");
-			RE_COLOR(COLOR_ID);RE_BOLD(1);
-			RE_ADD(IMD.id);
-			RE_BOLD(0);
-			RE_COLOR(COLOR_IM);RE_ADD("\t | ");
-			RE_COLOR(COLOR_P);
-			RE_ADD(IMD.p1 + " , " + IMD.p2+" ");
+		if (Debug::logAll) {
+			RE_ADD(Debug::logIndent());
 		}
-		//       fprintf(Debug::logFile , "%s[%s] %s -> %s\t | %s\t | %s %s "
-		//             , ind.c_str() , IMD.nr.c_str() , IMD.sender.c_str() , IMD.receiver.c_str()
-		//             , IMD.id.c_str() , IMD.p1.c_str() , IMD.p2.c_str()
-		//             );
+		RE_COLOR(COLOR_LOG);
+		RE_BOLD(1);
+		RE_ADD("## ");
+		RE_ADD(plugin.getName());
+		if ((module && *module) || (where && *where)) {
+			RE_BOLD(0);
+			RE_ADD(" \t ");
+		}
+		if ((module && *module)) {
+			RE_COLOR(COLOR_MODULE);
+			RE_ADD(module);
+		}
+		if ((where && *where)) {
+			if ((module && *module)) {
+				RE_ADD("::");
+			}
+			RE_COLOR(COLOR_MODULE);
+			RE_ADD(where);
+		}
+		bool bold = false;
+		switch (level) {
+			case DBG_ERROR:
+				bold = true;
+				RE_COLOR(0x0000FF);
+				break;
+			case DBG_WARN:
+				bold = true;
+				RE_COLOR(RGB(0xFF, 0x99, 00));
+				break;
+			case DBG_TEST_TITLE:
+				bold = true;
+				RE_COLOR(0x800000);
+				break;
+			case DBG_TEST_PASSED:
+				bold = true;
+				RE_COLOR(0x00A000);
+				break;
+			case DBG_TEST_FAILED:
+				bold = true;
+				RE_COLOR(0x0000A0);
+				break;
+		}
+		RE_BOLD(bold);
+		RE_ADD(" \t " + msg);
+		if (bold) RE_BOLD(1);
+		RE_BGCOLOR(0xffffff);
+		if (Debug::scroll) RE_SCROLLDOWN();
+
+	}
+
+
+	void debugLogIMStart(sIMessage_base * msg, Plugin& receiver) {
+		if (!superUser || !Debug::log || !Debug::showLog || !Debug::logAll) return;
+		Locker lock(windowCSection);
+		RE_();
+		RE_PREPARE();
+		RE_BOLD(0);
+		RE_COLOR(0);
+		if (!IMfinished) RE_ADD("\r\n");
+		RE_BGCOLOR(plugins[msg->sender].getDebugColor());
+		RE_ADD("  ");
+		RE_BGCOLOR(TLSU().color);
+		RE_ADD(Debug::logIndent());
+		
+		IMessageInfo info(msg);
+
+		RE_COLOR(COLOR_NR);RE_ADD( inttostr(imessageCount) +" ");
+		RE_COLOR(COLOR_SENDER); RE_ADD(info.getSender() +" -");
+		RE_COLOR(COLOR_RCVR); RE_ADD("> "+info.getPlugin(receiver));
+		RE_COLOR(COLOR_IM);RE_ADD("\t | ");
+		RE_COLOR(COLOR_ID);RE_BOLD(1);
+		RE_ADD(info.getId());
+		RE_BOLD(0);
+		RE_COLOR(COLOR_IM);RE_ADD("\t | ");
+		RE_COLOR(COLOR_P);
+		RE_ADD(info.getData());
 		RE_BGCOLOR(0xffffff);
 		if (Debug::scroll) RE_SCROLLDOWN();
 	}
 
-	void debugLogEnd(sIMDebug & IMD , sIMessage_base * msg , bool multiline , string ind) {
-		if (!superUser || !Debug::log || !Debug::showLog) return;
-		if (msg->id != IMC_LOG && !Debug::logAll) return;
+	void debugLogIMEnd(sIMessage_base * msg , int result, bool multiline) {
+		if (!superUser || !Debug::log || !Debug::showLog || !Debug::logAll) return;
 
 		Locker lock(windowCSection);
 
 		RE_();
 		RE_PREPARE();
 		if (multiline) {
-			RE_ADD(ind);
+			RE_ADD(Debug::logIndent(-1));
 		} else RE_ADD("\t");
 		RE_BGCOLOR(TLSU().color);
-		if (msg->id != IMC_LOG) {
-			RE_ADD("= ");
-			RE_COLOR(COLOR_RES);
-			RE_ADD(IMD.result);
-			if (TLSU().error.code) {
-				RE_COLOR(COLOR_ERR);RE_BOLD(1);
-				RE_ADD("\t e"+IMD.error);RE_BOLD(0);
-			}
-			RE_COLOR(COLOR_THREAD);
-			RE_ADD("\t e"+IMD.thread);
+		RE_ADD("= ");
+		RE_COLOR(COLOR_RES);
+		RE_ADD(info.getResult(result));
+		if (TLSU().stack.getError()) {
+			RE_COLOR(COLOR_ERR);RE_BOLD(1);
+			RE_ADD("\t e"+info.getError(TLSU().stack.getError()));RE_BOLD(0);
 		}
+		RE_COLOR(COLOR_THREAD);
+		RE_ADD("\t "+info.getThread());
 		RE_ADD("\r\n");
 		RE_BGCOLOR(0xffffff);
 		if (Debug::scroll) RE_SCROLLDOWN();

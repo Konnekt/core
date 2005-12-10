@@ -66,7 +66,7 @@ namespace Konnekt { namespace Tables {
 		unsigned int getColCount();
 		void lockData(tRowId rowId , int reserved=0);
 		void unlockData(tRowId rowId , int reserved=0);
-		oColumn setColumn(cCtrl* plugin, tColId colId , tColType type, const StringRef& name = StringRef());
+		oColumn setColumn(Controler* plugin, tColId colId , tColType type, const StringRef& name = StringRef());
 		oColumn setColumn(tColId colId , tColType type, const StringRef& name = StringRef()) {
 			return this->setColumn(Ctrl, colId, type, name);
 		}
@@ -77,14 +77,14 @@ namespace Konnekt { namespace Tables {
 		void resetData();
 		void unloadData();
 
-		void requestColumns(cCtrl * ctrl, tNet net = Net::broadcast,  enIMessageType plugType = imtAll) {
+		void requestColumns(Controler * ctrl, tNet net = Net::broadcast,  enIMessageType plugType = imtAll) {
 			if (!ctrl) ctrl = Ctrl;
 			IM::TableIM ti(IM::setColumns, oTable(this));
 			ti.net = net;
 			ti.type = plugType;
 			ctrl->IMessage(&ti);
 		}
-		void dataChanged(cCtrl * ctrl, tRowId rowId, tNet net = Net::broadcast, enIMessageType plugType = imtAll) {
+		void dataChanged(Controler * ctrl, tRowId rowId, tNet net = Net::broadcast, enIMessageType plugType = imtAll) {
 			if (!ctrl) ctrl = Ctrl;
 			IM::TableRow ti(IM::dataChanged, oTable(this), rowId);
 			ti.net = net;

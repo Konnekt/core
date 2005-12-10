@@ -21,37 +21,37 @@ namespace Konnekt {
 
 	//-----------------------------------------------
 
-	void cCtrl_::setCtrl(int id , void * handle) {_ID = id; _hDll = (HINSTANCE)handle;}
-	void cCtrl_::_warn(char * ch) {
+	void Controler_::setCtrl(int id , void * handle) {_ID = id; _hDll = (HINSTANCE)handle;}
+	void Controler_::_warn(char * ch) {
 		warn_cnt++;
 		if (ch && *ch) last_warn = ch;
 	}
-	void cCtrl_::_err(char * ch) {
+	void Controler_::_err(char * ch) {
 		err_cnt++;
 		if (ch && *ch) last_err = ch;
 	}
-	void cCtrl_::_fatal(char * ch) {
+	void Controler_::_fatal(char * ch) {
 		_err(ch);
 	}
 
-	int __stdcall cCtrl_::getError() {
-		return TLSU().error.code;
+	enIMessageError __stdcall Controler_::getError() {
+		return TLSU().stack.getError();
 	}
 
-	void __stdcall cCtrl_::setError(int err_code) {
-		TLSU().setError(err_code);
+	void __stdcall Controler_::setError(enIMessageError err_code) {
+		TLSU().stack.setError(err_code);
 	}
 
 
 
 	//-----------------------------------------------
 
-	int __stdcall cCtrl1::IMessage(sIMessage_base * msg){
+	int __stdcall Controler1::IMessage(sIMessage_base * msg){
 		msg->sender = this->ID();
-		return IMessageProcess(msg , 0);
+		return dispatchIMessage(msg);
 	}
 
-	int __stdcall cCtrl1::IMessageDirect(unsigned int plugId , sIMessage_base * msg) {
+	int __stdcall Controler1::IMessageDirect(unsigned int plugId , sIMessage_base * msg) {
 		Plugin* plugin = plugins.get(plugId);
 		if (plugin == 0) {
 			_err("IMessage sent in space ...");
@@ -66,7 +66,7 @@ namespace Konnekt {
 #define CTRL_SETDT Tables::oTable DT (Tables::getTable((tTableId)db));\
 	if (!DT) _fatal("Table access denied , or table doesn\'t exist")
 
-	bool __stdcall  cCtrl1::DTget(tTable db , unsigned int row , unsigned int col , Tables::OldValue * value) {
+	bool __stdcall  Controler1::DTget(tTable db , unsigned int row , unsigned int col , Tables::OldValue * value) {
 		if (!value) return false;
 		CTRL_SETDT;
 
@@ -95,7 +95,7 @@ namespace Konnekt {
 
 	}
 
-	bool __stdcall  cCtrl1::DTset(tTable db , unsigned int row , unsigned int col , Tables::OldValue * value) {
+	bool __stdcall  Controler1::DTset(tTable db , unsigned int row , unsigned int col , Tables::OldValue * value) {
 		if (!value) return false;
 		CTRL_SETDT;
 
@@ -115,26 +115,26 @@ namespace Konnekt {
 
 	}
 
-	int __stdcall   cCtrl1::DTgetOld(tTable db , unsigned int row , unsigned int col) {
+	int __stdcall   Controler1::DTgetOld(tTable db , unsigned int row , unsigned int col) {
 		throw ExceptionDeprecated("DTgetOld");
 		//return (int)this->DTget(row,col, &DT::OldValue());
 	}
-	int __stdcall   cCtrl1::DTsetOld(tTable db , unsigned int row , unsigned int col , int value , int mask) {
+	int __stdcall   Controler1::DTsetOld(tTable db , unsigned int row , unsigned int col , int value , int mask) {
 		throw ExceptionDeprecated("DTsetOld");
 	}
 
 
-	int __stdcall cCtrl1::DTgetType (tTable db , unsigned int col) {
+	int __stdcall Controler1::DTgetType (tTable db , unsigned int col) {
 		CTRL_SETDT;
 		return DT->getColumn(col)->getType();
 	}
 
-	int __stdcall cCtrl1::DTgetNameID(tTable db , const char * name) {
+	int __stdcall Controler1::DTgetNameID(tTable db , const char * name) {
 		CTRL_SETDT;
 		return DT->getColumn(name)->getId();
 
 	}
-	const char * __stdcall cCtrl1::DTgetName(tTable db , unsigned int col) {
+	const char * __stdcall Controler1::DTgetName(tTable db , unsigned int col) {
 		CTRL_SETDT;
 		String& buff = TLSU().buffer().getString(true);
 		buff = DT->getColumn(col)->getName();
@@ -142,27 +142,27 @@ namespace Konnekt {
 	}
 
 
-	int __stdcall cCtrl1::DTgetPos(tTable db , unsigned int row){
+	int __stdcall Controler1::DTgetPos(tTable db , unsigned int row){
 		CTRL_SETDT;
 		return DT->getRowPos(row);
 	}
 
-	int __stdcall cCtrl1::DTgetID(tTable db , unsigned int row){
+	int __stdcall Controler1::DTgetID(tTable db , unsigned int row){
 		CTRL_SETDT;
 		return DT->getRowId(row);
 	}
 
-	int __stdcall cCtrl1::DTgetCount(tTable db) {
+	int __stdcall Controler1::DTgetCount(tTable db) {
 		CTRL_SETDT;
 		return DT->getRowCount();
 	}
 
-	unsigned short __stdcall cCtrl1::DTlock(tTable db , unsigned int row , int reserved) {
+	unsigned short __stdcall Controler1::DTlock(tTable db , unsigned int row , int reserved) {
 		CTRL_SETDT;
 		DT->lockData(row);
 		return 1;
 	}
-	unsigned short __stdcall cCtrl1::DTunlock(tTable db , unsigned int row , int reserved){
+	unsigned short __stdcall Controler1::DTunlock(tTable db , unsigned int row , int reserved){
 		CTRL_SETDT;
 		DT->unlockData(row);
 		return 1;
@@ -170,17 +170,17 @@ namespace Konnekt {
 
 
 
-	unsigned int __stdcall cCtrl1::Is_TUS(unsigned int thID) {
+	unsigned int __stdcall Controler1::Is_TUS(unsigned int thID) {
 		if (!thID) thID = MainThreadID;
 		return (hMainThread && (GetCurrentThreadId()!=thID)) ? thID : 0;
 	}
 
 
-	int __stdcall cCtrl1::RecallTS(HANDLE th  , bool wait) {
+	int __stdcall Controler1::RecallTS(HANDLE th  , bool wait) {
 		if (TLSU().lastIM.inMessage<=0) return 0;
 		return ::RecallIMTS(TLSU().lastIM , th , wait);
 	}
-	int __stdcall cCtrl1::RecallIMTS(HANDLE th  , bool wait , sIMessage_base * msg , int plugID){
+	int __stdcall Controler1::RecallIMTS(HANDLE th  , bool wait , sIMessage_base * msg , int plugID){
 		sIMTS imts;
 		imts.msg = msg;
 		imts.msg->sender = this->ID();
@@ -188,7 +188,7 @@ namespace Konnekt {
 		return ::RecallIMTS(imts , th , wait);
 	}
 
-	void __stdcall cCtrl1::WMProcess () {
+	void __stdcall Controler1::WMProcess () {
 		if (GetCurrentThreadId()==MainThreadID)
 			mainWindowsLoop();
 		else 
@@ -197,18 +197,18 @@ namespace Konnekt {
 	}
 
 
-	void * __stdcall cCtrl1::GetTempBuffer(unsigned int size) {
+	void * __stdcall Controler1::GetTempBuffer(unsigned int size) {
 		return TLSU().buffer(this->ID()).getBuffer(size);
 	}
 
-	int __stdcall cCtrl1::Sleep(unsigned int time) {
+	int __stdcall Controler1::Sleep(unsigned int time) {
 		int r=MsgWaitForMultipleObjectsEx(0 , 0 , time , QS_ALLINPUT | QS_ALLPOSTMESSAGE , (canWait ? MWMO_ALERTABLE : 0) | MWMO_INPUTAVAILABLE);
 		if (r == WAIT_OBJECT_0 + 0)
 			WMProcess();
 		return r;
 	}
 
-	unsigned __stdcall cCtrl1::BeginThreadRecallSafe( BeginThreadParam* btp) {
+	unsigned __stdcall Controler1::BeginThreadRecallSafe( BeginThreadParam* btp) {
 		__try { // C-style exceptions
 			return btp->start_address(btp->param);
 		} 
@@ -220,7 +220,7 @@ namespace Konnekt {
 	}
 
 
-	unsigned __stdcall cCtrl1::BeginThreadRecall( void * tparam) {
+	unsigned __stdcall Controler1::BeginThreadRecall( void * tparam) {
 		BeginThreadParam* btp = (BeginThreadParam*)tparam;
 		Stamina::Thread::setName(btp->name.c_str(), -1);
 		unsigned int r;
@@ -234,12 +234,12 @@ namespace Konnekt {
         return r;
 	}
 
-	HANDLE __stdcall cCtrl1::BeginThreadOld(void *security,unsigned stack_size,unsigned ( __stdcall *start_address )( void * ),void *arglist,unsigned initflag,unsigned *thrdaddr) {
+	HANDLE __stdcall Controler1::BeginThreadOld(void *security,unsigned stack_size,unsigned ( __stdcall *start_address )( void * ),void *arglist,unsigned initflag,unsigned *thrdaddr) {
 		return this->BeginThread(0, security, stack_size, start_address, arglist, initflag, thrdaddr);
 	}
 
 
-	HANDLE __stdcall cCtrl1::BeginThread(const char* name, void *security,unsigned stack_size,unsigned ( __stdcall *start_address )( void * ),void *arglist,unsigned initflag,unsigned *thrdaddr) {
+	HANDLE __stdcall Controler1::BeginThread(const char* name, void *security,unsigned stack_size,unsigned ( __stdcall *start_address )( void * ),void *arglist,unsigned initflag,unsigned *thrdaddr) {
 #ifndef __NOCATCH
 		BeginThreadParam * btp = new BeginThreadParam;
 		btp->param = arglist;
@@ -257,70 +257,71 @@ namespace Konnekt {
 #endif
 	}
 
-	unsigned int __stdcall cCtrl1::DebugLevel(enDebugLevel level) {
-		return this->debugLevel & level;
+	unsigned int __stdcall Controler1::DebugLevel(enDebugLevel level) {
+		return this->_plugin.getLogger()->getLevel(level);
 	}
-	unsigned int __stdcall cCtrl1::SetDebugLevel(enDebugLevel levelMask, enDebugLevel level) {
-		return this->debugLevel = (this->debugLevel & ~levelMask) | level;
+	unsigned int __stdcall Controler1::SetDebugLevel(enDebugLevel levelMask, enDebugLevel level) {
+		return this->_plugin.getLogger()->setLevel(level, levelMask);
 	}
 
 
-	Unique::tId cCtrl1::getId(Unique::tDomainId domainId, const char * name) {
+	Unique::tId Controler1::getId(Unique::tDomainId domainId, const char * name) {
 		return Unique::getId(domainId, name);
 	}
-	const char * cCtrl1::getName(Unique::tDomainId domainId, Unique::tId id) {
+	const char * Controler1::getName(Unique::tDomainId domainId, Unique::tId id) {
 		String& buff = TLSU().buffer().getString(true);
 		buff = Unique::getName(domainId, id).a_str();
 		return buff.c_str();
 	}
 
-	bool cCtrl1::idInRange(Unique::tDomainId domainId, Unique::tRangeId rangeId, Unique::tId id) {
+	bool Controler1::idInRange(Unique::tDomainId domainId, Unique::tRangeId rangeId, Unique::tId id) {
 		Unique::oDomain d = Unique::getDomain(domainId);
 		if (!d) return false;
 		return d->idInRange(rangeId, id);
 	}
 
-	Unique::tRangeId cCtrl1::idInRange(Unique::tDomainId domainId, Unique::tId id, Unique::Range::enType check){
+	Unique::tRangeId Controler1::idInRange(Unique::tDomainId domainId, Unique::tId id, Unique::Range::enType check){
 		Unique::oDomain d = Unique::getDomain(domainId);
 		if (!d) return Unique::rangeNotFound;
 		return d->inRange(id, check)->getRangeId();
 	}
 
 
-	Tables::oTable __stdcall cCtrl1::getTable(Tables::tTableId tableId) {
+	Tables::oTable __stdcall Controler1::getTable(Tables::tTableId tableId) {
 		return Tables::getTable(tableId);
 	}
-	Konnekt::oPlugin __stdcall cCtrl1::getPlugin(Konnekt::tPluginId pluginId) {
+	Konnekt::oPlugin __stdcall Controler1::getPlugin(Konnekt::tPluginId pluginId) {
 		return oPlugin();
 		/*TODO: getPlugin*/
 	}
 
-	void __stdcall cCtrl1::onThreadStart(const char* name) {
+	void __stdcall Controler1::onThreadStart(const char* name) {
 		Stamina::LockerCS lock(threadsCS);
 		if (threads.find(GetCurrentThreadId())==threads.end()) {
-			HANDLE copy;
-			DuplicateHandle(GetCurrentProcess() , GetCurrentThread() , GetCurrentProcess() , &copy , 0 , 0 , DUPLICATE_SAME_ACCESS);
-			threads[GetCurrentThreadId()]=copy;
+			ThreadInfo& info = threads[GetCurrentThreadId()];
 			if (name) {
 				Stamina::Thread::setName(name, -1);
-				TLSU().name = name;
+				info.name = name;
 			}
 		}
 	}
-	void __stdcall cCtrl1::onThreadEnd() {
+	void __stdcall Controler1::onThreadEnd() {
 		Stamina::LockerCS lock(threadsCS);
-		if (threads.find(GetCurrentThreadId())!=threads.end()) {
-			CloseHandle(threads[GetCurrentThreadId()]);
-			threads.erase(GetCurrentThreadId());
-		}
-		//TLS.detach();
+		threads.erase(GetCurrentThreadId());
 		TLSU.detach(); 
+	}
+
+	class Stamina::Logger* __stdcall Controler1::getLogger() {
+		this->_plugin.getLogger().get();
+	}
+	void __stdcall Controler1::logMsg(enDebugLevel level, const char* module, const char* where, const char* msg) {
+		this->_plugin.getLogger()->logMsg(level, module, where, msg);
 	}
 
 
 	//-----------------------------------------------
 
-	void __stdcall cCtrl3::PlugOut(unsigned int id , const char * reason , bool restart) {
+	void __stdcall Controler3::PlugOut(unsigned int id , const char * reason , bool restart) {
 		id = Plug.FindID(id);
 		if (id == -1) return;
 		Tables::oTableImpl plg(tablePlugins);
@@ -344,11 +345,11 @@ namespace Konnekt {
 	}
 
 
-	cCtrl_ * createPluginCtrl(Plugin& plugin) {
-		return new cCtrl1(plugin);
+	Controler_ * createPluginCtrl(Plugin& plugin) {
+		return new Controler1(plugin);
 	}
-	cCtrl_ * createCorePluginCtrl(Plugin& plugin) {
-		return new cCtrl3(plugin);
+	Controler_ * createCorePluginCtrl(Plugin& plugin) {
+		return new Controler3(plugin);
 	}
 
 

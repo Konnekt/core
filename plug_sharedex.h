@@ -19,7 +19,7 @@ namespace Konnekt {
 
      // Dodatkowe , specjalne f-cje sterujace .. Adres tej struktury podawany jest
      // tylko do ui.dll
-     class cCtrlEx : public cCtrl {
+     class CtrlEx : public Ctrl {
         public:
         virtual void b0(void){};
         virtual void b1(void){};
