@@ -40,7 +40,7 @@
 				AdditionalDependencies="comctl32.lib Wininet.lib Dbghelp.lib Msimg32.lib version.lib Rasapi32.lib shell32.lib stamina_d.lib datatable_d.lib"
 				OutputFile="$(OutDir)/konnekt.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="konnekt"
+				AdditionalLibraryDirectories="../konnekt"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/konnekt.pdb"
 				GenerateMapFile="TRUE"
@@ -842,9 +842,6 @@
 			</File>
 			<File
 				RelativePath=".\contacts.h">
-			</File>
-			<File
-				RelativePath=".\core_sharedobj.h">
 			</File>
 			<File
 				RelativePath=".\debug.h">

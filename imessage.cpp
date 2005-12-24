@@ -1,77 +1,105 @@
 #include "stdafx.h"
-#include "imessage.h"
-#include "threads.h"
 #include "konnekt_sdk.h"
+#include "threads.h"
 #include "plugins.h"
 #include "debug.h"
+#include "imessage.h"
 
 using namespace Konnekt::Debug;
 
 namespace Konnekt {
 
 	int dispatchIMessage(sIMessage_base * msg) {
-		// Rozsyla wiadomosci
-		int result ,  pos;
-		result=0;
-		if (msg->id==0) {TLSU().setError(IMERROR_UNSUPPORTEDMSG);goto imp_return;}
+
+		using namespace Net;
+
 		if (msg->id == IMC_LOG) {
 			plugins[msg->sender].getLogger()->logMsg(logLog, 0, 0, (char*)(static_cast<sIMessage_2params*>(msg)->p1));
 			return 0;
 		}
-		if (msg->id < IMI_BASE) {
 
-#ifdef __DEBUG
-			int pos = logIMessage(msg,0,0);
-			result = IMCore(msg);
-			logIMessageResult(msg, pos, result);
-#else
-			result=IMCore(msg);
-#endif
-			if (msg->id != IMC_LOG) {
-				TLSU().lastIM.leaveMsg();
-			} else 
-				TLSU().lastIM.msg = 0;  
-		} else
-			if (msg->id < IM_BASE || msg->type==0) {
-				result = plugins[pluginUI].sendIMessage(msg);
+		UserThread& thread = TLSU();
+
+		if (msg->id < IM_BASE) { // komunikaty do wtyczki CORE / UI
+			return plugins[ msg->id < IMI_BASE ? pluginCore : pluginUI ].sendIMessage(msg);
+		} else {
+			// broadcast...
+			Net::Broadcast net (msg->net);
+
+			bool reverse = net.isReverse();
+			int startPos = plugins.getIndex( net.getStartPlugin() ); // zawsze sprawdza zakres
+			if (startPos == pluginNotFound) {
+				thread.stack.setError(errorBadBroadcast);
+				return 0;
 			}
-			else
-				//  if (msg->id >= IM_SHARE || (msg->sender==0 || msg->sender==ui_sender))
-			{
-				if (msg->net!=NET_BROADCAST) {
-					pos=BCStart-1;
-					while ((pos=plugins.findPlugin(msg->net , msg->type , pos+1))>=BCStart)
-					{ // Znajduje pierwszy plugin ktory obsluzy wiadomosc
-						result = plugins[pos].sendIMessage(msg);
-						if (!TLSU().error.code) break;
-					}
-				} else {
-					//BroadCast
-#ifdef __DEBUG
-					int deb = logIMessage(msg,1+BCStart,0);
-#endif
-					pos=BCStart-1;
-					while ((pos=plugins.findPlugin(msg->net , msg->type , pos+1))>=BCStart)
-						plugins[pos].sendIMessage(msg);
-#ifdef __DEBUG
-					logIMessageResult(msg,deb , 0,1);
-#endif
-				}
-			}/* else {
-			 IMBadSender(msg);
-			 }
-			 */
+			// przy odwróconej kolejnoœci, startPlugin je¿eli jest pozycj¹, jest pozycj¹ od koñca!
+			if (reverse && net.getStartPlugin() <= pluginsMaxCount) {
+				startPos = plugins.count() - startPos - 1;
+			}
+			Plugins::tList::iterator it = plugins.begin() + startPos;
+			// na przysz³oœæ, dla szybszych porównañ...
+			Plugins::tList::iterator end = reverse ? plugins.begin() : plugins.end();
 
-			//  IMDebug(id,net,type,p1,p2,sender,rcvr,result);
-imp_return:
-			/*
-			if (msg->id != IMC_LOG) {
-			TLSU().lastIM.leaveMsg();
-			//   lastIM.plugID = msg->sender;
-			} else 
-			TLSU().lastIM.msg = 0;  
-			*/
+			// szykujemy dane, ¿eby nie wyci¹gaæ ich za ka¿dym razem...
+			int occurence = net.getStartOccurence();
+			tNet onlyNet = net.getOnlyNet();
+			tNet notNet = net.getNotNet();
+
+			if (msg->type == imtNone) msg->type = imtAll; // poprawiamy potencjalny problem
+
+			int result = 0;
+
+			if (Debug::logAll && net.isSpecial()) {
+				logIMessageBC(msg);
+			}
+
+			int hits = 0;
+
+			do {
+				Plugin& plugin = *(*it);
+				if (onlyNet != Net::all && onlyNet != plugin.getNet()) continue;
+				if (notNet != Net::all && notNet == plugin.getNet()) continue;
+				if (msg->type != imtAll) {
+					switch (net.getIMType()) {
+						case Broadcast::imtypeAny: 
+							if ((msg->type & plugin.getType()) != 0) {break;} continue;
+						case Broadcast::imtypeNot: 
+							if ((msg->type & plugin.getType()) == 0) {break;} continue;
+						default: /*all*/
+							if ((msg->type & plugin.getType()) == msg->type) {break;} continue;
+					};
+				}
+				// passed!
+				if (occurence - hits > 0) continue;
+				// passed again! wysy³amy...
+
+				int retVal = plugin.sendIMessage(msg);
+
+				if (thread.stack.getError() != errorNoResult) {
+					hits++;
+					switch (net.getResultType()) {
+						case Broadcast::resultAnd:
+							result = (hits == 1) ? retVal : result & retVal;
+							break;
+						case Broadcast::resultOr:
+							result |= retVal;
+							break;
+						case Broadcast::resultSum:
+							result += retVal;
+							break;
+						default: // last
+							result = retVal;
+					}
+				}
+			
+			} while ( reverse ? ( (it--) != end ) : ( (++it) != end ) ); // przy cofaniu, sprawdzamy czy obecnie przerobiony nie jest ostatnim... W normalnym zawsze mamy zapas...
+
+			if (Debug::logAll && net.isSpecial()) {
+				logIMessageBCResult(msg, result, hits);
+			}
+
 			return result;
+		}
 	}
 
 // --------------------------------------------------------
@@ -80,7 +108,7 @@ imp_return:
 	int Plugin::sendIMessage(sIMessage_base*im) {
 
 		if (this->_running == false && im->id != IM_PLUG_DEINIT) {
-			TLSU().setError(IMERROR_BADPLUG);
+			TLSU().stack.setError(IMERROR_BADPLUG);
 			return 0;
 		}
 		TLSU().stack.pushMsg(im, *this);
@@ -101,7 +129,7 @@ imp_return:
 // --------------------------------------------------------
 // IMStack	
 
-	IMStackItemRecall::IMStackItemRecall(IMStackItem& item, bool waiting):IMStackItem(item._msg, item._receiver) {
+	IMStackItemRecall::IMStackItemRecall(IMStackItem& item, bool waiting):IMStackItem(item.getMsg(), item.getReceiver()) {
 		if (waiting == false) {
 			_waitEvent = 0;
 			void * temp = malloc(_msg->s_size);
@@ -123,7 +151,7 @@ imp_return:
 		recall->_msg->flag = recall->_msg->flag | imfRecalled;
 
 		mainLogger->log(logDebug, 0, 0, "<T=%x", recall->getMsg()->id);
-		recall->_returnValue = plugins[recall->_receiver].sendIMessage(recall->_msg);
+		recall->_returnValue = recall->_receiver.sendIMessage(recall->_msg);
 		if (recall->isWaiting()) {
 			recall->_waitEvent->pulse();
 		} else {
@@ -144,20 +172,24 @@ imp_return:
 
 	void IMStack::popMsg() {
 		if (this->error.code != errorNone && this->error.position != this->count()) {
-			this->error.code = 0;
+			this->error.code = errorNone;
 		}
 
 		this->_stack.pop_back();
 	}
 
-	int IMStack::recallThreadSafe(HANDLE thread, bool wait) {
+	int IMStack::recallThreadSafe(HANDLE thread, bool wait, IMStackItem* item) {
 		if (!thread) thread = mainThread.getHandle();
 		S_ASSERT(this->getCurrent() != 0);
 
-		IMStackItemRecall* recall = new IMStackItemRecall(*this->getCurrent(), wait);
+		if (!item) {
+			item = this->getCurrent();
+		}
+
+		IMStackItemRecall* recall = new IMStackItemRecall(*item, wait);
 
 		if (wait) {
-			this->getCurrent()->getMsg()->flag = this->getCurrent()->getMsg()->flag | imfRecalling;
+			item->getMsg()->flag = item->getMsg()->flag | imfRecalling;
 		}
 
 		mainLogger->log(logDebug, 0, 0, ">T=%x %s", recall->getMsg()->id ,  wait ? "" : " NW");
@@ -174,6 +206,33 @@ imp_return:
 			
 			return 0;
 		}
+	}
+
+
+	String IMStack::debugInfo() const {
+		String msg;
+		// Wypisuje informacje o aktualnym/ostatnim IMessage
+		if (!running || this->count() == 0) {
+			msg = "(none)";
+		} else {
+			for (tStack::const_reverse_iterator it = _stack.rbegin(); it != _stack.rend(); ++it) {
+				const IMStackItem* im = &(*it);
+				IMessageInfo info(im->getMsg());
+				msg += stringf("%s%s[%x/%x]%s -> %s | %s | %s | %s\n"
+					, (im->getMsg()->flag & imfRecalling) ? ">w" : ""
+					, (im->getMsg()->flag & imfRecalled) ? ">>" : ""
+					, inttostr( im->getNumber() ).c_str()
+					, inttostr( im->getTicks() ).c_str()
+					, info.getPlugin(im->getMsg()->sender).c_str() 
+					, info.getPlugin(im->getReceiver()).c_str()
+					, info.getNet().c_str()
+					, info.getId().c_str()
+					, info.getData().c_str()
+					);
+			}
+		}
+
+		return PassStringRef(msg);
 	}
 
 

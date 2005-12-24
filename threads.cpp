@@ -20,12 +20,12 @@ namespace Konnekt {
 	class __initializer {
 	public:
 		__initializer() {
-			threads[GetCurrentThreadId()] = mainThread.getHandle();
+			threads[GetCurrentThreadId()].thread = mainThread;
 			threads[GetCurrentThreadId()].name = "Main";
 		}
 	} _initializer;
 
-	uintptr_t konnektBeginThread (const char*name, void * sec, unsigned stack,	Ctrl::fBeginThread cb, void * args, unsigned flag, unsigned * addr) {
+	uintptr_t konnektBeginThread (const char*name, void * sec, unsigned stack,	Controler::fBeginThread cb, void * args, unsigned flag, unsigned * addr) {
 		return (uintptr_t)Ctrl->BeginThread(name, sec, stack, cb, args, flag, addr);
 	}
 
@@ -36,13 +36,8 @@ namespace Konnekt {
 
 	UserThread::UserThread() {
 		LockerCS l(threadsCS);
-		threads[GetCurrentThreadId()].data = this;
-		error.code=0;
-		error.position=0;
-		lastIM.Thread=this;
-		//int v = 0xFFFFFF - ((userThreadCount) * 0x80);
-		//v = max(0x505050, v);
-		//v = min(0xffffff, v);
+		this->_info = &threads[GetCurrentThreadId()];
+		this->_info->data = this;
 		color = getUniqueColor(userThreadCount, 5, 0x80, true);
 		userThreadCount++;
 	}
@@ -51,6 +46,9 @@ namespace Konnekt {
 	}
 
 
+	extern inline StringRef UserThread::getName() {
+		return this->_info->name;
+	}
 
 
 };

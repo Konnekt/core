@@ -4,6 +4,7 @@
 #include "main.h"
 #include "threads.h"
 #include "tables_interface.h"
+#include "plugins_ctrl.h"
 
 #include <Stamina\ThreadInvoke.h>
 #include <Stamina\DataTable\FileBin.h>
@@ -133,12 +134,13 @@ namespace Konnekt { namespace Tables {
 		return _dt.unlock(rowId);
 	}
 
-	oColumn TableImpl::setColumn(Ctrl* plugin, tColId colId , tColType type, const StringRef& name) {
+	oColumn TableImpl::setColumn(Controler* plugin, tColId colId , tColType type, const StringRef& name) {
 		ObjLocker lock(this);
 		K_ASSERT(_dt.getRowCount() == 0); // nie mo¿emy u¿yæ getRowCount bo jest w nim assertLoaded!
 		oColumn col = _dt.getColumn(colId);
 		if (col->isUndefined() == false && col->hasFlag(cflagIsLoaded) == false) {
-			CtrlEx->PlugOut(plugin->getPluginId() , stringf("Kolumna %d w %s jest ju¿ ZAJÊTA!" , colId , this->getTableName()).c_str() , 0);
+			IMessage(&sIMessage_plugOut(plugin->ID(), stringf("Kolumna %d w %s jest ju¿ ZAJÊTA!" , colId , this->getTableName()).c_str(), sIMessage_plugOut::erYes));
+			//CtrlEx->PlugOut(plugin->getPluginId() ,  , 0);
 			return oColumn();
 		}
 		return _dt.setColumn(colId, type, name);

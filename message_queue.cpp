@@ -48,17 +48,19 @@ namespace Konnekt { namespace Messages {
 			}
 		}
 		// obs³u¿enie najpierw UI
-		r = plugins[pluginUI].IMessageDirect(IM_MSG_RCV,(int)m);
+		r = plugins[pluginUI].IMessageDirect(IM_MSG_RCV,(int)m, 0);
 		if (r & IM_MSG_delete) {handler=-1;goto messagedelete;}
 		if (r & IM_MSG_ok) handler = 0;
-		for (int i=Plug.size()-1; i>0 ;i--) {
-			//    if (handler!=-1) break;
+		for (Plugins::tList::reverse_iterator it = plugins.rbegin(); it != plugins.rend(); ++it) {
+			Plugin& plugin = **it;
+			if (plugin.getId() == pluginUI) break;
+
 			m->id = 0;
-			if (!(Plug[i].type & IMT_ALLMESSAGES)&&(!(Plug[i].type & IMT_MESSAGE) || (m->net && Plug[i].net && Plug[i].net!=m->net))) continue;
-			r = plugins[i].IMessageDirect(IM_MSG_RCV,(int)m);
+			if (!(plugin.getType() & IMT_ALLMESSAGES) && (!(plugin.getType() & IMT_MESSAGE) || (m->net && plugin.getNet() && plugin.getNet() != m->net))) continue;
+			r = plugin.IMessageDirect(IM_MSG_RCV,(int)m, 0);
 			if (r & IM_MSG_delete) {handler=-1;goto messagedelete;} // Wiadomosc nie zostaje dodana
 			if (r & IM_MSG_ok) {
-				handler = /*(Plug[i].type & IMT_MSGUI && !(m->flag & MF_SEND)) ? 0 :*/ i;
+				handler = plugins.getIndex(plugin.getId());
 			}
 		}
 		if (m->flag & MF_HANDLEDBYUI) handler=0;
@@ -77,7 +79,7 @@ messagedelete:
 				ha.cnt = 0;
 				ha.name = m->flag & MF_SEND? "nie wys³ane" : (notinlist?"spoza listy":"nie obs³u¿one");
 				ha.session = 0;
-				plugins[pluginUI].IMessageDirect(IMI_HISTORY_ADD , (int)&ha);
+				plugins[pluginUI].IMessageDirect(IMI_HISTORY_ADD , (int)&ha, 0);
 			}  
 			IMLOG("_Wiadomosc bez obslugi lub usunieta - %.50s...",m->body);
 			if (load) msg->removeRow(pos);
@@ -89,11 +91,11 @@ messagedelete:
 		//    if ((int)m->id > MsgID) MsgID = m->id;
 		}
 		m->id = msg->getRowId(pos);
-		int cntID = m->type&MT_MASK_NOTONLIST?0:IMessage(IMC_FINDCONTACT,0,0,m->net,(int)m->fromUid);
+		int cntID = m->type&MT_MASK_NOTONLIST?0:ICMessage(IMC_FINDCONTACT,m->net,(int)m->fromUid);
 		if (cntID != -1) cnt->setInt(cntID , CNT_LASTMSG , m->id);
 		IMLOG("- Wiadomoœæ %d %s" , m->id , load?"jest w kolejce":"dodana do kolejki");
 		{
-			TableLocker lock(msg, i);
+			TableLocker lock(msg, pos);
 			updateMessage(pos , m);
 			msg->setInt(pos , MSG_ID , m->id);
 			msg->setInt(pos , MSG_HANDLER , handler);
@@ -215,7 +217,7 @@ messagedelete:
 			r = IM_MSG_ok;
 			if (!(m->flag & MF_OPENED) && !notifyOnly) {
 				if (m->flag & MF_SEND) { // Wysylamy
-					r = plugins[msg->getInt(id , MSG_HANDLER)].IMessageDirect(IM_MSG_SEND,(int)m);
+					r = plugins[msg->getInt(id , MSG_HANDLER)].IMessageDirect(IM_MSG_SEND,(int)m, 0);
 				} else {
 					// sprawdzanie listy
 					//      IMLOG("CHECK %d %s = %d" , m->net , m->fromUid , CFindContact(m->net , m->fromUid));
@@ -223,7 +225,7 @@ messagedelete:
 						r=IM_MSG_delete;  // Jezeli jest spoza listy powinna zostac usunieta
 					//          IMessageDirect(Plug[0] , IMI_MSG_NOTINLIST , (int)m);
 					else
-						r = plugins[msg->getInt(id , MSG_HANDLER)].IMessageDirect(IM_MSG_OPEN,(int)m);
+						r = plugins[msg->getInt(id , MSG_HANDLER)].IMessageDirect(IM_MSG_OPEN,(int)m, 0);
 				}
 			} // MF_OPENED
 			if (r & IM_MSG_delete) {
@@ -336,7 +338,7 @@ messagedelete:
 			*/
 			if (isThatMessage(i , mp , count))
 			{
-				int cntID = msg->getInt(i,MSG_TYPE)&MT_MASK_NOTONLIST ? 0: IMessage(IMC_FINDCONTACT ,0,0, msg->getInt(i,MSG_NET) , msg->getInt(i,MSG_FROMUID));
+				int cntID = msg->getInt(i,MSG_TYPE)&MT_MASK_NOTONLIST ? 0: ICMessage(IMC_FINDCONTACT ,msg->getInt(i,MSG_NET) , msg->getInt(i,MSG_FROMUID));
 				if (cntID != -1) SETCNTI(cntID , CNT_NOTIFY , NOTIFY_AUTO);
 				//if (!(msg->getInt(i,MSG_FLAG)&MF_SEND))
 				msg->removeRow(i);

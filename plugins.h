@@ -89,6 +89,10 @@ namespace Konnekt {
 			return this->canHotPlug() || Konnekt::running == false;
 		}
 
+		int IMessageDirect(tIMid id, int p1, int p2) {
+			return this->IMessageDirect(Ctrl, &sIMessage_2params(id, p1, p2));
+		}
+
 		virtual int IMessageDirect(Controler* sender, sIMessage_base* im) {
 			im->sender = sender->ID();
 			return this->sendIMessage(im);
@@ -187,11 +191,27 @@ namespace Konnekt {
 
 		bool exists(tPluginId i) {
 			i = (tPluginId) this->getIndex(i);
-			return (i != pluginNotFound && i >= 0 && i < _list.size());
+			return (i != pluginNotFound && (signed)i >= 0 && (unsigned)i < _list.size());
 		}
 
 		int count() {
 			return _list.size();
+		}
+
+		tList::iterator begin() {
+			return _list.begin();
+		}
+
+		tList::iterator end() {
+			return _list.end();
+		}
+
+		tList::reverse_iterator rbegin() {
+			return _list.rbegin();
+		}
+
+		tList::reverse_iterator rend() {
+			return _list.rend();
 		}
 
 		enum enPlugInResult {

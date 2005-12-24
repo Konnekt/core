@@ -644,9 +644,9 @@ namespace Konnekt { namespace Beta {
 					m.time = _time64(0);
 					m.flag = MF_HANDLEDBYUI;
 					sMESSAGESELECT ms;
-					ms.id = IMessage(IMC_NEWMESSAGE , 0 , 0 , (int)&m);
+					ms.id = ICMessage(IMC_NEWMESSAGE , (int)&m);
 					if (ms.id)
-						IMessage(IMC_MESSAGEQUEUE , 0 , 0 , (int)&ms);
+						ICMessage(IMC_MESSAGEQUEUE , (int)&ms);
 				}
 				response.reset();
 
@@ -903,19 +903,16 @@ namespace Konnekt { namespace Beta {
 		msg+=Debug::stackTrace;
 		msg+="\n";
 	}
-	void imdigest(string & msg) {
-#ifdef __DEBUG
-		// Wypisuje informacje o aktualnym/ostatnim IMessage
-		if (!running || TLSU().stack.count() == 0) {
-			msg+=stringf("\n%sIM: %d(0x%x , 0x%x)(%dB) [%s->%s]\n" , TLSU().lastIM.inMessage?"in":"last" , TLSU().lastIM.debug.id , TLSU().lastIM.debug.p1 , TLSU().lastIM.debug.p2 , TLSU().lastIM.debug.size , plugins.getName((tPluginId)TLSU().lastIM.debug.sender).c_str() , plugins.getName((tPluginId)TLSU().lastIM.debug.rcvr));
-		} else {
-			Debug::IMessageInfo(TLSU().stack.getCurrent());
-			Debug::sIMDebug IMD;
-			Debug::prepareIMessageInfo(IMD , TLSU().lastIM.msg , 0 , 0);
-			msg+=stringf("\ninIM[%d]: %s(%.50s | %.50s)(%dB) [%s->%s]\n" , TLSU().lastIM.inMessage , IMD.id.c_str() , IMD.p1.c_str() , IMD.p2.c_str() , TLSU().lastIM.debug.size , IMD.sender.c_str() , plugins.getName((tPluginId)TLSU().lastIM.debug.rcvr).c_str());
 
+	void imdigest(string & msg) {
+		LockerCS lock(threadsCS);
+		for (tThreads::iterator it = threads.begin(); it != threads.end(); ++it) {
+			ThreadInfo& thread = it->second;
+			if (thread.data && (thread.data->stack.count() || thread.thread.isCurrent())) {
+				msg += "\nIM [" + Debug::IMessageInfo::getThread( thread.thread.getId() ) + "]: \n";
+				msg += thread.data->stack.debugInfo();
+			}
 		}
-#endif
 	}
 
 

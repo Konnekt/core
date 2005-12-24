@@ -295,7 +295,7 @@ namespace Konnekt { namespace Debug {
 						debugLogMsg(stringf("Zaznaczenie wstawione do "+logFileName+" pod numerem %d",mark));
 					}
 					break;
-				case IDB_UI: plugins[pluginUI].IMessageDirect(IMI_DEBUG);    
+				case IDB_UI: plugins[pluginUI].IMessageDirect(IMI_DEBUG, 0, 0);    
 					break;
 				case IDOK:
 					runDebugCommand();
@@ -367,7 +367,7 @@ namespace Konnekt { namespace Debug {
 			RE_BOLD(1);
 			RE_COLOR(RGB(0x0,80,0));
 			RE_ADD(stringf("\r\nMSG %x %s from '%s' to '%s' [%s]\r\n", msg->getInt(i,MSG_ID) 
-				, IMessage(IM_PLUG_NETNAME,msg->getInt(i,MSG_NET),IMT_PROTOCOL)
+				, IMessage(IM_PLUG_NETNAME, (tNet)msg->getInt(i,MSG_NET),IMT_PROTOCOL)
 				, msg->getString(i,MSG_FROMUID).c_str()
 				, msg->getString(i,MSG_TOUID).c_str()
 				, msg->getString(i,MSG_BODY).substr(0,30).c_str()));
@@ -449,6 +449,7 @@ namespace Konnekt { namespace Debug {
 #define COLOR_ERR    RGB(80,00,00)
 #define COLOR_THREAD RGB(100,00,80)
 #define COLOR_NR     RGB(200,200,200)
+#define COLOR_BC     RGB(00,0xD0,00)
 
 	void debugLogMsg(Plugin& plugin, LogLevel level, const char* module, const char* where, const StringRef& msg) {
 		if (!superUser || !Debug::log || !Debug::showLog) return;
@@ -458,7 +459,7 @@ namespace Konnekt { namespace Debug {
 		RE_BOLD(0);
 		RE_COLOR(0);
 		if (!IMfinished) RE_ADD("\r\n");
-		RE_BGCOLOR(plugins[msg->sender].getDebugColor());
+		RE_BGCOLOR(plugin.getDebugColor());
 		RE_ADD("  ");
 		RE_BGCOLOR(TLSU().color);
 		if (Debug::logAll) {
@@ -557,17 +558,81 @@ namespace Konnekt { namespace Debug {
 		RE_BGCOLOR(TLSU().color);
 		RE_ADD("= ");
 		RE_COLOR(COLOR_RES);
+		IMessageInfo info (msg);
 		RE_ADD(info.getResult(result));
 		if (TLSU().stack.getError()) {
 			RE_COLOR(COLOR_ERR);RE_BOLD(1);
-			RE_ADD("\t e"+info.getError(TLSU().stack.getError()));RE_BOLD(0);
+			RE_ADD("\t e"+IMessageInfo::getError(TLSU().stack.getError()));RE_BOLD(0);
 		}
+		RE_COLOR(COLOR_THREAD);
+		RE_ADD("\t "+IMessageInfo::getThread());
+		RE_ADD("\r\n");
+		RE_BGCOLOR(0xffffff);
+		if (Debug::scroll) RE_SCROLLDOWN();
+	}
+
+
+
+	void debugLogIMBCStart(sIMessage_base * msg) {
+		if (!superUser || !Debug::log || !Debug::showLog || !Debug::logAll) return;
+		Locker lock(windowCSection);
+		RE_();
+		RE_PREPARE();
+		RE_BOLD(1);
+		RE_COLOR(0);
+		if (!IMfinished) RE_ADD("\r\n");
+		RE_BGCOLOR(plugins[msg->sender].getDebugColor());
+		RE_ADD("  ");
+		RE_BGCOLOR(TLSU().color);
+		RE_ADD(Debug::logIndent());
+		
+		IMessageInfo info(msg);
+
+		RE_COLOR(COLOR_NR);RE_ADD( inttostr(imessageCount) +" ");
+		RE_COLOR(COLOR_SENDER); RE_ADD(info.getSender());
+		RE_COLOR(COLOR_BC); RE_ADD("  " + info.getBroadcast(msg->net)+" , " + info.getType());
+		RE_COLOR(COLOR_IM);RE_ADD("\t | ");
+		RE_COLOR(COLOR_ID);RE_BOLD(1);
+		RE_ADD(info.getId());
+		RE_BOLD(0);
+		RE_COLOR(COLOR_IM);RE_ADD("\t | ");
+		RE_COLOR(COLOR_P);
+		RE_ADD(info.getData());
+		RE_ADD(" : \r\n");
+		IMfinished = true;
+		RE_BGCOLOR(0xffffff);
+		if (Debug::scroll) RE_SCROLLDOWN();
+	}
+
+	void debugLogIMBCEnd(sIMessage_base * msg , int result, int hit) {
+		if (!superUser || !Debug::log || !Debug::showLog || !Debug::logAll) return;
+		Locker lock(windowCSection);
+		RE_();
+		RE_PREPARE();
+		if (!IMfinished) {
+			RE_ADD("\r\n");
+		}
+		RE_ADD(Debug::logIndent(-1));
+		RE_BGCOLOR(TLSU().color);
+		RE_BOLD(1);
+		RE_COLOR(COLOR_BC);
+		RE_ADD("=== ");
+		RE_COLOR(COLOR_RES);
+
+		IMessageInfo info(msg);
+
+		RE_ADD(info.getResult(result));
+		RE_COLOR(COLOR_BC);
+		RE_ADD(" from " + inttostr(hit));
 		RE_COLOR(COLOR_THREAD);
 		RE_ADD("\t "+info.getThread());
 		RE_ADD("\r\n");
 		RE_BGCOLOR(0xffffff);
 		if (Debug::scroll) RE_SCROLLDOWN();
 	}
+
+
+
 
 #undef  RE_PREPARE
 #undef  RE_ALIGNMENT

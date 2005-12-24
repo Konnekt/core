@@ -52,7 +52,7 @@ namespace Konnekt {
 
 		// Inne
 		int __stdcall IMessage(sIMessage_base * msg);
-		int __stdcall IMessageDirect(unsigned int plug , sIMessage_base * msg);
+		int __stdcall IMessageDirect(tPluginId plug , sIMessage_base * msg);
 		int __stdcall DTgetPos(tTable db , unsigned int row);
 		int __stdcall DTgetID(tTable db , unsigned int row);
 		int __stdcall DTgetType(tTable db , unsigned int id);
@@ -61,7 +61,7 @@ namespace Konnekt {
 		const char * __stdcall DTgetName(tTable db , unsigned int id);
 		unsigned int __stdcall Is_TUS(unsigned int thID);
 		int __stdcall RecallTS(HANDLE th = 0 , bool wait = 1);
-		int __stdcall RecallIMTS(HANDLE th , bool wait , sIMessage_base * msg , int plugID);
+		int __stdcall RecallIMTS(HANDLE th , bool wait , sIMessage_base * msg , tPluginId plugID);
 		void __stdcall WMProcess();
 		void * __stdcall GetTempBuffer(unsigned int size);
 		bool __stdcall DTget(tTable db , unsigned int row , unsigned int col , struct Tables::OldValue * value);

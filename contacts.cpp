@@ -12,7 +12,7 @@ namespace Konnekt {namespace Contacts {
 void updateContact(int pos) {
 	if ((pos = Tables::cnt->getRowPos(pos))==-1) return;
 	int status = Tables::cnt->getInt(pos, CNT_STATUS) & ~ST_IGNORED;
-	Tables::cnt->setInt(pos, CNT_STATUS, status | (IMessage(IMC_IGN_FIND , 0 , 0 , Tables::cnt->getInt(pos , CNT_NET), (int)Tables::cnt->getString(pos , CNT_UID).a_str()) ? ST_IGNORED : 0));
+	Tables::cnt->setInt(pos, CNT_STATUS, status | (ICMessage(IMC_IGN_FIND ,  Tables::cnt->getInt(pos , CNT_NET), (int)Tables::cnt->getString(pos , CNT_UID).a_str()) ? ST_IGNORED : 0));
 }
 
 void updateAllContacts() {

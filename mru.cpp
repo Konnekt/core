@@ -1,7 +1,6 @@
 #include "stdafx.h"
-#include "mru.h"
 #include "konnekt_sdk.h"
-#include "main.h"
+#include "mru.h"
 #include "profiles.h"
 #include "tables.h"
 #include "threads.h"

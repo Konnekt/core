@@ -1,15 +1,18 @@
-
 #pragma once
 
 #include <list>
 #include "konnekt_sdk.h"
+#include "plugins.h"
 
 
 namespace Konnekt {
 
-	struct IMStackItem {
+	class IMStackItem {
 	public:
 		IMStackItem(sIMessage_base* msg, Plugin& receiver):_receiver(receiver), _msg(msg) {
+			static volatile long imessageNumber = 0;
+			_ticks = GetTickCount();
+			_number = InterlockedIncrement(&imessageNumber);
 		}
 
 		inline sIMessage_base* getMsg() const {
@@ -20,12 +23,25 @@ namespace Konnekt {
 			return _receiver;
 		}
 
-	private:
+		inline unsigned long getTicks() const {
+			return _ticks;
+		}
+
+		inline unsigned long getNumber() const {
+			return _number;
+		}
+
+	protected:
 		sIMessage_base* _msg;
 		Plugin& _receiver;
+		unsigned long _ticks;
+		unsigned long _number;
 	};
 
 	class IMStackItemRecall: public IMStackItem {
+
+		friend class IMStack;
+
 	public:
 		IMStackItemRecall(IMStackItem& item, bool waiting);
 		~IMStackItemRecall();
@@ -44,7 +60,7 @@ namespace Konnekt {
 		}
 
 		
-	private:
+	protected:
 
 		static VOID CALLBACK threadRecaller(ULONG_PTR param);
 
@@ -62,7 +78,7 @@ namespace Konnekt {
 
 		void popMsg();
 
-		int recallThreadSafe(HANDLE thread, bool wait);
+		int recallThreadSafe(HANDLE thread, bool wait, IMStackItem* recallMsg = 0);
 
 		IMStackItem* getCurrent() {
 			if (_stack.size() > 0) {
@@ -83,6 +99,8 @@ namespace Konnekt {
 		inline int count() const {
 			return _stack.size();
 		}
+
+		String debugInfo() const;
 
 	private:
 

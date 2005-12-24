@@ -6,6 +6,7 @@
 #include "imessage.h"
 #include "threads.h"
 #include "argv.h"
+#include "klogger.h"
 
 #define LOG_TAB 9
 
@@ -205,29 +206,69 @@ namespace Konnekt { namespace Debug {
 		}
 		return PassStringRef( s );
 	}
+
 	StringRef IMessageInfo::getNet(tNet net) {
 		String s;
 		if (net < Net::last) {
-			s = inttostr(error, 10);
+			s = inttostr(net, 10);
 		} else {
-			s = "0x" + inttostr(error, 16);
+			Net::Broadcast bc (net);
+			if (bc.isReverse()) s += "-";
+			if (bc.isBroadcast()) s += "BC";
+			if (bc.isFirstOnly()) s += "FS";
+			if (bc.getOnlyNet() != Net::all) s += "+" + inttostr(bc.getOnlyNet(), 10);
+			if (bc.getNotNet() != Net::all) s += "-" + inttostr(bc.getNotNet(), 10);
+			if (bc.getIMType() == Net::Broadcast::imtypeAny) s += "&any";
+			if (bc.getIMType() == Net::Broadcast::imtypeNot) s += "&not";
+			if (bc.getStartPlugin() != 0) s += "@0x" + inttostr(bc.getStartPlugin(), 16);
+			if (bc.getStartOccurence() != 0) s += "#" + inttostr(bc.getStartOccurence(), 10);
+			if (bc.getResultType() == Net::Broadcast::resultAnd) s += "=and";
+			if (bc.getResultType() == Net::Broadcast::resultOr) s += "=or";
+			if (bc.getResultType() == Net::Broadcast::resultSum) s += "=sum";
 		}
 		return PassStringRef( s );
 	}
+
+	StringRef IMessageInfo::getBroadcast(tNet net) {
+		String s;
+		Net::Broadcast bc (net);
+		if (bc.isBroadcast()) s += "BROADCAST";
+		if (bc.isFirstOnly()) s += "FIRST";
+		if (bc.getOnlyNet() != Net::all) s += " +net=" + inttostr(bc.getOnlyNet(), 10);
+		if (bc.getNotNet() != Net::all) s += " -net=" + inttostr(bc.getNotNet(), 10);
+		if (bc.getIMType() == Net::Broadcast::imtypeAny) s += " type:any";
+		if (bc.getIMType() == Net::Broadcast::imtypeNot) s += " type:not";
+		if (bc.getStartPlugin() != 0) s += " startPlugin=0x" + inttostr(bc.getStartPlugin(), 16);
+		if (bc.getStartOccurence() != 0) s += " start=" + inttostr(bc.getStartOccurence(), 10);
+		if (bc.getResultType() == Net::Broadcast::resultAnd) s += " result:and";
+		if (bc.getResultType() == Net::Broadcast::resultOr) s += " result:or";
+		if (bc.getResultType() == Net::Broadcast::resultSum) s += " result:sum";
+		if (bc.isReverse()) s += " reverse";
+		return PassStringRef( s );
+	}
+
+
 	StringRef IMessageInfo::getType(enIMessageType type) {
-		switch (error) {
+		switch (type) {
 			case imtAll: return "all";
 			case imtNone: return "none";
 		}
-		String s = "0x" + inttostr(error, 16);
+		String s = "0x" + inttostr(type, 16);
 		return PassStringRef( s );
 	}
-	StringRef IMessageInfo::getThread() {
-		StringRef name = TLSU().getName();
+	StringRef IMessageInfo::getThread(int threadId) {
+		StringRef name;
+		if (threadId == -1) {
+			threadId = GetCurrentThreadId();
+			name = TLSU().getName();
+		} else {
+			LockerCS lock (threadsCS);
+			name = threads[threadId].name;
+		}
 		if (!name.empty()) {
 			return name;
 		}
-		String s = inttostr(GetCurrentThreadId(), 16);
+		String s = inttostr(threadId, 16);
 		return PassStringRef( s );
 	}
 	StringRef IMessageInfo::getError(enIMessageError error) {
@@ -283,13 +324,13 @@ namespace Konnekt { namespace Debug {
 
 			logTime();
 
-			fprintf(Debug::logFile , "%s[%s:%03d] [%s] %s -> %s\t | %s\t | %s %s\t | %s"
-				, logIndent().c_str() , now.strftime("%M:%S").c_str()
-				, GetTickCount() % 1000, inttostr(imessageCount, 10).c_str() 
+			fprintf(Debug::logFile , "%s[%s:%03d] [%d] %s -> %s\t | %s\t | [%s]\t | %s"
+				, logIndent().c_str() , Time64(true).strftime("%M:%S").c_str()
+				, GetTickCount() % 1000, imessageCount
 				, info.getPlugin(msg->sender).c_str() 
 				, info.getPlugin(receiver).c_str()
-				, info.getId().c_str(), info.getNet().c_str()
-				, info.getType().c_str()
+				, info.getNet().c_str()
+				, info.getId().c_str()
 				, info.getData().c_str()
 				);
 			fflush(Debug::logFile);
@@ -304,10 +345,7 @@ namespace Konnekt { namespace Debug {
 		return imessageCount-1;
 	}
 
-
-
-
-	void logIMessageResult(sIMessage_base * msg, int pos, int result, int occurence) {
+	void logIMessageResult(sIMessage_base * msg, int pos, int result) {
 		if (!debug || Debug::logFile == 0) return;
 		if (!Debug::debugAll) return;
 		if (pos < 0) return;
@@ -324,17 +362,61 @@ namespace Konnekt { namespace Debug {
 			IMfinished = true;
 			debugLogIMEnd(msg, result, true);
 			if (Debug::logFile) {
-				fprintf(Debug::logFile , "%s= %s %s (%s)\n" , logIndent(-1).c_str(), info.getResult(result).c_str(), info.getError(TLSU().stack.getError()).c_str(), info.getThread());
+				fprintf(Debug::logFile , "%s= %s %s (%s)\n" , logIndent(-1).c_str(), info.getResult(result).c_str(), info.getError(TLSU().stack.getError()).c_str(), info.getThread().c_str());
 			}
 		}
 		fflush(Debug::logFile);
 	}
 
+
+
+	void logIMessageBC(sIMessage_base * msg) {
+		if (!debug) return;
+		if (!Debug::debugAll) return;
+		Locker lock(debugCS);
+		IMessageInfo info(msg);
+		if (Debug::logFile) {
+			if (!IMfinished) fprintf(Debug::logFile , "\n");
+			logTime();
+			fprintf(Debug::logFile , "%s[%s:%03d] %s (%s, %s) [%s]\t | %s :\n"
+				, logIndent().c_str() , Time64(true).strftime("%M:%S").c_str()
+				, GetTickCount() % 1000
+				, info.getPlugin(msg->sender).c_str()
+				, info.getBroadcast(msg->net).c_str()
+				, info.getType().c_str()
+				, info.getId().c_str()
+				, info.getData().c_str()
+				);
+			fflush(Debug::logFile);
+		}
+		debugLogIMBCStart(msg);
+	}
+
+
+	void logIMessageBCResult(sIMessage_base * msg, int result, int hit) {
+		if (!debug || Debug::logFile == 0) return;
+		if (!Debug::debugAll) return;
+		LockerCS lock (debugCS);
+		IMessageInfo info(msg);
+		IMfinished = true;
+		debugLogIMBCEnd(msg, result, hit);
+		if (Debug::logFile) {
+			fprintf(Debug::logFile , "%s=== %s from %d (%s)\n" , logIndent(-1).c_str(), 
+				info.getResult(result).c_str(), hit, info.getThread().c_str());
+		}
+		fflush(Debug::logFile);
+	}
+
+
+
 #endif
 
 
-	void KLogger::logMsg(Stamina::LogLevel level, const char* module, const char* where, const StringRef& msg) {
+}; // namespace Debug
 
+
+	void KLogger::logMsg(Stamina::LogLevel level, const char* module, const char* where, const StringRef& msg) {
+		using namespace Debug;
 		if (Debug::logFile) {
 			LockerCS lock(debugCS);
 			logTime();
@@ -342,10 +424,10 @@ namespace Konnekt { namespace Debug {
 			string thread;
 			if (mainThread.isCurrent() == false) {
 				thread = "/";
-				if (TLSU().name.empty()) {
+				if (TLSU().getName().empty()) {
 					thread += inttostr(GetCurrentThreadId(), 16, 4);
 				} else {
-					thread += TLSU().name;
+					thread += TLSU().getName();
 				}
 			}
 
@@ -374,8 +456,8 @@ namespace Konnekt { namespace Debug {
 			}
 
 			fprintf(Debug::logFile , "%s[%s:%03d] ## [%s%s] \t %s"
-				, Debug::logIndent().c_str(), now.strftime("%M:%S").c_str(), GetTickCount() % 1000, this->_plugin.getName().c_str(), thread.c_str()
-				, txt.a_str();
+				, Debug::logIndent().c_str(), Time64(true).strftime("%M:%S").c_str(), GetTickCount() % 1000, this->_plugin.getName().c_str(), thread.c_str()
+				, txt.a_str()
 				);
 			fflush(Debug::logFile);
 
@@ -387,4 +469,8 @@ namespace Konnekt { namespace Debug {
 	}
 
 
-};};
+
+
+};  // namespace Konnekt
+
+

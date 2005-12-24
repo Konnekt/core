@@ -49,7 +49,7 @@ namespace Konnekt { namespace Connections {
 						if (list_it->second.waitTime == 0 || list_it->second.waitTime <= _time64(0)) {
 							list_it->second.connect = 0;
 							list_it->second.waitTime = 0;
-							plugins[list_it->first].IMessage(IM_CONNECT , list_it->second.retry , 0);
+							plugins[list_it->first].IMessageDirect(IM_CONNECT , list_it->second.retry , 0);
 							//          Ctrl.IMessageDirect(IM_CONNECT , Con.list_it->first , 0 , 0 , 0);
 							//          IMLOG("  -> %x %d" , Con.list_it->first , Con.list_it->second.retry);
 							list_it->second.retry ++;

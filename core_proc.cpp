@@ -8,13 +8,13 @@ Obs³uga "rdzeniowych" komunikatów
 
 #include <Stamina\Debug.h>
 
-#include "main.h"
-#include "imessage.h"
 #include "konnekt_sdk.h"
+#include "main.h"
+#include "plugins.h"
+#include "imessage.h"
 #include "threads.h"
 #include "profiles.h"
 #include "messages.h"
-#include "plugins.h"
 #include "beta.h"
 #include "tables.h"
 #include "contacts.h"
@@ -37,10 +37,6 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 	if (msgBase->id == IMC_LOG) {
 		return 0;
 	}  
-	TLSU().lastIM.enterMsg(msgBase,0);
-	//int a , i;
-	//char * ch , * ch2;
-	//string str;
 	switch (msg->id) {
 
 
@@ -108,7 +104,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			ISRUNNING();
 			IMESSAGE_TS();
 			IMLOG("- IMC_SHUTDOWN (od %s) ... " , plugins.getName(msg->sender).c_str());
-			if (!msg->p1 && (!canQuit || IMessageSum(IM_CANTQUIT , IMT_ALL , 0 , 0 , 0))) {
+			if (!msg->p1 && (!canQuit || IMessage(IM_CANTQUIT , Net::Broadcast().setResult(Net::Broadcast::resultSum), IMT_ALL, 0, 0))) {
 				IMLOG("- IMC_SHUTDOWN anulowany");
 				return 0;
 			}
@@ -128,7 +124,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 		case IMC_DISCONNECT: 
 			ISRUNNING();
-			IMessage(IM_DISCONNECT , -1 , IMT_PROTOCOL); 
+			IMessage(IM_DISCONNECT , Net::broadcast , IMT_PROTOCOL); 
 			return 0;
 
 		case IMC_NEWMESSAGE: 
@@ -211,7 +207,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			if (msg->p1 && msg->p2 && *(char*)msg->p2) {
 				int cnt = Contacts::findContact(msg->p1,(char *)msg->p2);
 				if (cnt != -1) {
-					int r = IMessage(&sIMessage_msgBox(IMI_CONFIRM, stringf(loadString(IDS_ASK_CNTOVERWRITE).c_str(), msg->p2, msg->p1, Tables::cnt->getString(cnt, CNT_DISPLAY)).c_str(), "Dodawanie kontaktu", MB_YESNOCANCEL), 0);
+					int r = IMessage(&sIMessage_msgBox(IMI_CONFIRM, stringf(loadString(IDS_ASK_CNTOVERWRITE).c_str(), msg->p2, msg->p1, Tables::cnt->getString(cnt, CNT_DISPLAY)).c_str(), "Dodawanie kontaktu", MB_YESNOCANCEL));
 					switch (r) {
 						case IDNO:cnt=-1;break;
 						case IDCANCEL:return -1;
@@ -342,9 +338,9 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				return 1;
 
 			if (po->_restart >= sIMessage_plugOut::erAskShut)
-				IMessage(IMC_SHUTDOWN , 0 , 0 , 1);
+				ICMessage(IMC_SHUTDOWN, 1);
 			else if (po->_restart >= sIMessage_plugOut::erAsk)
-				IMessage(IMC_RESTART , 0 , 0);
+				ICMessage(IMC_RESTART);
 			return 1;}
 
 		case IMC_STATUSCHANGE: {
@@ -433,7 +429,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		case IMC_PLUG_VERSION:
 		{
 			if (msg->p1 == -1) {
-				return IMessage(IMC_VERSION , 0,0,msg->p2);
+				return ICMessage(IMC_VERSION , msg->p2);
 			}
 			if (!plugins.exists((tPluginId)msg->p1)) return 0;
 			if (msg->p2) {strcpy((char*)msg->p2 , plugins[msg->p1].getVersion().getString().c_str());}
@@ -704,7 +700,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				for (int i = 0; i < msgDc->argc; i++)
 					argv[i] = strdup(msgDc->argv[i]);
 				sIMessage_debugCommand dc (msgDc->argc, argv, sIMessage_debugCommand::duringAsynchronous);
-				return Ctrl->RecallIMTS(0, false, &dc, 0);
+				return Ctrl->RecallIMTS(0, false, &dc, pluginUI);
 			}
 			IMESSAGE_TS();
 			coreDebugCommand(msgDc);
@@ -734,7 +730,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			return (int)Unique::instance();
 
 	}
-	TLSU().setError(IMERROR_NORESULT);
+	Ctrl->setError(IMERROR_NORESULT);
 	return 0;
 }
 

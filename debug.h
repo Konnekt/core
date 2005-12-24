@@ -1,6 +1,7 @@
 #pragma once
 #include "main.h"
 #include "konnekt_sdk.h"
+#include "plugins.h"
 
 namespace Konnekt{ namespace Debug {
 
@@ -25,8 +26,9 @@ namespace Konnekt{ namespace Debug {
 		String getResult(int result);
 		static StringRef getId(tIMid id);
 		static StringRef getNet(tNet net);
+		static StringRef getBroadcast(tNet net);
 		static StringRef getType(enIMessageType type);
-		static StringRef getThread();
+		static StringRef getThread(int threadId = -1);
 		static StringRef getError(enIMessageError error);
 		static StringRef getPlugin(tPluginId plugin);
 		static StringRef getPlugin(Plugin& plugin);
@@ -59,7 +61,10 @@ namespace Konnekt{ namespace Debug {
 
 #ifdef __DEBUG
 	int logIMessage(sIMessage_base* msg, Plugin& receiver);
-	void logIMessageResult(sIMessage_base * msg, int pos, int result, int occurence = 0);
+	void logIMessageResult(sIMessage_base * msg, int pos, int result);
+
+	void logIMessageBC(sIMessage_base* msg);
+	void logIMessageBCResult(sIMessage_base * msg, int result, int hit);
 #endif
 
 	string logIndent(int offset = 0, char tab = '\t');
@@ -83,7 +88,9 @@ namespace Konnekt{ namespace Debug {
 	void debugLogMsg(string msg);
 	void debugLogValue(string name , string value);
 	void ShowDebugWnds();
-	void debugLogMsg(Plugin& plugin, const char* module, const char* where, const StringRef& msg);
+	void debugLogMsg(Plugin& plugin, LogLevel level, const char* module, const char* where, const StringRef& msg);
 	void debugLogIMStart(sIMessage_base * msg, Plugin& receiver);
 	void debugLogIMEnd(sIMessage_base * msg, int result, bool multiline);
+	void debugLogIMBCStart(sIMessage_base * msg);
+	void debugLogIMBCEnd(sIMessage_base * msg, int result, int hit);
 };};

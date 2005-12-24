@@ -93,7 +93,7 @@ namespace Konnekt { namespace Tables {
 		virtual Stamina::MD5Digest askForPassword(FileBase* file, int retry) {
 			if (_silent) return MD5Digest();
 
-			if (Plug.size() > 0) {
+			if (plugins.count() > 0) {
 
 				String title = "Has³o pliku";
 				String info = "Podaj has³o do pliku " + Stamina::getFileName( file->getFilename() );
@@ -103,7 +103,7 @@ namespace Konnekt { namespace Tables {
 				sd.save = 0;
 				sd.title = title.a_str();
 				sd.info = info.a_str();
-				if (!IMessage(IMI_DLGPASS , 0 , 0 , (int)&sd , 0)) return MD5Digest();
+				if (!ICMessage(IMI_DLGPASS , (int)&sd , 0)) return MD5Digest();
 
 				return DataTable::createPasswordDigest( safeChar(sd.pass) );
 			} else {

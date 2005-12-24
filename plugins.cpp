@@ -39,7 +39,7 @@ namespace Konnekt {
 
 	// --------------------------------------------------------------------
 
-	Plugin::Plugin(tPluginId pluginId = pluginNotFound) {
+	Plugin::Plugin(tPluginId pluginId) {
 		_imessageProc = 0;
 		_imessageObject = 0;
 		_module = 0;
@@ -123,20 +123,20 @@ namespace Konnekt {
 		this->_priority = priorityNone;
 
 
-		this->_type = (enIMessageType) this->IMessage(IM_PLUG_TYPE);
+		this->_type = (enIMessageType) this->IMessageDirect(IM_PLUG_TYPE, 0, 0);
 		if (this->_version.empty()) {
-			this->_version = Version( safeChar(this->IMessage(IM_PLUG_VERSION)) );
+			this->_version = Version( safeChar(this->IMessageDirect(IM_PLUG_VERSION, 0, 0)) );
 		}
-		this->_sig = safeChar(this->IMessage(IM_PLUG_SIG));
-		this->_net = (tNet)this->IMessage(IM_PLUG_NET);
-		this->_name = safeChar(this->IMessage(IM_PLUG_NAME));
-		this->_netName = safeChar(this->IMessage(IM_PLUG_NETNAME));
+		this->_sig = safeChar(this->IMessageDirect(IM_PLUG_SIG, 0 ,0));
+		this->_net = (tNet)this->IMessageDirect(IM_PLUG_NET, 0 ,0);
+		this->_name = safeChar(this->IMessageDirect(IM_PLUG_NAME, 0 ,0));
+		this->_netName = safeChar(this->IMessageDirect(IM_PLUG_NETNAME, 0 ,0));
 
-		if (this->IMessage(IM_PLUG_SDKVERSION) < KONNEKT_SDK_V) { 
+		if (this->IMessageDirect(IM_PLUG_SDKVERSION, 0 ,0) < KONNEKT_SDK_V) { 
 			throw ExceptionString("Wtyczka przygotowana zosta³a dla starszej wersji API. Poszukaj nowszej wersji!");
 		}
 
-		if (this->getId() != pluginCore && this->getId() != pluginUI && _net == Net::none) throw ExceptionString("Z³a wartoœæ NET!");
+		if ((this->getId() != pluginCore && this->getId() != pluginUI && _net == Net::none) || _net >= Net::last) throw ExceptionString("Z³a wartoœæ NET!");
 		if (_sig == "" || _name == "") throw ExceptionString("Brakuje nazwy, lub wartoœci SIG!");
 
 		if (RegEx::doMatch("/^[A-Z0-9_]{3,12}$/i", _sig.a_str()) == 0) throw ExceptionString("Wartoœæ SIG nie spe³nia wymagañ!");
@@ -154,16 +154,16 @@ namespace Konnekt {
 			this->_ctrl = createPluginCtrl(*this);
 		}
 		this->_running = true;
-		if (this->IMessage(IM_PLUG_INIT, (tIMP)this->_ctrl, (tIMP)this->_id) == 0) {
+		if (this->IMessageDirect(IM_PLUG_INIT, (tIMP)this->_ctrl, (tIMP)this->_id) == 0) {
 			throw ExceptionString("Inicjalizacja siê nie powiod³a!");
 		}
 	}
 
 	void Plugin::deinitialize() {
 		Ctrl->IMessage(IM_PLUG_PLUGOUT, Net::broadcast, imtAll, this->getId());
-		bool nofree = this->IMessage(IM_PLUG_DONTFREELIBRARY);
+		bool nofree = this->IMessageDirect(IM_PLUG_DONTFREELIBRARY, 0 ,0);
 		this->_running=false;
-		this->IMessage(IM_PLUG_DEINIT);
+		this->IMessageDirect(IM_PLUG_DEINIT, 0 ,0);
 		if (nofree) {
 			_module = 0;
 		}
@@ -171,7 +171,7 @@ namespace Konnekt {
 
 
 
-	inline int Plugin::callIMessageProc(sIMessage_base*im) {
+	extern inline int Plugin::callIMessageProc(sIMessage_base*im) {
 		if (_imessageObject == 0) {
 			return ((fIMessageProc)_imessageProc)(im);
 		} else {
@@ -180,7 +180,7 @@ namespace Konnekt {
 		}
 	}
 
-	bool Plugin::plugOut(Ctrl* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload) {
+	bool Plugin::plugOut(Controler* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload) {
 		Stamina::mainLogger->log(Stamina::logWarn, "Plugin", "plugOut", "unload=%d reason=\"%s\"", unload, reason.a_str());
 
 		if (mainThread.isCurrent() == false) {
@@ -363,7 +363,7 @@ namespace Konnekt {
 			}
 
 			// sprawdzamy priorytety
-			plugin->_priority = (enPluginPriority)plugin->IMessage(IM_PLUG_PRIORITY);
+			plugin->_priority = (enPluginPriority)plugin->IMessageDirect(IM_PLUG_PRIORITY, 0 ,0);
 			if (!plugin->_priority || plugin->_priority > priorityHighest) {
 				plugin->_priority = priorityStandard;
 			}
@@ -438,7 +438,7 @@ namespace Konnekt {
 			state->setInt64(row, "last", Stamina::Time64(true));
 
 			if (plugins[i].getVersion().getInt() > prevVer) {
-				plugins[i].IMessage(IM_PLUG_UPDATE , prevVer);
+				plugins[i].IMessageDirect(IM_PLUG_UPDATE , prevVer, 0);
 			}
 		}
 		Tables::cfg->setString(0 , CFG_VERSIONS , "");

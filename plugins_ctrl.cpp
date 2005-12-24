@@ -21,7 +21,6 @@ namespace Konnekt {
 
 	//-----------------------------------------------
 
-	void Controler_::setCtrl(int id , void * handle) {_ID = id; _hDll = (HINSTANCE)handle;}
 	void Controler_::_warn(char * ch) {
 		warn_cnt++;
 		if (ch && *ch) last_warn = ch;
@@ -51,14 +50,14 @@ namespace Konnekt {
 		return dispatchIMessage(msg);
 	}
 
-	int __stdcall Controler1::IMessageDirect(unsigned int plugId , sIMessage_base * msg) {
+	int __stdcall Controler1::IMessageDirect(tPluginId plugId , sIMessage_base * msg) {
 		Plugin* plugin = plugins.get(plugId);
 		if (plugin == 0) {
 			_err("IMessage sent in space ...");
-			TLSU().setError(IMERROR_BADPLUG);
+			TLSU().stack.setError(Konnekt::errorBadPlugin);
 			return 0;
 		}
-		return plugin->sendIMessage(this, msg);
+		return plugin->sendIMessage(msg);
 	}
 
 //#define CTRL_SETDT CdTable * DT = (db==DTCFG)?&Cfg : (db==DTCNT)?&Cnt : (db==DTMSG)?&Msg : 0;\
@@ -177,15 +176,16 @@ namespace Konnekt {
 
 
 	int __stdcall Controler1::RecallTS(HANDLE th  , bool wait) {
-		if (TLSU().lastIM.inMessage<=0) return 0;
-		return ::RecallIMTS(TLSU().lastIM , th , wait);
+		return TLSU().stack.recallThreadSafe(th, wait);
 	}
-	int __stdcall Controler1::RecallIMTS(HANDLE th  , bool wait , sIMessage_base * msg , int plugID){
-		sIMTS imts;
-		imts.msg = msg;
-		imts.msg->sender = this->ID();
-		imts.plugID = plugID;
-		return ::RecallIMTS(imts , th , wait);
+	int __stdcall Controler1::RecallIMTS(HANDLE th  , bool wait , sIMessage_base * msg , tPluginId plugId){
+		msg->sender = this->ID();
+		if (plugins.exists(plugId) == false) {
+			this->setError(errorBadPlugin);
+			return 0;
+		}
+		IMStackItem si (msg, plugins[plugId]);
+		return TLSU().stack.recallThreadSafe(th , wait, &si);
 	}
 
 	void __stdcall Controler1::WMProcess () {
@@ -244,11 +244,11 @@ namespace Konnekt {
 		BeginThreadParam * btp = new BeginThreadParam;
 		btp->param = arglist;
 		btp->start_address = start_address;
-		btp->plugID = this->_ID;
+		btp->plugID = this->ID();
 		if (name) {
 			K_ASSERT( K_CHECK_PTR( name ) );
 		}
-		btp->name = string(Plug.FindID(btp->plugID)!=-1? Plug[Plug.FindID(btp->plugID)].name.c_str() : "unknown") + "." + string((name && *name) ? name : "unnamed");
+		btp->name = string(this->_plugin.getName() + "." + string((name && *name) ? name : "unnamed"));
 		//Ctrl->IMDEBUG(DBG_FUNC, "BeginThread(%s)", btp->name.c_str());
 		HANDLE handle = (HANDLE)_beginthreadex(security , stack_size , BeginThreadRecall , btp , initflag , thrdaddr);
 		return handle;
@@ -261,7 +261,8 @@ namespace Konnekt {
 		return this->_plugin.getLogger()->getLevel(level);
 	}
 	unsigned int __stdcall Controler1::SetDebugLevel(enDebugLevel levelMask, enDebugLevel level) {
-		return this->_plugin.getLogger()->setLevel(level, levelMask);
+		this->_plugin.getLogger()->setLevel(level, levelMask);
+		return this->_plugin.getLogger()->getLevel();
 	}
 
 
@@ -312,7 +313,7 @@ namespace Konnekt {
 	}
 
 	class Stamina::Logger* __stdcall Controler1::getLogger() {
-		this->_plugin.getLogger().get();
+		return this->_plugin.getLogger().get();
 	}
 	void __stdcall Controler1::logMsg(enDebugLevel level, const char* module, const char* where, const char* msg) {
 		this->_plugin.getLogger()->logMsg(level, module, where, msg);
@@ -322,26 +323,7 @@ namespace Konnekt {
 	//-----------------------------------------------
 
 	void __stdcall Controler3::PlugOut(unsigned int id , const char * reason , bool restart) {
-		id = Plug.FindID(id);
-		if (id == -1) return;
-		Tables::oTableImpl plg(tablePlugins);
-		tRowId pl = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), Plug[id].file)).getId();
-		if (pl == DT::rowNotFound) return;
-		CStdString msg = loadString(IDS_ERR_DLL);
-		msg.Format(msg , Plug[id].file.c_str() , reason);
-		if (MessageBox(NULL , msg , loadString(IDS_APPNAME).c_str() , MB_ICONWARNING|MB_OKCANCEL|MB_TASKMODAL) == IDOK) {
-			plg->setInt(pl , PLG::load , -1);
-			plg->save();
-		}
-
-#ifdef __DEBUG
-		if (Debug::logFile) {
-			fprintf(Debug::logFile , "\n\nPlug %s made a booboo ...\n  \"%s\"\n\n" , Plug[id].file.c_str() , reason );
-		}
-#endif
-		if (!running)
-			exit(0);
-		else ::IMessage(IMC_RESTART , 0 , 0);
+		this->IMessage(&sIMessage_plugOut(id, reason, restart ? sIMessage_plugOut::erYes : sIMessage_plugOut::erNo, sIMessage_plugOut::euNowAndOnNextStart));
 	}
 
 

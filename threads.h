@@ -1,10 +1,11 @@
 #pragma once
 
-#include "konnekt_sdk.h"
-#include "main.h"
-
 #include <Stamina\Thread.h>
 #include <Stamina\TLS.h>
+
+#include "konnekt_sdk.h"
+#include "main.h"
+#include "imessage.h"
 
 namespace Konnekt {
 
@@ -51,10 +52,11 @@ namespace Konnekt {
 		COLORREF color;
 		IMStack stack;
 
-		StringRef getName() {
-			LockerCS l(threadsCS);
-			threads[GetCurrentThreadId()].name;
+		const class ThreadInfo* getInfo() const {
+			return _info;
 		}
+
+		StringRef getName();
 
 		DLLTempBuffer& buffer(unsigned int id = 0) {
 			return this->_buffers[id];
@@ -65,6 +67,7 @@ namespace Konnekt {
 
 	private:
 		map <unsigned int , DLLTempBuffer> _buffers; 
+		class ThreadInfo * _info;
 
 	};
 
@@ -79,7 +82,7 @@ namespace Konnekt {
 		Stamina::Thread thread;
 		UserThread* data;
 		std::string name;
-	}
+	};
 
 	typedef map <DWORD , ThreadInfo> tThreads;
 	extern tThreads threads;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Stamina\LoggerImpl.h>
-#include <Stamina\Plugin.h>
+#include <Konnekt\core_plugin.h>
 
 namespace Konnekt {
 

@@ -147,9 +147,6 @@ namespace Konnekt {
 	void initialize() {
 		// dbg.showLog = true;
 
-		Stamina::mainLogger = new Konnekt::KLogger(Stamina::logAll);
-
-
 		srand( (unsigned)time( NULL ) );
 
 		Unique::initializeUnique();
@@ -202,13 +199,15 @@ namespace Konnekt {
 
 		// Core
 		try {
-			plugins.plugInClassic(appPath, coreIMessageProc, pluginUI);
+			plugins.plugInClassic(appPath, coreIMessageProc, pluginCore);
 		} catch (Exception& e) {
 			CStdString msg;
 			msg.Format("Ten b³¹d siê nie zdarza czêsto, ale sam siebie nie mogê za³adowaæ!!!\r\n\r\n%s", e.getReason().a_str());
 			MessageBox(NULL, msg.c_str(), loadString(IDS_APPNAME).c_str(),MB_ICONERROR|MB_OK|MB_TASKMODAL ); 
 			exit(0); 
 		}
+
+		Stamina::mainLogger = plugins[pluginCore].getLogger();
 
 		// UI
 		try {

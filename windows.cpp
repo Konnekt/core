@@ -88,7 +88,7 @@ namespace Konnekt {
 					sd.value = (char*)profile.c_str();
 					passwordDigest.reset();
 					
-					IMessage(IMI_DLGENTER , 0 , 0 , (int)&sd);
+					ICMessage(IMI_DLGENTER, (int)&sd);
 					if (!sd.value) gracefullExit();
 					IMLOG("- got new profile name: ''", sd.value);
 					RegEx reg;
@@ -235,12 +235,12 @@ namespace Konnekt {
 		HFONT font;
 		switch (select) {
 			case selectAll:
-				plugBSelect->setImage(new Stamina::Icon(Plug[0].hModule, "yes", 16));
+				plugBSelect->setImage(new Stamina::Icon(plugins[pluginUI].getDllModule(), "yes", 16));
 				plugBSelect->setText("W³¹cz wszystkie");
 				font = plugSelectFont;
 				break;
 			case selectNone:
-				plugBSelect->setImage(new Stamina::Icon(Plug[0].hModule, "no", 16));
+				plugBSelect->setImage(new Stamina::Icon(plugins[pluginUI].getDllModule(), "no", 16));
 				plugBSelect->setText("Wy³¹cz wszystkie");
 				font = plugSelectFont;
 				break;
@@ -370,13 +370,13 @@ namespace Konnekt {
 			Stamina::setWindowFont(plugBRecommend->getHWND(), plugSelectFontBold);
 			plugBSelect = new Stamina::ButtonX(GetDlgItem(hwnd, IDC_SELECT));
 			plugBDownload = new Stamina::ButtonX(GetDlgItem(hwnd, IDC_DOWNLOAD));
-			plugBDownload->setImage(new Stamina::Icon(Plug[0].hModule, "url", 16));
+			plugBDownload->setImage(new Stamina::Icon(plugins[pluginUI].getDllModule(), "url", 16));
 			Stamina::setWindowFont(plugBDownload->getHWND(), plugSelectFont);
 
 			plugBApply = new Stamina::ButtonX(GetDlgItem(hwnd, IDOK));
-			plugBApply->setImage(new Stamina::Icon(Plug[0].hModule, "apply", 16));
+			plugBApply->setImage(new Stamina::Icon(plugins[pluginUI].getDllModule(), "apply", 16));
 			plugBCancel = new Stamina::ButtonX(GetDlgItem(hwnd, IDCANCEL));
-			plugBCancel->setImage(new Stamina::Icon(Plug[0].hModule, "cancel", 16));
+			plugBCancel->setImage(new Stamina::Icon(plugins[pluginUI].getDllModule(), "cancel", 16));
 
 			Stamina::setWindowFont(GetDlgItem(hwnd, IDC_LEGEND), plugLegendFont);
 			Stamina::setWindowFont(GetDlgItem(hwnd, IDC_STATIC2), plugLegendFont);
@@ -436,13 +436,13 @@ namespace Konnekt {
 						load = true;
 				}
 				if (!load && count > 0) {
-					int r = IMessage(IMI_CONFIRM , 0,0,(int)"Nie wybra³eœ ¿adnych wtyczek!\r\nKonnekt bez wtyczek praktycznie nic nie potrafi, jesteœ tego pewien?", MB_ICONWARNING | MB_YESNO);
+					int r = ICMessage(IMI_CONFIRM , (int)"Nie wybra³eœ ¿adnych wtyczek!\r\nKonnekt bez wtyczek praktycznie nic nie potrafi, jesteœ tego pewien?", MB_ICONWARNING | MB_YESNO);
 					if (r == IDNO)
 						return 0;
 				}
 
 				PlugsDialogSet(hwnd);
-				if (running && changed && IMessage(IMI_CONFIRM , 0,0,(int)"Konnekt musi zostaæ uruchomiony ponownie aby zmiany odnios³y skutek.\n\nZrestartowaæ?")) {
+				if (running && changed && ICMessage(IMI_CONFIRM , (int)"Konnekt musi zostaæ uruchomiony ponownie aby zmiany odnios³y skutek.\n\nZrestartowaæ?")) {
 					deinitialize(false);
 					restart();}
 				}

@@ -36,10 +36,10 @@ namespace Konnekt {
 		if (passwordDigest.empty() == false) {
 			sd.title = "Konnekt - zmiana has³a";
 			sd.info = "Podaj aktualne has³o profilu";
-			if (!IMessage(IMI_DLGPASS , 0 , 0 , (int)&sd , 0)) return;
+			if (!ICMessage(IMI_DLGPASS , (int)&sd , 0)) return;
 			//    IMLOG("[%s]==[%s]==[%s]" , sd.ch , MD5(sd.ch) , md5digest);
 			if (MD5Digest(sd.pass) != passwordDigest) {
-				IMessage(IMI_ERROR , 0 , 0 , (int)"Poda³eœ z³e has³o!");
+				ICMessage(IMI_ERROR , (int)"Poda³eœ z³e has³o!");
 				return;
 			}
 		}
@@ -47,7 +47,7 @@ namespace Konnekt {
 		sd.save = 0;
 		sd.title = "Konnekt - zmiana has³a";
 		sd.info = "Podaj nowe has³o dla profilu";
-		if (!IMessage(IMI_DLGSETPASS , 0 , 0 , (int)&sd , 0)) return;
+		if (!ICMessage(IMI_DLGSETPASS , (int)&sd , 0)) return;
 		if (!*sd.pass) { // resetujemy has³o
 			passwordDigest.reset();
 		} else {
@@ -70,7 +70,7 @@ namespace Konnekt {
 		sdc.items="profil u¿ytkownika\nkat. Konnekta";
 		sdc.width=150;
 		sdc.def = 1;
-		switch (IMessage(IMI_DLGBUTTONS , 0 , 0 , (int)&sdc)) {
+		switch (ICMessage(IMI_DLGBUTTONS , (int)&sdc)) {
 		case 2:  profilesDir = "profiles\\";break;
 		default: {
 			char buff [MAX_PATH];
@@ -110,7 +110,7 @@ namespace Konnekt {
 			sde.title="Nowy profil";
 			sde.info="Zostanie za³o¿ony nowy profil. Podaj jego nazwê.";
 			sde.value=(char*)profile.c_str();
-			IMessage(IMI_DLGENTER , 0 , 0 , (int)&sde);
+			ICMessage(IMI_DLGENTER , (int)&sde);
 			if (*sde.value) {
 				profile = sde.value;
 				check = false;
@@ -148,7 +148,7 @@ namespace Konnekt {
 				case DT::errNotAuthenticated:
 				{
 					if (passwordDigest.empty() == false) {// has³o by³o ustawiane - trzeba wrzuciæ monit o z³ym haœle...
-						IMessage(IMI_ERROR , 0 , 0 , (int)loadString(IDS_ERR_BADPASSWORD).c_str());
+						ICMessage(IMI_ERROR , (int)loadString(IDS_ERR_BADPASSWORD).c_str());
 					}
 					int r = 0;
 					if ((r = DialogBox(Stamina::getHInstance(), MAKEINTRESOURCE(IDD_PROFILE), 0, ProfileDialogProc)) != IDCANCEL) return r;
@@ -157,7 +157,7 @@ namespace Konnekt {
 				case DT::errFileNotFound:
 					break;
 				default:
-					UIMessage(IMI_WARNING , (int)stringf(loadString(IDS_INF_BADFILE).c_str(),fb.getFileName().c_str()).c_str(),0);
+					ICMessage(IMI_WARNING , (int)stringf(loadString(IDS_INF_BADFILE).c_str(),fb.getFileName().c_str()).c_str(),0);
 					exit(1);
 			};
 		}
@@ -212,7 +212,7 @@ namespace Konnekt {
 		}
 
 		prepareProfile();
-		IMessage(IM_CFG_LOAD , -1, IMT_CONFIG|IMT_CONTACT , 0 ,0,0);
+		IMessage(IM_CFG_LOAD , Net::broadcast, IMT_CONFIG|IMT_CONTACT , 0 ,0);
 		return 0;
 	}
 
