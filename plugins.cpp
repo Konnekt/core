@@ -122,7 +122,6 @@ namespace Konnekt {
 		this->_running = false;
 		this->_priority = priorityNone;
 
-
 		this->_type = (enIMessageType) this->IMessageDirect(IM_PLUG_TYPE, 0, 0);
 		if (this->_version.empty()) {
 			this->_version = Version( safeChar(this->IMessageDirect(IM_PLUG_VERSION, 0, 0)) );
@@ -148,11 +147,15 @@ namespace Konnekt {
 	}
 
 	void Plugin::run() {
-		if (this->getId() == pluginCore || this->getId() == pluginUI) {
+		if (this->getId() == pluginCore) {
+			this->_ctrl = createCorePluginCtrl(*this);
+			//Ctrl = this->_ctrl; // musimy to ustawiæ zanim u¿yjemy któregoœ IMessageDirect!
+		} else if (this->getId() == pluginUI) {
 			this->_ctrl = createCorePluginCtrl(*this);
 		} else {
 			this->_ctrl = createPluginCtrl(*this);
 		}
+
 		this->_running = true;
 		if (this->IMessageDirect(IM_PLUG_INIT, (tIMP)this->_ctrl, (tIMP)this->_id) == 0) {
 			throw ExceptionString("Inicjalizacja siê nie powiod³a!");
@@ -298,6 +301,7 @@ namespace Konnekt {
 
 
 	String Plugins::getName(tPluginId id) {
+		if (id == pluginNotFound) return "Unknown";
 		if (id == pluginCore) return "CORE";
 		if (id < 3) return stringf("___BC%u", id - 1);
 		int pos = this->getIndex(id);
@@ -359,6 +363,7 @@ namespace Konnekt {
 			Plugin* plugin = &*current;
 			if (plugin->getId() == pluginCore || plugin->getId() == pluginUI) {
 				plugin->_priority = priorityCore;
+				it ++;
 				continue;
 			}
 

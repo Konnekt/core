@@ -455,8 +455,23 @@ namespace Konnekt { namespace Debug {
 				}
 			}
 
-			fprintf(Debug::logFile , "%s[%s:%03d] ## [%s%s] \t %s"
-				, Debug::logIndent().c_str(), Time64(true).strftime("%M:%S").c_str(), GetTickCount() % 1000, this->_plugin.getName().c_str(), thread.c_str()
+			String place;
+			if (module) {
+				place += "::";
+				place += module;
+			}
+			if (where) {
+				place += "::";
+				place += where;
+			}
+
+			fprintf(Debug::logFile , "%s[%s:%03d] ## [%s%s%s] \t %s\n"
+				, Debug::logIndent().c_str()
+				, Time64(true).strftime("%M:%S").c_str()
+				, GetTickCount() % 1000
+				, this->_plugin.getName().c_str()
+				, place.c_str()
+				, thread.c_str()
 				, txt.a_str()
 				);
 			fflush(Debug::logFile);

@@ -107,7 +107,7 @@ namespace Konnekt {
 
 	int Plugin::sendIMessage(sIMessage_base*im) {
 
-		if (this->_running == false && im->id != IM_PLUG_DEINIT) {
+		if (this->_running == false && im->id != IM_PLUG_DEINIT && this->_ctrl != 0) {
 			TLSU().stack.setError(IMERROR_BADPLUG);
 			return 0;
 		}

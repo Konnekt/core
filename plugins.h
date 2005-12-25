@@ -94,7 +94,11 @@ namespace Konnekt {
 		}
 
 		virtual int IMessageDirect(Controler* sender, sIMessage_base* im) {
-			im->sender = sender->ID();
+			if (sender) {
+				im->sender = sender->ID();
+			} else {
+				im->sender = pluginNotFound;
+			}
 			return this->sendIMessage(im);
 		}
 
@@ -182,7 +186,7 @@ namespace Konnekt {
 		}
 
 		Plugin& operator [] (unsigned int i) {
-			i = this->getId(i);
+			i = this->getIndex((tPluginId)i);
 			if (i == pluginNotFound) {
 				throw Stamina::ExceptionString("Plugin out of range");
 			}

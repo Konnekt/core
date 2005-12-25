@@ -151,6 +151,42 @@ namespace Konnekt {
 
 		Unique::initializeUnique();
 
+		MainThreadID = GetCurrentThreadId();
+		hMainThread = 0;
+		DuplicateHandle(GetCurrentProcess() , GetCurrentThread()
+			, GetCurrentProcess() , &hMainThread
+			, 0 , 0 , DUPLICATE_SAME_ACCESS);
+
+		// FileVersionInfo(_argv[0] , versionInfo);
+		setlocale( LC_ALL, "Polish" );
+		// dla restore
+		if (getArgV(ARGV_RESTORE , false)) {
+			restoreRunningInstance();
+			gracefullExit();
+		}
+
+
+		WSADATA wsaData;
+		WSAStartup( MAKEWORD( 2, 0 ), &wsaData );
+
+		canQuit = false;
+		// Ladowanie DLL'i
+
+		// Core
+		try {
+			plugins.plugInClassic(appFile, coreIMessageProc, pluginCore);
+		} catch (Exception& e) {
+			CStdString msg;
+			msg.Format("Ten b³¹d siê nie zdarza czêsto, ale sam siebie nie mogê za³adowaæ!!!\r\n\r\n%s", e.getReason().a_str());
+			MessageBox(NULL, msg.c_str(), loadString(IDS_APPNAME).c_str(),MB_ICONERROR|MB_OK|MB_TASKMODAL ); 
+			exit(0); 
+		}
+
+		Stamina::mainLogger = plugins[pluginCore].getLogger();
+
+
+		pluginsInit();
+
 	#ifdef __BETA
 		Beta::init();
 	#endif
@@ -172,42 +208,9 @@ namespace Konnekt {
 		}
 
 
-		MainThreadID = GetCurrentThreadId();
-		hMainThread = 0;
-		DuplicateHandle(GetCurrentProcess() , GetCurrentThread()
-			, GetCurrentProcess() , &hMainThread
-			, 0 , 0 , DUPLICATE_SAME_ACCESS);
-
-		// FileVersionInfo(_argv[0] , versionInfo);
-		setlocale( LC_ALL, "Polish" );
-		// dla restore
-		if (getArgV(ARGV_RESTORE , false)) {
-			restoreRunningInstance();
-			gracefullExit();
-		}
 
 
-		WSADATA wsaData;
-		WSAStartup( MAKEWORD( 2, 0 ), &wsaData );
 
-
-		pluginsInit();
-
-
-		canQuit = false;
-		// Ladowanie DLL'i
-
-		// Core
-		try {
-			plugins.plugInClassic(appPath, coreIMessageProc, pluginCore);
-		} catch (Exception& e) {
-			CStdString msg;
-			msg.Format("Ten b³¹d siê nie zdarza czêsto, ale sam siebie nie mogê za³adowaæ!!!\r\n\r\n%s", e.getReason().a_str());
-			MessageBox(NULL, msg.c_str(), loadString(IDS_APPNAME).c_str(),MB_ICONERROR|MB_OK|MB_TASKMODAL ); 
-			exit(0); 
-		}
-
-		Stamina::mainLogger = plugins[pluginCore].getLogger();
 
 		// UI
 		try {

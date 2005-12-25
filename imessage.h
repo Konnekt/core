@@ -118,7 +118,7 @@ namespace Konnekt {
 
 
 
-	int coreIMessageProc(sIMessage_base * msgBase);
+	int __stdcall coreIMessageProc(sIMessage_base * msgBase);
 	int coreDebugCommand(sIMessage_debugCommand * arg);
 
 	int dispatchIMessage(sIMessage_base * msg);

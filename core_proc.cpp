@@ -32,7 +32,7 @@ using namespace Stamina;
 
 
 //  IMessage do Core
-int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
+int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 	sIMessage_2params * msg = static_cast<sIMessage_2params*>(msgBase);
 	if (msgBase->id == IMC_LOG) {
 		return 0;
@@ -50,7 +50,7 @@ int Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		case IM_PLUG_NAME:       return (int)"Core";
 		case IM_PLUG_NETNAME:    return (int)"";
 		case IM_PLUG_INIT:       return Plug_Init(msg->p1,msg->p2);
-		case IM_PLUG_DEINIT:     Plug_Deinit(msg->p1,msg->p2); return 1;
+		case IM_PLUG_DEINIT:     return 1;
 
 		case IMC_ISNEWVERSION: 
 			return newVersion;

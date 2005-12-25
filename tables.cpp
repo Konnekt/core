@@ -139,7 +139,7 @@ namespace Konnekt { namespace Tables {
 		K_ASSERT(_dt.getRowCount() == 0); // nie mo¿emy u¿yæ getRowCount bo jest w nim assertLoaded!
 		oColumn col = _dt.getColumn(colId);
 		if (col->isUndefined() == false && col->hasFlag(cflagIsLoaded) == false) {
-			IMessage(&sIMessage_plugOut(plugin->ID(), stringf("Kolumna %d w %s jest ju¿ ZAJÊTA!" , colId , this->getTableName()).c_str(), sIMessage_plugOut::erYes));
+			IMessage(&sIMessage_plugOut(plugin->ID(), stringf("Kolumna %d w %s jest ju¿ ZAJÊTA!" , colId , this->getTableName().c_str()).c_str(), sIMessage_plugOut::erYes));
 			//CtrlEx->PlugOut(plugin->getPluginId() ,  , 0);
 			return oColumn();
 		}
