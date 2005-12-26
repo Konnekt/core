@@ -223,6 +223,7 @@ namespace Konnekt {
 	unsigned __stdcall Controler1::BeginThreadRecall( void * tparam) {
 		BeginThreadParam* btp = (BeginThreadParam*)tparam;
 		Stamina::Thread::setName(btp->name.c_str(), -1);
+		TLSU().setName(btp->name);
 		unsigned int r;
 		if (noCatch) {
 			r = btp->start_address(btp->param);

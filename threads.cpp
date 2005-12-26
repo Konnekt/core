@@ -50,5 +50,12 @@ namespace Konnekt {
 		return this->_info->name;
 	}
 
+	void UserThread::setName(const StringRef& name) {
+		if (this->_info) {
+			this->_info->name = name;
+		}
+	}
+
+
 
 };

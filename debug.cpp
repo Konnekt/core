@@ -266,7 +266,7 @@ namespace Konnekt { namespace Debug {
 			name = threads[threadId].name;
 		}
 		if (!name.empty()) {
-			return name;
+			return PassStringRef( name );
 		}
 		String s = inttostr(threadId, 16);
 		return PassStringRef( s );
@@ -324,9 +324,17 @@ namespace Konnekt { namespace Debug {
 
 			logTime();
 
-			fprintf(Debug::logFile , "%s[%s:%03d] [%d] %s -> %s\t | %s\t | [%s]\t | %s"
-				, logIndent().c_str() , Time64(true).strftime("%M:%S").c_str()
-				, GetTickCount() % 1000, imessageCount
+			string thread;
+			if (mainThread.isCurrent() == false) {
+				thread = "/" + IMessageInfo::getThread();
+			}
+
+			fprintf(Debug::logFile , "[%s:%03d]%s [%d%s] %s -> %s\t | %s\t | [%s]\t | %s"
+				, Time64(true).strftime("%M:%S").c_str()
+				, GetTickCount() % 1000
+				, logIndent().c_str() 
+				, imessageCount
+				, thread.c_str()
 				, info.getPlugin(msg->sender).c_str() 
 				, info.getPlugin(receiver).c_str()
 				, info.getNet().c_str()
@@ -356,13 +364,16 @@ namespace Konnekt { namespace Debug {
 
 		if (pos == imessageCount-1) {
 			debugLogIMEnd(msg, result, false);
-			fprintf(Debug::logFile , "\t= %s %s (%s)\n", info.getResult(result).c_str(), info.getError(TLSU().stack.getError()).c_str(), info.getThread());
+			fprintf(Debug::logFile , "\t= %s %s\n"
+				, info.getResult(result).c_str()
+				, info.getError(TLSU().stack.getError()).c_str()
+				);
 			IMfinished = true;
 		} else {
 			IMfinished = true;
 			debugLogIMEnd(msg, result, true);
 			if (Debug::logFile) {
-				fprintf(Debug::logFile , "%s= %s %s (%s)\n" , logIndent(-1).c_str(), info.getResult(result).c_str(), info.getError(TLSU().stack.getError()).c_str(), info.getThread().c_str());
+				fprintf(Debug::logFile , "[--:--:---]%s = %s %s (%s)\n" , logIndent().c_str(), info.getResult(result).c_str(), info.getError(TLSU().stack.getError()).c_str(), info.getThread().c_str());
 			}
 		}
 		fflush(Debug::logFile);
@@ -378,9 +389,10 @@ namespace Konnekt { namespace Debug {
 		if (Debug::logFile) {
 			if (!IMfinished) fprintf(Debug::logFile , "\n");
 			logTime();
-			fprintf(Debug::logFile , "%s[%s:%03d] %s (%s, %s) [%s]\t | %s :\n"
-				, logIndent().c_str() , Time64(true).strftime("%M:%S").c_str()
+			fprintf(Debug::logFile , "[%s:%03d]%s %s (%s, %s) [%s]\t | %s :\n"
+				, Time64(true).strftime("%M:%S").c_str()
 				, GetTickCount() % 1000
+				, logIndent().c_str()
 				, info.getPlugin(msg->sender).c_str()
 				, info.getBroadcast(msg->net).c_str()
 				, info.getType().c_str()
@@ -401,7 +413,7 @@ namespace Konnekt { namespace Debug {
 		IMfinished = true;
 		debugLogIMBCEnd(msg, result, hit);
 		if (Debug::logFile) {
-			fprintf(Debug::logFile , "%s=== %s from %d (%s)\n" , logIndent(-1).c_str(), 
+			fprintf(Debug::logFile , "[--:--:---]%s === %s from %d (%s)\n" , logIndent().c_str(), 
 				info.getResult(result).c_str(), hit, info.getThread().c_str());
 		}
 		fflush(Debug::logFile);
@@ -423,12 +435,7 @@ namespace Konnekt { namespace Debug {
 
 			string thread;
 			if (mainThread.isCurrent() == false) {
-				thread = "/";
-				if (TLSU().getName().empty()) {
-					thread += inttostr(GetCurrentThreadId(), 16, 4);
-				} else {
-					thread += TLSU().getName();
-				}
+				thread = "/" + IMessageInfo::getThread();
 			}
 
 			AString txt;
@@ -465,10 +472,12 @@ namespace Konnekt { namespace Debug {
 				place += where;
 			}
 
-			fprintf(Debug::logFile , "%s[%s:%03d] ## [%s%s%s] \t %s\n"
-				, Debug::logIndent().c_str()
+			if (!IMfinished) fprintf(Debug::logFile , "\n");
+
+			fprintf(Debug::logFile , "[%s:%03d]%s ## [%s%s%s] \t %s\n"
 				, Time64(true).strftime("%M:%S").c_str()
 				, GetTickCount() % 1000
+				, Debug::logIndent().c_str()
 				, this->_plugin.getName().c_str()
 				, place.c_str()
 				, thread.c_str()

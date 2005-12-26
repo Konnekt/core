@@ -23,7 +23,7 @@ namespace Konnekt {
 
 	void pluginsInit() {
 		using namespace Tables;
-		oTable plg = registerTable(Ctrl, "Plugins", optPrivate | optAutoLoad | optAutoSave | optAutoUnload | optDiscardLoadedColumns | optMakeBackups | optUseCurrentPassword);
+		oTable plg = registerTable(Ctrl, "Plugins", optPrivate | optAutoLoad | optAutoSave | /*optAutoUnload |*/ optDiscardLoadedColumns | optMakeBackups | optUseCurrentPassword);
 		plg->setFilename("plg.dtb");
 		plg->setDirectory();
 
@@ -138,7 +138,7 @@ namespace Konnekt {
 		if ((this->getId() != pluginCore && this->getId() != pluginUI && _net == Net::none) || _net >= Net::last) throw ExceptionString("Z³a wartoœæ NET!");
 		if (_sig == "" || _name == "") throw ExceptionString("Brakuje nazwy, lub wartoœci SIG!");
 
-		if (RegEx::doMatch("/^[A-Z0-9_]{3,12}$/i", _sig.a_str()) == 0) throw ExceptionString("Wartoœæ SIG nie spe³nia wymagañ!");
+		if (RegEx::doMatch("/^[A-Z0-9_]{2,12}$/i", _sig.a_str()) == 0) throw ExceptionString("Wartoœæ SIG nie spe³nia wymagañ!");
 
 		if (plugins.findSig(_sig) != 0) {
 			throw ExceptionString("Wartoœæ SIG jest ju¿ zajêta!");
@@ -303,7 +303,8 @@ namespace Konnekt {
 	String Plugins::getName(tPluginId id) {
 		if (id == pluginNotFound) return "Unknown";
 		if (id == pluginCore) return "CORE";
-		if (id < 3) return stringf("___BC%u", id - 1);
+//		if (id < 3) 
+//			return stringf("___BC%u", id - 1);
 		int pos = this->getIndex(id);
 		if (pos >= 0) {
 			return _list[pos]->getName();

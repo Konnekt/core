@@ -458,7 +458,7 @@ namespace Konnekt { namespace Debug {
 		RE_PREPARE();
 		RE_BOLD(0);
 		RE_COLOR(0);
-		if (!IMfinished) RE_ADD("\r\n");
+		RE_ADD("\r\n");
 		RE_BGCOLOR(plugin.getDebugColor());
 		RE_ADD("  ");
 		RE_BGCOLOR(TLSU().color);
@@ -484,6 +484,12 @@ namespace Konnekt { namespace Debug {
 			RE_COLOR(COLOR_MODULE);
 			RE_ADD(where);
 		}
+
+		if (mainThread.isCurrent() == false) {
+			RE_COLOR(COLOR_THREAD);
+			RE_ADD( "/" + IMessageInfo::getThread() );
+		}
+
 		bool bold = false;
 		switch (level) {
 			case DBG_ERROR:
@@ -553,7 +559,7 @@ namespace Konnekt { namespace Debug {
 		RE_();
 		RE_PREPARE();
 		if (multiline) {
-			RE_ADD(Debug::logIndent(-1));
+			RE_ADD(Debug::logIndent());
 		} else RE_ADD("\t");
 		RE_BGCOLOR(TLSU().color);
 		RE_ADD("= ");
@@ -612,7 +618,7 @@ namespace Konnekt { namespace Debug {
 		if (!IMfinished) {
 			RE_ADD("\r\n");
 		}
-		RE_ADD(Debug::logIndent(-1));
+		RE_ADD(Debug::logIndent());
 		RE_BGCOLOR(TLSU().color);
 		RE_BOLD(1);
 		RE_COLOR(COLOR_BC);
