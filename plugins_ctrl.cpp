@@ -249,7 +249,7 @@ namespace Konnekt {
 		if (name) {
 			K_ASSERT( K_CHECK_PTR( name ) );
 		}
-		btp->name = string(this->_plugin.getName() + "." + string((name && *name) ? name : "unnamed"));
+		btp->name = string(this->_plugin.getSig() + "." + string((name && *name) ? name : "unnamed"));
 		//Ctrl->IMDEBUG(DBG_FUNC, "BeginThread(%s)", btp->name.c_str());
 		HANDLE handle = (HANDLE)_beginthreadex(security , stack_size , BeginThreadRecall , btp , initflag , thrdaddr);
 		return handle;

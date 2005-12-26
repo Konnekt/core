@@ -144,7 +144,54 @@ namespace Konnekt {
 			throw ExceptionString("Wartoœæ SIG jest ju¿ zajêta!");
 		}
 
+		this->checkApiVersions();
+
 	}
+
+
+	Plugin* versionComparing;
+
+	void __stdcall versionCompare(const Stamina::ModuleVersion& v) {
+
+		Version local = VersionControl::instance()->getVersion(v.getCategory(), v.getName());
+
+		if (local.empty()) return;
+
+		versionComparing->getLogger()->log(logDebug, "apiVersion", 0, "%s (%s) %s [%d]"
+			, v.getVersion().getString(4).c_str()
+			, local.getString(4).c_str()
+			, v.getName()
+			, v.getCategory()
+			);
+
+		if (v.getVersion().major != local.major || v.getVersion().minor > local.minor) {
+
+			throw ExceptionString( stringf("Niezgodnoœæ wersji komponentu \"%s\"! Lokalna: %s; Wtyczki: %s"
+				, v.getName()
+				, v.getVersion().getString(4).c_str()
+				, local.getString(4).c_str()
+				));
+
+		}
+
+	}
+
+	void Plugin::checkApiVersions() {
+		typedef void (__stdcall *fComparer)(fApiVersionCompare cmp);
+
+		fComparer comparer;
+
+		comparer = (fComparer)GetProcAddress(_module , "KonnektApiVersions");
+		if (!comparer) {
+			comparer = (fComparer)GetProcAddress(_module , "_KonnektApiVersions@4");
+		}
+		
+		if (comparer) {
+			versionComparing = this;
+			comparer(versionCompare);
+		}
+	}
+
 
 	void Plugin::run() {
 		if (this->getId() == pluginCore) {
@@ -302,12 +349,19 @@ namespace Konnekt {
 
 	String Plugins::getName(tPluginId id) {
 		if (id == pluginNotFound) return "Unknown";
-		if (id == pluginCore) return "CORE";
-//		if (id < 3) 
-//			return stringf("___BC%u", id - 1);
 		int pos = this->getIndex(id);
 		if (pos >= 0) {
 			return _list[pos]->getName();
+		} else {
+			return stringf("%#.4x",id);
+		}
+	}
+
+	String Plugins::getSig(tPluginId id) {
+		if (id == pluginNotFound) return "Unknown";
+		int pos = this->getIndex(id);
+		if (pos >= 0) {
+			return _list[pos]->getSig();
 		} else {
 			return stringf("%#.4x",id);
 		}

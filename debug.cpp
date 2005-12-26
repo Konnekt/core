@@ -281,10 +281,10 @@ namespace Konnekt { namespace Debug {
 		return PassStringRef( s );
 	}
 	StringRef IMessageInfo::getPlugin(tPluginId plugin) {
-		return PassStringRef( plugins.getName(plugin) );
+		return PassStringRef( plugins.getSig(plugin) );
 	}
 	StringRef IMessageInfo::getPlugin(Plugin& plugin) {
-		return plugin.getName().getRef();
+		return plugin.getSig().getRef();
 	}
 
 
@@ -478,7 +478,7 @@ namespace Konnekt { namespace Debug {
 				, Time64(true).strftime("%M:%S").c_str()
 				, GetTickCount() % 1000
 				, Debug::logIndent().c_str()
-				, this->_plugin.getName().c_str()
+				, this->_plugin.getSig().c_str()
 				, place.c_str()
 				, thread.c_str()
 				, txt.a_str()

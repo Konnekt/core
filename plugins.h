@@ -142,6 +142,7 @@ namespace Konnekt {
 		void initVirtual(Plugin& owner, void* imessageObject, void* imessageProc);
 		void initData();
 		void run();
+		void checkApiVersions();
 
 		void deinitialize();
 
@@ -237,6 +238,8 @@ namespace Konnekt {
 		Plugin* findSig(const StringRef& sig);
 
 		String getName(tPluginId id);
+
+		String getSig(tPluginId id);
 
 		void sortPlugins();
 
