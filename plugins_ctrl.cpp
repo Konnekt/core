@@ -262,7 +262,7 @@ namespace Konnekt {
 		return this->_plugin.getLogger()->getLevel(level);
 	}
 	unsigned int __stdcall Controler1::SetDebugLevel(enDebugLevel levelMask, enDebugLevel level) {
-		this->_plugin.getLogger()->setLevel(level, levelMask);
+		this->_plugin.getLogger()->setLevel(level, (enDebugLevel)(levelMask & (~DBG_SPECIAL)));
 		return this->_plugin.getLogger()->getLevel();
 	}
 

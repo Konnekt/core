@@ -25,6 +25,32 @@
 
 using namespace Stamina;
 
+
+extern "C" __declspec(dllexport) void __stdcall KonnektApiRegister(fApiVersionCompare reg) {
+	using namespace Stamina;
+	reg(iObject::staticClassInfo().getModuleVersion());
+	reg(iSharedObject::staticClassInfo().getModuleVersion());
+	reg(iLockableObject::staticClassInfo().getModuleVersion());
+	reg(Stamina::Lib::version);
+	reg(Konnekt::apiVersion);
+	reg(iString::staticClassInfo().getModuleVersion());
+	reg(StringRef<char>::staticClassInfo().getModuleVersion());
+	reg(String<char>::staticClassInfo().getModuleVersion());
+	reg(Lock::staticClassInfo().getModuleVersion());
+	reg(iArrayBase::staticClassInfo().getModuleVersion());
+	reg(Exception::staticClassInfo().getModuleVersion());
+
+	reg(Konnekt::iPlugin::staticClassInfo().getModuleVersion());
+	reg(Konnekt::iTable::staticClassInfo().getModuleVersion());
+	reg(Stamina::iColumn::staticClassInfo().getModuleVersion());
+	reg(Stamina::iRow::staticClassInfo().getModuleVersion());
+	reg(Stamina::Unique::iRange::staticClassInfo().getModuleVersion());
+	reg(Stamina::Unique::iDomain::staticClassInfo().getModuleVersion());
+	reg(Stamina::Unique::iDomainList::staticClassInfo().getModuleVersion());
+}
+
+
+
 namespace Konnekt {
 
 	const char* const coreLibraries = "/^(msvc.+|smemory|stamina|devil.*|zlib)\\.dll$/i";
@@ -380,6 +406,7 @@ namespace Konnekt {
 
 		// odpinamy wszystkie wtyczki...
 		for (int i = plugins.count() - 1; i >= 0; --i) {
+			if (plugins[i]->isVirtual()) continue;
 			plugins.plugOut(plugins[i], false);
 		}
 		IMLOG("-plugs unpluged");

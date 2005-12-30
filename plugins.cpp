@@ -21,6 +21,8 @@ namespace Konnekt {
 
 	tTableId tablePlugins;
 
+	VersionControl apiVersions;
+
 	void pluginsInit() {
 		using namespace Tables;
 		oTable plg = registerTable(Ctrl, "Plugins", optPrivate | optAutoLoad | optAutoSave | /*optAutoUnload |*/ optDiscardLoadedColumns | optMakeBackups | optUseCurrentPassword);
@@ -48,7 +50,7 @@ namespace Konnekt {
 		_priority = priorityNone;
 		_ctrl = 0;
 		_owner = 0;
-		_logger = new KLogger(*this, logAll);
+		_logger = new KLogger(*this, logAll | DBG_SPECIAL);
 	}
 
 
@@ -144,8 +146,6 @@ namespace Konnekt {
 			throw ExceptionString("Wartoœæ SIG jest ju¿ zajêta!");
 		}
 
-		this->checkApiVersions();
-
 	}
 
 
@@ -153,7 +153,7 @@ namespace Konnekt {
 
 	void __stdcall versionCompare(const Stamina::ModuleVersion& v) {
 
-		Version local = VersionControl::instance()->getVersion(v.getCategory(), v.getName());
+		Version local = apiVersions.getVersion(v.getCategory(), v.getName());
 
 		if (local.empty()) return;
 
@@ -176,7 +176,12 @@ namespace Konnekt {
 
 	}
 
-	void Plugin::checkApiVersions() {
+	void __stdcall versionRegister(const Stamina::ModuleVersion& v) {
+		apiVersions.registerModule(v);
+	}
+
+
+	void Plugin::checkApiVersions(bool registerVersions) {
 		typedef void (__stdcall *fComparer)(fApiVersionCompare cmp);
 
 		fComparer comparer;
@@ -190,6 +195,21 @@ namespace Konnekt {
 			versionComparing = this;
 			comparer(versionCompare);
 		}
+
+		if (registerVersions) {
+			fComparer registrar;
+
+			registrar = (fComparer)GetProcAddress(_module , "KonnektApiRegister");
+			if (!registrar) {
+				registrar = (fComparer)GetProcAddress(_module , "_KonnektApiRegister@4");
+			}
+			
+			if (registrar) {
+				registrar(versionRegister);
+			}
+		}
+
+
 	}
 
 
@@ -211,8 +231,22 @@ namespace Konnekt {
 
 	void Plugin::deinitialize() {
 		Ctrl->IMessage(IM_PLUG_PLUGOUT, Net::broadcast, imtAll, this->getId());
+
+		// wywalamy jego wirtualne i restujemy subclassowanie...
+		for (Plugins::tList::iterator it = plugins.begin(); it != plugins.end(); ++it) {
+			if ((*it)->getLastSubclasser() == this) {
+				(*it)->resetSubclassing();
+			}
+			if ((*it)->getOwnerPlugin() == this) {
+				plugins.plugOut(*(*it), false);
+			}
+		}
+
+		this->resetSubclassing();
+
 		bool nofree = this->IMessageDirect(IM_PLUG_DONTFREELIBRARY, 0 ,0);
 		this->_running=false;
+
 		this->IMessageDirect(IM_PLUG_DEINIT, 0 ,0);
 		if (nofree) {
 			_module = 0;
@@ -221,13 +255,8 @@ namespace Konnekt {
 
 
 
-	extern inline int Plugin::callIMessageProc(sIMessage_base*im) {
-		if (_imessageObject == 0) {
-			return ((fIMessageProc)_imessageProc)(im);
-		} else {
-			typedef int (__stdcall*fIMessageProcObject)(void*, sIMessage_base * msg);
-			return ((fIMessageProcObject)_imessageProc)(_imessageObject, im);
-		}
+	inline int Plugin::callIMessageProc(sIMessage_base*im) {
+		return callIMessageProc(im, _imessageProc, _imessageObject);
 	}
 
 	bool Plugin::plugOut(Controler* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload) {
@@ -269,6 +298,21 @@ namespace Konnekt {
 		return result;
 	}
 
+	bool Plugin::subclassIMessageProc(Controler* sender, void*& proc, void*& object) {
+		if (!sender) return false;
+
+		void * tempProc = proc;
+		void * tempObject = object;
+
+		proc = _imessageProc;
+		object = _imessageObject;
+
+		if (tempProc) {
+			_imessageProc = tempProc;
+			_imessageObject = tempObject;
+		}
+		return true;
+	}
 
 
 	void Plugin::madeError(const StringRef& msg , unsigned int severity) {
@@ -372,6 +416,7 @@ namespace Konnekt {
 		ptrPlugin plugin (new Plugin(pluginId));
 		try {
 			plugin->initClassic(filename, imessageProc);
+			plugin->checkApiVersions(true);
 			plugin->run();
 			_list.push_back(plugin);
 		} catch (ExceptionString& e) {
@@ -395,6 +440,9 @@ namespace Konnekt {
 	bool Plugins::plugOut(Plugin& plugin, bool removeFromList) {
 		plugin.deinitialize();
 		if (removeFromList) {
+	
+			plugins.cleanUp(); // wywalamy to co ew. zosta³o wypiête w deinitialize
+
 			for (tList::iterator it = _list.begin(); it != _list.end(); ++it) {
 				if (it->get() == &plugin) {
 					_list.erase(it);
@@ -408,6 +456,16 @@ namespace Konnekt {
 		return true;
 	}
 
+	void Plugins::cleanup() {
+		tList::iterator it = _list.begin();
+		while (it != _list.end()) {
+			if ((*it)->isRunning() == false) {
+				it = _list.erase(it);
+			} else {
+				++it;
+			}
+		}
+	}
 
 	void Plugins::sortPlugins(void) {
 		// Na poczatku wszystkie wtyczki maja 0 dziêki czemu bêdziemy je
@@ -538,6 +596,28 @@ namespace Konnekt {
 		if (!startUp) return;
 		newOne = false;
 		// Wlaczanie wtyczek:
+
+		int apiVersionsCount = apiVersions.size();
+
+		struct FailedPlugin {
+			FailedPlugins(StringRef cause, StringRef filename) {
+				this->cause = cause;
+				this->filename = filename;
+				this->plugin = 0;
+			}
+			FailedPlugins(StringRef cause, iPlugin* plugin) {
+				this->cause = cause;
+				this->filename = plugin->getDllFile();
+				this->plugin = plugin;
+			}
+			String cause;
+			String filename;
+			iPlugin* plugin;
+		};
+
+		typedef std::list<FailedPlugin> tFailedPlugins;
+		tFailedPlugins failedPlugins;
+
 		for (unsigned int i = 0 ; i < plg->getRowCount(); i++) {
 			if (plg->getInt(i , PLG::isNew)==-1) {
 				plg->removeRow(i);
@@ -551,16 +631,55 @@ namespace Konnekt {
 				plugins.plugInClassic(file);
 			} catch (Exception& e) {
 
-				CStdString errMsg;
-				errMsg.Format(loadString(IDS_ERR_DLL).c_str(), file.a_str() , e.getReason().a_str());
-				int ret = MessageBox(NULL , errMsg , loadString(IDS_APPNAME).c_str() , MB_ICONWARNING|MB_YESNOCANCEL|MB_TASKMODAL);
-				if (ret == IDCANCEL) abort();
-				if (ret == IDYES) {
-					plg->setInt(i , PLG::load , -1);
+				mainLogger->log(logError, "setPlugins", "plugInClassic", "Wyst¹pi³ b³¹d podczas ³adowania %s - \"%s\"", file.c_str(), e.getReason().c_str());
+				failedPlugins.push_back( FailedPlugin(e.getReason(), file) );
+
+			}
+		}
+
+		if (apiVersionsCount != apiVersions.size()) {
+			mainLogger->log(logLog, "Plugins", "setPlugins", "New API classes detected! rechecking versions...");
+			for (Plugins::tList::iterator it =  plugins.begin(); it != plugins.end(); ++it) {
+				try {
+					if ((*it)->isVirtual()) continue;
+					(*it)->checkApiVersions();
+
+				} catch (Exception& e) {
+
+					mainLogger->log(logError, "setPlugins", "plugInClassic", "Wyst¹pi³ b³¹d podczas sprawdzania wersji %s - \"%s\"", (*it)->getName().c_str(), e.getReason().c_str());
+					failedPlugins.push_back( FailePlugin(e.getReason(), it->get()) );
+
+				}
+
+			}
+		}
+
+		if (failedPlugins.size()) {
+
+			String msg = "Wyst¹pi³y b³êdy podczas ³adowania wtyczek.\r\nJe¿eli naciœniesz [TAK] pluginy te nie bêd¹ ³adowane ponownie!\r\n\r\n";
+
+			for (tFailedPlugins::iterator it = failedPlugins.begin(); it != failedPlugins.end(); ++it) {
+				;
+				msg += getFileName(it->filename);
+				msg += " : \"";
+				msg += "\"\r\n";
+
+				if (it->plugin) { // wy³adowywujemy...
+					plugins.plugOut(*it->plugin, true);
+				}
+			}
+
+			int ret = MessageBox(NULL , msg.c_str() , loadString(IDS_APPNAME).c_str() , MB_ICONERROR|MB_YESNOCANCEL|MB_TASKMODAL);
+			if (ret == IDCANCEL) abort();
+			if (ret == IDYES) { // ¿eby siê wiêcej nie ³adowa³y...
+				for (tFailedPlugins::iterator it = failedPlugins.begin(); it != failedPlugins.end(); ++it) {
+					tRowId id = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), it->filename)).getId();
+					plg->setInt(id , PLG::load , -1);
 					newOne = 1;
 				}
 			}
 		}
+
         plg->save();
 		IMLOG("- Plug.sort");
 		plugins.sortPlugins();

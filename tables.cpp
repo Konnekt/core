@@ -93,16 +93,16 @@ namespace Konnekt { namespace Tables {
 	}
 
 	int TableImpl::getRowPos(tRowId rowId) {
-		ObjLocker l (this);
+		ObjLocker l (this, lockRead);
 		return _dt.getRowPos(rowId);
 	}
 	int TableImpl::getRowId(unsigned int rowPos) {
-		ObjLocker l (this);
+		ObjLocker l (this, lockRead);
 		return _dt.getRowId(rowPos);
 	}
 
 	oRow __cdecl TableImpl::_findRow(unsigned int startPos, int argCount, ...) {
-		ObjLocker l (this);
+		ObjLocker l (this, lockRead);
 		this->assertLoaded();
 		va_list list;
 		va_start(list, argCount);
@@ -113,29 +113,29 @@ namespace Konnekt { namespace Tables {
 
 
 	unsigned int TableImpl::getRowCount() {
-		ObjLocker lock(this);
+		ObjLocker lock(this, lockDefault);
 		this->assertLoaded();
 		return _dt.getRowCount();
 	}
 	unsigned int TableImpl::getColCount() {
-		ObjLocker lock(this);
+		ObjLocker lock(this, lockDefault);
 		return _dt.getColumns().getColCount();
 	}
 
 	void TableImpl::lockData(tRowId rowId , int reserved) {
-		ObjLocker lock(this);
+		ObjLocker lock(this, lockDefault);
 		this->assertLoaded();
 		return _dt.lock(rowId);
 	}
 
 	void TableImpl::unlockData(tRowId rowId , int reserved) {
-		ObjLocker lock(this);
+		ObjLocker lock(this, lockDefault);
 		this->assertLoaded();
 		return _dt.unlock(rowId);
 	}
 
 	oColumn TableImpl::setColumn(Controler* plugin, tColId colId , tColType type, const StringRef& name) {
-		ObjLocker lock(this);
+		ObjLocker lock(this, lockWrite);
 		K_ASSERT(_dt.getRowCount() == 0); // nie mo¿emy u¿yæ getRowCount bo jest w nim assertLoaded!
 		oColumn col = _dt.getColumn(colId);
 		if (col->isUndefined() == false && col->hasFlag(cflagIsLoaded) == false) {
@@ -149,7 +149,7 @@ namespace Konnekt { namespace Tables {
 	oRow TableImpl::addRow(tRowId rowId) {
 		oRow row;
 		{
-			ObjLocker lock(this);
+			ObjLocker lock(this, lockWrite);
 			this->assertLoaded();
 			row = _dt.addRow(rowId).get();
 		}
@@ -159,13 +159,13 @@ namespace Konnekt { namespace Tables {
 
 	bool TableImpl::removeRow(tRowId rowId) {
 		{
-			ObjLocker lock(this);
+			ObjLocker lock(this, lockDefault);
 			this->assertLoaded();
 		}
 		this->broadcastRowEvent(IM::rowRemoving, rowId);
 		bool r;
 		{
-			Stamina::ObjLocker lock(this);
+			Stamina::ObjLocker lock(this, lockDefault);
 			this->assertLoaded(); // na wszelki :]
 			r = _dt.deleteRow(rowId);
 		}
@@ -176,7 +176,7 @@ namespace Konnekt { namespace Tables {
 	void TableImpl::reset() {
 		this->broadcastEvent(IM::resetting);
 		{
-			Stamina::ObjLocker lock(this);
+			Stamina::ObjLocker lock(this, lockDefault);
 			this->_loaded = false;
 			this->_columnsSet = false;
 			this->_dt.clearRows();
@@ -187,7 +187,7 @@ namespace Konnekt { namespace Tables {
 	void TableImpl::resetData() {
 		this->broadcastEvent(IM::resetting);
 		{
-			Stamina::ObjLocker lock(this);
+			Stamina::ObjLocker lock(this, lockDefault);
 			this->_dt.clearRows();
 		}
 	}
@@ -197,7 +197,7 @@ namespace Konnekt { namespace Tables {
 			this->save();
 		}
 		{
-			Stamina::ObjLocker lock(this);
+			Stamina::ObjLocker lock(this, lockDefault);
 			this->_loaded = false;
 			this->_dt.clearRows();
 		}
@@ -208,7 +208,7 @@ namespace Konnekt { namespace Tables {
 		if (!force && this->isLoaded()) return errAlreadyLoaded;
 		enResult result;
 		{
-			Stamina::ObjLocker lock(this);
+			Stamina::ObjLocker lock(this, lockDefault);
 			String file = (filepath.empty() == false) ? filepath : this->getFilepath();
 			file = Stamina::expandEnvironmentStrings(file.c_str());
 			result = errFileNotFound;
@@ -245,7 +245,7 @@ namespace Konnekt { namespace Tables {
 		this->broadcastEvent(IM::beforeSave);
 		enResult result;
 		{
-			Stamina::ObjLocker lock(this);
+			Stamina::ObjLocker lock(this, lockDefault);
 			String file = (filepath.empty() == false) ? filepath : this->getFilepath();
 			file = Stamina::expandEnvironmentStrings(file.c_str());
 			if (file.empty()) { 
@@ -284,7 +284,7 @@ namespace Konnekt { namespace Tables {
 	}
 
 	void TableImpl::lateSave(bool enabled) {
-		Stamina::ObjLocker lock(this);
+		Stamina::ObjLocker lock(this, lockDefault);
 		if (enabled == false)
 			_lateSaveTimer.reset();
 		else
@@ -294,7 +294,7 @@ namespace Konnekt { namespace Tables {
 	}
 
 	void TableImpl::queryLateSave() {
-		Stamina::ObjLocker lock(this);
+		Stamina::ObjLocker lock(this, lockDefault);
 		IMDEBUG(DBG_FUNC, "iTable::lateSave() queried");
 		_lateSaveTimer.reset(Stamina::timerTmplCreate(boost::bind(TableImpl::onLateSaveTimer, this)));
 		_lateSaveTimer->start(lateSaveDelay);
@@ -306,7 +306,7 @@ namespace Konnekt { namespace Tables {
 	}
 
 	bool TableImpl::setOpt(enTableOptions option , bool enabled) {
-		Stamina::ObjLocker lock(this);
+		Stamina::ObjLocker lock(this, lockDefault);
 		if (getOpt(option) == enabled) return enabled;
 		if (enabled) {
 
@@ -330,7 +330,7 @@ namespace Konnekt { namespace Tables {
 	}
 
 	void TableImpl::setDirectory(const StringRef& path) {
-		Stamina::ObjLocker lock(this);
+		Stamina::ObjLocker lock(this, lockDefault);
 		if (path.empty() == false) {
 			this->_directory = unifyPath( path, false );
 		} else {

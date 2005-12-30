@@ -107,6 +107,18 @@ namespace Konnekt {
 
 		virtual bool plugOut(Controler* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload);
 
+		virtual bool subclassIMessageProc(Controler* sender, void*& proc, void*& object);
+
+		virtual oPlugin getLastSubclasser() {
+			return _subclasser;
+		}
+
+		virtual void resetSubclassing() {
+			_subclasser.reset();
+			_imessageProc = _originalProc;
+			_imessageObject = _imessageObject;
+		}
+
 		COLORREF getDebugColor() {
 			return _debugColor;
 		}
@@ -132,6 +144,7 @@ namespace Konnekt {
 			return _logger;
 		}
 
+		
 
 	private:
 
@@ -142,7 +155,7 @@ namespace Konnekt {
 		void initVirtual(Plugin& owner, void* imessageObject, void* imessageProc);
 		void initData();
 		void run();
-		void checkApiVersions();
+		void checkApiVersions(bool registerVersions);
 
 		void deinitialize();
 
@@ -150,6 +163,9 @@ namespace Konnekt {
 
 		void* _imessageProc;
 		void* _imessageObject;
+		void* _originalProc;
+		void* _originalObject;
+		oPlugin _subclasser;
 		String _file;
 		HMODULE _module;
 		tNet _net;
@@ -231,6 +247,8 @@ namespace Konnekt {
 
 		bool plugOut(Plugin& plugin, bool removeFromList);
 
+		void cleanup();
+
 		int findPlugin(tNet net , enIMessageType type , unsigned int start=0);
 
 		Plugin* findName(const StringRef& name);
@@ -253,6 +271,8 @@ namespace Konnekt {
 	};
 
 	extern Plugins plugins;
+
+	extern VersionControl apiVersions;
 
 
 	void setPlugins(bool noDlg = false , bool startUp = true);
