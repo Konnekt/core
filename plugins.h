@@ -148,7 +148,9 @@ namespace Konnekt {
 
 	private:
 
-		int callIMessageProc(sIMessage_base*im);
+		int callIMessageProc(sIMessage_base*im) {
+			return iPlugin::callIMessageProc(im, _imessageProc, _imessageObject);
+		}
 
 
 		void initClassic(const StringRef& file, void* imessageProc = 0);
@@ -264,6 +266,9 @@ namespace Konnekt {
 		void cleanUp();
 
 
+		static void setPlugins(bool noDlg = false , bool startUp = true);
+		static void checkVersions(void);
+
 	private:
 
 		tList _list;
@@ -275,8 +280,6 @@ namespace Konnekt {
 	extern VersionControl apiVersions;
 
 
-	void setPlugins(bool noDlg = false , bool startUp = true);
-	void checkVersions(void);
 
 
 	Controler_ * createPluginCtrl(Plugin& plugin);

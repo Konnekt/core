@@ -17,6 +17,8 @@ namespace Konnekt { namespace Tables {
 
 
 	using Stamina::LockerCS;
+	using Stamina::ObjLocker;
+	using namespace Stamina;
 
 	//extern oTable msg;
 	extern oTable cfg;
@@ -35,7 +37,7 @@ namespace Konnekt { namespace Tables {
 
 	class TableImpl: public ::Stamina::SharedObject<iTable> {
 	public:
-		typedef Stamina::ObjLocker TableLocker;
+		//typedef Stamina::ObjLocker TableLocker;
 
 		const static int lateSaveDelay = 15000; // 15 sek.
 
@@ -93,7 +95,7 @@ namespace Konnekt { namespace Tables {
 		}
 
 		bool isLoaded() {
-			TableLocker(this);
+			ObjLocker lock(this, lockRead);
 			return _isLoaded();
 		}
 
@@ -103,21 +105,21 @@ namespace Konnekt { namespace Tables {
 
 		bool setOpt(enTableOptions option , bool enabled);
 		bool getOpt(enTableOptions option) {
-			TableLocker(this);
+			ObjLocker lock(this, lockRead);
 			return (this->_opt & option) == (int)option;
 		}
 
 		void setFilename(const StringRef& filename = StringRef()) {
-			TableLocker(this);
+			ObjLocker lock(this, lockWrite);
 			this->_filename = filename;
 		}
 		String getFilename() {
-			TableLocker(this);
+			ObjLocker lock(this, lockRead);
 			return this->_filename;
 		}
 		void setDirectory(const StringRef& path = StringRef());
 		String getDirectory() {
-			TableLocker(this);
+			ObjLocker lock(this, lockRead);
 			return this->_directory;
 		}
 		tTableId getTableId() {

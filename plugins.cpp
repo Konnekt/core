@@ -116,6 +116,8 @@ namespace Konnekt {
 	}
 
 	void Plugin::initData() {
+		_originalObject = _imessageObject;
+		_originalProc = _imessageProc;
 		static uniqueId = pluginsDynamicIdStart;
 		if (this->_id == pluginNotFound) {
 			this->_id = (tPluginId)uniqueId++;
@@ -168,8 +170,8 @@ namespace Konnekt {
 
 			throw ExceptionString( stringf("Niezgodnoœæ wersji komponentu \"%s\"! Lokalna: %s; Wtyczki: %s"
 				, v.getName()
-				, v.getVersion().getString(4).c_str()
 				, local.getString(4).c_str()
+				, v.getVersion().getString(4).c_str()
 				));
 
 		}
@@ -234,7 +236,7 @@ namespace Konnekt {
 
 		// wywalamy jego wirtualne i restujemy subclassowanie...
 		for (Plugins::tList::iterator it = plugins.begin(); it != plugins.end(); ++it) {
-			if ((*it)->getLastSubclasser() == this) {
+			if ((*it)->getLastSubclasser().get() == this) {
 				(*it)->resetSubclassing();
 			}
 			if ((*it)->getOwnerPlugin() == this) {
@@ -255,9 +257,6 @@ namespace Konnekt {
 
 
 
-	inline int Plugin::callIMessageProc(sIMessage_base*im) {
-		return callIMessageProc(im, _imessageProc, _imessageObject);
-	}
 
 	bool Plugin::plugOut(Controler* sender, const StringRef& reason, bool quiet, enPlugOutUnload unload) {
 		Stamina::mainLogger->log(Stamina::logWarn, "Plugin", "plugOut", "unload=%d reason=\"%s\"", unload, reason.a_str());
@@ -507,7 +506,7 @@ namespace Konnekt {
 	// --------------------------------------------------------------------
 
 
-	void checkVersions(void) {
+	void Plugins::checkVersions(void) {
 
 		using namespace Tables;
 		oTable state = registerTable(Ctrl, "PluginState", optPrivate |  optDiscardLoadedColumns);
@@ -568,7 +567,24 @@ namespace Konnekt {
 
 
 
-	void setPlugins(bool noDlg , bool startUp) {
+	struct FailedPlugin {
+		FailedPlugin(StringRef cause, StringRef filename) {
+			this->cause = cause;
+			this->filename = filename;
+			this->plugin = 0;
+		}
+		FailedPlugin(StringRef cause, Plugin* plugin) {
+			this->cause = cause;
+			this->filename = plugin->getDllFile();
+			this->plugin = plugin;
+		}
+		String cause;
+		String filename;
+		Plugin* plugin;
+	};
+
+
+	void Plugins::setPlugins(bool noDlg , bool startUp) {
 		string plugDir = loadString(IDS_PLUGINDIR);
 		int i = 0;
 
@@ -599,21 +615,6 @@ namespace Konnekt {
 
 		int apiVersionsCount = apiVersions.size();
 
-		struct FailedPlugin {
-			FailedPlugins(StringRef cause, StringRef filename) {
-				this->cause = cause;
-				this->filename = filename;
-				this->plugin = 0;
-			}
-			FailedPlugins(StringRef cause, iPlugin* plugin) {
-				this->cause = cause;
-				this->filename = plugin->getDllFile();
-				this->plugin = plugin;
-			}
-			String cause;
-			String filename;
-			iPlugin* plugin;
-		};
 
 		typedef std::list<FailedPlugin> tFailedPlugins;
 		tFailedPlugins failedPlugins;
@@ -642,12 +643,12 @@ namespace Konnekt {
 			for (Plugins::tList::iterator it =  plugins.begin(); it != plugins.end(); ++it) {
 				try {
 					if ((*it)->isVirtual()) continue;
-					(*it)->checkApiVersions();
+					(*it)->checkApiVersions(false);
 
 				} catch (Exception& e) {
 
 					mainLogger->log(logError, "setPlugins", "plugInClassic", "Wyst¹pi³ b³¹d podczas sprawdzania wersji %s - \"%s\"", (*it)->getName().c_str(), e.getReason().c_str());
-					failedPlugins.push_back( FailePlugin(e.getReason(), it->get()) );
+					failedPlugins.push_back( FailedPlugin(e.getReason(), it->get()) );
 
 				}
 
@@ -662,6 +663,7 @@ namespace Konnekt {
 				;
 				msg += getFileName(it->filename);
 				msg += " : \"";
+				msg += it->cause;
 				msg += "\"\r\n";
 
 				if (it->plugin) { // wy³adowywujemy...

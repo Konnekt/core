@@ -12,3 +12,4 @@
 #define ARGV_NOCATCH "-nocatch"
 #define ARGV_DEBUGALL "-debugall"
 #define ARGV_STARTDEV "-startDev"
+#define ARGV_TEST "-test"

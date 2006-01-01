@@ -28,6 +28,8 @@ Obs³uga "rdzeniowych" komunikatów
 #include "argv.h"
 #include "plugins_ctrl.h"
 
+#include <Konnekt/plugin_test.h>
+
 using namespace Stamina;
 
 
@@ -410,7 +412,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		case IMC_PLUGS:
 			ISRUNNING();
 			IMESSAGE_TS();
-			setPlugins(true , false);
+			Plugins::setPlugins(true , false);
 			PlugsDialog(); 
 			return 1;
 
@@ -700,10 +702,9 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				for (int i = 0; i < msgDc->argc; i++)
 					argv[i] = strdup(msgDc->argv[i]);
 				sIMessage_debugCommand dc (msgDc->argc, argv, sIMessage_debugCommand::duringAsynchronous);
-				return Ctrl->RecallIMTS(0, false, &dc, pluginUI);
+				return Ctrl->RecallIMTS(0, false, &dc, pluginCore);
 			}
 			IMESSAGE_TS();
-			coreDebugCommand(msgDc);
 			sIMessage_debugCommand dc = *msgDc;
 			dc.net = NET_BROADCAST;
 			dc.type = IMT_ALL;
@@ -718,6 +719,8 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			return 0;
 		}
 
+		case IM_DEBUG_COMMAND:
+			return coreDebugCommand(static_cast<sIMessage_debugCommand*> (msgBase));
 
 		case Tables::IM::registerTable: 
 		{
@@ -728,6 +731,15 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 		case Unique::IMC::getMainInstance:
 			return (int)Unique::instance();
+
+	
+		case Konnekt::IM::getTests: {
+			return Konnekt::getCoreTests(static_cast<IM::GetTests*>(msgBase));
+			}
+
+		case Konnekt::IM::runTests:
+			return Konnekt::runCoreTests(static_cast<sIMessage_plugArgs*>(msgBase));
+
 
 	}
 	Ctrl->setError(IMERROR_NORESULT);
@@ -743,7 +755,7 @@ int Konnekt::coreDebugCommand(sIMessage_debugCommand * arg) {
 		IMDEBUG(DBG_COMMAND, "- Dostêpne polecenia:");
 		IMDEBUG(DBG_COMMAND, " test [nazwa_testu]");
 	} else if (cmd == "test") {
-		command_test(arg);
+		return command_test(arg);
 	} else if (cmd == "debug") {
 		if (arg->argEq(1, "objects")) {
 			Stamina::debugDumpObjects(Stamina::mainLogger);

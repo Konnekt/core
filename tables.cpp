@@ -125,13 +125,13 @@ namespace Konnekt { namespace Tables {
 	void TableImpl::lockData(tRowId rowId , int reserved) {
 		ObjLocker lock(this, lockDefault);
 		this->assertLoaded();
-		return _dt.lock(rowId);
+		return _dt.lockRow(rowId);
 	}
 
 	void TableImpl::unlockData(tRowId rowId , int reserved) {
 		ObjLocker lock(this, lockDefault);
 		this->assertLoaded();
-		return _dt.unlock(rowId);
+		return _dt.unlockRow(rowId);
 	}
 
 	oColumn TableImpl::setColumn(Controler* plugin, tColId colId , tColType type, const StringRef& name) {

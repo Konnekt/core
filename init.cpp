@@ -18,9 +18,11 @@
 #include "unique.h"
 #include "argv.h"
 #include "mru.h"
+#include "tables.h"
 
 #include <Stamina\Logger.h>
 #include <Stamina\Exception.h>
+#include <Stamina\iArray.h>
 #include "KLogger.h"
 
 using namespace Stamina;
@@ -34,16 +36,16 @@ extern "C" __declspec(dllexport) void __stdcall KonnektApiRegister(fApiVersionCo
 	reg(Stamina::Lib::version);
 	reg(Konnekt::apiVersion);
 	reg(iString::staticClassInfo().getModuleVersion());
-	reg(StringRef<char>::staticClassInfo().getModuleVersion());
-	reg(String<char>::staticClassInfo().getModuleVersion());
+	reg(StringRef::staticClassInfo().getModuleVersion());
+	reg(String::staticClassInfo().getModuleVersion());
 	reg(Lock::staticClassInfo().getModuleVersion());
 	reg(iArrayBase::staticClassInfo().getModuleVersion());
 	reg(Exception::staticClassInfo().getModuleVersion());
 
 	reg(Konnekt::iPlugin::staticClassInfo().getModuleVersion());
-	reg(Konnekt::iTable::staticClassInfo().getModuleVersion());
-	reg(Stamina::iColumn::staticClassInfo().getModuleVersion());
-	reg(Stamina::iRow::staticClassInfo().getModuleVersion());
+	reg(Konnekt::Tables::iTable::staticClassInfo().getModuleVersion());
+	reg(Stamina::DT::iColumn::staticClassInfo().getModuleVersion());
+	reg(Stamina::DT::iRow::staticClassInfo().getModuleVersion());
 	reg(Stamina::Unique::iRange::staticClassInfo().getModuleVersion());
 	reg(Stamina::Unique::iDomain::staticClassInfo().getModuleVersion());
 	reg(Stamina::Unique::iDomainList::staticClassInfo().getModuleVersion());
@@ -292,7 +294,7 @@ namespace Konnekt {
 		IMLOG("--- Core columns set ---");
 
 		// £aduje pluginy...
-		setPlugins();
+		Plugins::setPlugins();
 		IMessage(IM_ALLPLUGINSINITIALIZED , NET_BROADCAST , IMT_ALL);
 		IMLOG("--- Plugins loaded ---");
 
@@ -314,7 +316,7 @@ namespace Konnekt {
 
 		hInternet = (HINTERNET) ICMessage(IMC_HINTERNET_OPEN , (int)"Konnekt" , 0);
 
-		checkVersions();
+		Plugins::checkVersions();
 		IMLOG("--- Versions checked ---");
 		Tables::cfg->setString(0, CFG_APPFILE, appFile);
 		Tables::cfg->setString(0, CFG_APPDIR, appPath);
@@ -406,7 +408,7 @@ namespace Konnekt {
 
 		// odpinamy wszystkie wtyczki...
 		for (int i = plugins.count() - 1; i >= 0; --i) {
-			if (plugins[i]->isVirtual()) continue;
+			if (plugins[i].isVirtual()) continue;
 			plugins.plugOut(plugins[i], false);
 		}
 		IMLOG("-plugs unpluged");

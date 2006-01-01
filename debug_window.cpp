@@ -452,7 +452,8 @@ namespace Konnekt { namespace Debug {
 #define COLOR_BC     RGB(00,0xD0,00)
 
 	void debugLogMsg(Plugin& plugin, LogLevel level, const char* module, const char* where, const StringRef& msg) {
-		if (!superUser || !Debug::log || !Debug::showLog) return;
+
+		if ((level & DBG_SPECIAL) == 0 && (!superUser || !Debug::log || !Debug::showLog)) return;
 		Locker lock(windowCSection);
 		RE_();
 		RE_PREPARE();
