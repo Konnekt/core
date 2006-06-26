@@ -340,7 +340,7 @@ namespace Konnekt { namespace Tables {
 				this->_directory = "%KonnektProfile%";
 			}
 		}
-		this->_directory = expandEnvironmentStrings(this->_directory.a_str(), MAX_PATH);
+		this->_directory = expandEnvironmentStrings(this->_directory);
 	}
 
 	void TableImpl::broadcastEvent(tIMid imId, bool force) {

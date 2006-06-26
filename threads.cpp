@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include <Stamina/Image.h>
+#include <Stamina/UI/Image.h>
 #include <Stamina/TLS.h>
 #include "threads.h"
 #include "main.h"
@@ -38,7 +38,7 @@ namespace Konnekt {
 		LockerCS l(threadsCS);
 		this->_info = &threads[GetCurrentThreadId()];
 		this->_info->data = this;
-		color = getUniqueColor(userThreadCount, 5, 0x80, true);
+		color = Stamina::UI::getUniqueColor(userThreadCount, 5, 0x80, true);
 		userThreadCount++;
 	}
 	UserThread::~UserThread() {

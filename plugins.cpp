@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include <Stamina\Image.h>
+#include <Stamina\UI\Image.h>
 
 #include "plugins.h"
 #include "imessage.h"
@@ -122,7 +122,7 @@ namespace Konnekt {
 		if (this->_id == pluginNotFound) {
 			this->_id = (tPluginId)uniqueId++;
 		}
-		this->_debugColor = getUniqueColor(plugins.count(), 4, 0xFF, true, true);
+		this->_debugColor = Stamina::UI::getUniqueColor(plugins.count(), 4, 0xFF, true, true);
 		this->_running = false;
 		this->_priority = priorityNone;
 

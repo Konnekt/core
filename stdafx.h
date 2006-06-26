@@ -39,14 +39,14 @@
 #include <stamina/RegEx.h>
 #include <stamina/Helpers.h>
 #include <stamina/WinHelper.h>
-#include <Stamina\ButtonX.h>
+#include <Stamina/UI/ButtonX.h>
 #include <Stamina\DataTable\DataTable.h>
 #include <Stamina\DataTable\FileBin.h>
 #include <Stamina\FindFileFiltered.h>
 #include <Stamina\FileResource.h>
 #include <Stamina\Timer.h>
 #include <Stamina\Time64.h>
-#include <Stamina\Image.h>
+#include <Stamina/UI/Image.h>
 
 
 //#include "include\msc_compat.h"

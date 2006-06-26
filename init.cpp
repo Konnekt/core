@@ -426,7 +426,9 @@ namespace Konnekt {
 		//IMLOG("Terminate");
 		//        MessageBox(0,"","",0);
 	#ifdef __DEBUG
-		fprintf(Debug::logFile , "\n______________________\n\nTerminate [%d ms]\n" , GetTickCount() - startTime);
+		if (Debug::logFile) {
+			fprintf(Debug::logFile , "\n______________________\n\nTerminate [%d ms]\n" , GetTickCount() - startTime);
+		}
 		Debug::finish();
 	#endif
 		//	return msg.wParam;

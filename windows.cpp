@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include <Stamina\ButtonX.h>
+#include <Stamina\UI\ButtonX.h>
 
 #include "main.h"
 #include "windows.h"
@@ -168,12 +168,12 @@ namespace Konnekt {
 		selectNone,
 	} selectAllType = selectAll;
 
-	Stamina::ButtonX* plugBRecommend;
-	Stamina::ButtonX* plugBSelect;
-	Stamina::ButtonX* plugBDownload;
+	Stamina::UI::ButtonX* plugBRecommend;
+	Stamina::UI::ButtonX* plugBSelect;
+	Stamina::UI::ButtonX* plugBDownload;
 
-	Stamina::ButtonX* plugBApply;
-	Stamina::ButtonX* plugBCancel;
+	Stamina::UI::ButtonX* plugBApply;
+	Stamina::UI::ButtonX* plugBCancel;
 
 	HFONT plugSelectFont = Stamina::createFont("Tahoma", 13);
 	HFONT plugSelectFontBold = Stamina::createFont("Tahoma", 13, true);
@@ -235,17 +235,17 @@ namespace Konnekt {
 		HFONT font;
 		switch (select) {
 			case selectAll:
-				plugBSelect->setImage(new Stamina::Icon(plugins[pluginUI].getDllModule(), "yes", 16));
+				plugBSelect->setImage(new Stamina::UI::Icon(plugins[pluginUI].getDllModule(), "yes", 16));
 				plugBSelect->setText("W³¹cz wszystkie");
 				font = plugSelectFont;
 				break;
 			case selectNone:
-				plugBSelect->setImage(new Stamina::Icon(plugins[pluginUI].getDllModule(), "no", 16));
+				plugBSelect->setImage(new Stamina::UI::Icon(plugins[pluginUI].getDllModule(), "no", 16));
 				plugBSelect->setText("Wy³¹cz wszystkie");
 				font = plugSelectFont;
 				break;
 			case selectNew:
-				plugBSelect->setImage(new Stamina::Icon(getHInstance(), MAKEINTRESOURCE(IDI_PLUG_NEW), 16));
+				plugBSelect->setImage(new Stamina::UI::Icon(getHInstance(), MAKEINTRESOURCE(IDI_PLUG_NEW), 16));
 				plugBSelect->setText("W³¹cz nowe");
 				font = plugSelectFontBold;
 				break;
@@ -365,18 +365,18 @@ namespace Konnekt {
 			SendMessage(item , LVM_SETEXTENDEDLISTVIEWSTYLE , 0 ,
 				LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 
-			plugBRecommend = new Stamina::ButtonX(GetDlgItem(hwnd, IDC_RECOMMEND));
-			plugBRecommend->setImage(new Stamina::Icon(Ctrl->hInst(), "MAINICON", 16));
+			plugBRecommend = new Stamina::UI::ButtonX(GetDlgItem(hwnd, IDC_RECOMMEND));
+			plugBRecommend->setImage(new Stamina::UI::Icon(Ctrl->hInst(), "MAINICON", 16));
 			Stamina::setWindowFont(plugBRecommend->getHWND(), plugSelectFontBold);
-			plugBSelect = new Stamina::ButtonX(GetDlgItem(hwnd, IDC_SELECT));
-			plugBDownload = new Stamina::ButtonX(GetDlgItem(hwnd, IDC_DOWNLOAD));
-			plugBDownload->setImage(new Stamina::Icon(plugins[pluginUI].getDllModule(), "url", 16));
+			plugBSelect = new Stamina::UI::ButtonX(GetDlgItem(hwnd, IDC_SELECT));
+			plugBDownload = new Stamina::UI::ButtonX(GetDlgItem(hwnd, IDC_DOWNLOAD));
+			plugBDownload->setImage(new Stamina::UI::Icon(plugins[pluginUI].getDllModule(), "url", 16));
 			Stamina::setWindowFont(plugBDownload->getHWND(), plugSelectFont);
 
-			plugBApply = new Stamina::ButtonX(GetDlgItem(hwnd, IDOK));
-			plugBApply->setImage(new Stamina::Icon(plugins[pluginUI].getDllModule(), "apply", 16));
-			plugBCancel = new Stamina::ButtonX(GetDlgItem(hwnd, IDCANCEL));
-			plugBCancel->setImage(new Stamina::Icon(plugins[pluginUI].getDllModule(), "cancel", 16));
+			plugBApply = new Stamina::UI::ButtonX(GetDlgItem(hwnd, IDOK));
+			plugBApply->setImage(new Stamina::UI::Icon(plugins[pluginUI].getDllModule(), "apply", 16));
+			plugBCancel = new Stamina::UI::ButtonX(GetDlgItem(hwnd, IDCANCEL));
+			plugBCancel->setImage(new Stamina::UI::Icon(plugins[pluginUI].getDllModule(), "cancel", 16));
 
 			Stamina::setWindowFont(GetDlgItem(hwnd, IDC_LEGEND), plugLegendFont);
 			Stamina::setWindowFont(GetDlgItem(hwnd, IDC_STATIC2), plugLegendFont);
