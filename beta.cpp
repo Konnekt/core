@@ -397,10 +397,29 @@ namespace Konnekt { namespace Beta {
 		}
 	}
 
+	__int64 info_oldSerialInstance() {
+		DWORD serialNumberInstance = 0;
+		CStdString instancePath = appPath;
+		instancePath = Stamina::RegEx::doGet("#^((?:[a-z]:\\\\)|(?:\\\\{2}.+?\\\\.+?\\\\))#i", instancePath, 1, instancePath);
+		if (GetVolumeInformation(instancePath , 0 , 0 , &serialNumberInstance , 0 , 0 , 0 , 0)) {
+			return MD5_64(inttostr(serialNumberInstance) + appPath);
+		} else {
+			return info_serialSystem();
+		}
+	}
+
 	// Zwraca "numer seryjny" kopii Konnekta na podstawie kilku charakterystycznych wartoœci komputera i œcie¿ki
 	string info_serial() {
 		CStdString serial;
 		serial.Format("%16I64X%16I64X", info_serialSystem(), info_serialInstance());
+		//return serialSystem.substr(0, 16) + serialInstance.substr(0, 16);
+		return serial;
+	}
+
+	// Zwraca "numer seryjny" kopii Konnekta na podstawie kilku charakterystycznych wartoœci komputera i œcie¿ki
+	string info_oldSerial() {
+		CStdString serial;
+		serial.Format("%16I64X%16I64X", info_serialSystem(), info_oldSerialInstance());
 		//return serialSystem.substr(0, 16) + serialInstance.substr(0, 16);
 		return serial;
 	}
@@ -509,6 +528,7 @@ namespace Konnekt { namespace Beta {
 				frmdata += "&os=" + urlEncode(info_os());
 				frmdata += "&nfo=" + urlEncode(info_other());
 				frmdata += "&serial=" + urlEncode(info_serial());
+				frmdata += "&oldserial=" + urlEncode(info_oldSerial());
 				frmdata += "&version=" + inttostr(versionNumber , 16);
 
 	#ifdef __DEV
