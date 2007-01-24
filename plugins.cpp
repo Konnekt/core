@@ -118,7 +118,7 @@ namespace Konnekt {
 	void Plugin::initData() {
 		_originalObject = _imessageObject;
 		_originalProc = _imessageProc;
-		static uniqueId = pluginsDynamicIdStart;
+		static int uniqueId = pluginsDynamicIdStart;
 		if (this->_id == pluginNotFound) {
 			this->_id = (tPluginId)uniqueId++;
 		}
@@ -232,6 +232,7 @@ namespace Konnekt {
 	}
 
 	void Plugin::deinitialize() {
+		if (!isRunning()) return;
 		Ctrl->IMessage(IM_PLUG_PLUGOUT, Net::broadcast, imtAll, this->getId());
 
 		// wywalamy jego wirtualne i restujemy subclassowanie...
@@ -262,7 +263,7 @@ namespace Konnekt {
 		Stamina::mainLogger->log(Stamina::logWarn, "Plugin", "plugOut", "unload=%d reason=\"%s\"", unload, reason.a_str());
 
 		if (mainThread.isCurrent() == false) {
-			threadInvoke(mainThread, boost::bind(Plugin::plugOut, this, sender, reason, quiet, unload));
+			threadInvoke(mainThread, boost::bind(&Plugin::plugOut, this, sender, reason, quiet, unload));
 			return true;
 		}
 
@@ -595,7 +596,7 @@ namespace Konnekt {
 		Tables::oTableImpl plg(tablePlugins);
 		while (ff.find())
 		{
-			if (stricmp("ui.dll" , ff.found().getFileName().c_str())) {
+			if (_stricmp("ui.dll" , ff.found().getFileName().c_str())) {
 				tRowId p = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), plugDir + ff.found().getFileName())).getId();
 					if (p == DT::rowNotFound) {
 						newOne = true;
@@ -607,7 +608,7 @@ namespace Konnekt {
 				}
 		}
 
-		if ((startUp && getArgV(ARGV_PLUGINS , false)) || (newOne && !noDlg))
+		if ((startUp && argVExists(ARGV_PLUGINS)) || (newOne && !noDlg))
 			PlugsDialog(Konnekt::newProfile);
 		if (!startUp) return;
 		newOne = false;

@@ -103,7 +103,7 @@ namespace Konnekt { namespace Connections {
 
 	void setConnect(int sender , int connect) {
 
-		if (Connections::run || (Tables::cfg->getInt(0, CFG_AUTO_CONNECT) && !getArgV(ARGV_OFFLINE))) {
+		if (Connections::run || (Tables::cfg->getInt(0, CFG_AUTO_CONNECT) && !argVExists(ARGV_OFFLINE))) {
 			IMLOG("* SetConn plug=%x val=%d" , sender , connect);
 			list[sender].connect = (connect > 0);
 			if (!connect) {

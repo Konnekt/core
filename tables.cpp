@@ -288,7 +288,7 @@ namespace Konnekt { namespace Tables {
 		if (enabled == false)
 			_lateSaveTimer.reset();
 		else
-			Stamina::threadInvoke(mainThread, boost::bind(TableImpl::queryLateSave, this), false);
+			Stamina::threadInvoke(mainThread, boost::bind(&TableImpl::queryLateSave, this), false);
 
 		IMDEBUG(DBG_FUNC, "iTable::lateSave(%d)", enabled);
 	}
@@ -296,7 +296,7 @@ namespace Konnekt { namespace Tables {
 	void TableImpl::queryLateSave() {
 		Stamina::ObjLocker lock(this, lockDefault);
 		IMDEBUG(DBG_FUNC, "iTable::lateSave() queried");
-		_lateSaveTimer.reset(Stamina::timerTmplCreate(boost::bind(TableImpl::onLateSaveTimer, this)));
+		_lateSaveTimer.reset(Stamina::timerTmplCreate(boost::bind(&TableImpl::onLateSaveTimer, this)));
 		_lateSaveTimer->start(lateSaveDelay);
 	}
 
@@ -543,7 +543,7 @@ namespace Konnekt { namespace Tables {
 		if (cmd == "test") {
 			if (arg->argc < 2) {
 				IMDEBUG(DBG_COMMAND, " tables");
-			} else if (!stricmp(arg->argv[1], "tables")) {
+			} else if (!_stricmp(arg->argv[1], "tables")) {
 				testFeature(arg);
 			}
 		}

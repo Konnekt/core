@@ -57,6 +57,7 @@ namespace Konnekt {
 		}
 
 		StringRef getName();
+
 		void setName(const StringRef& name);
 
 		DLLTempBuffer& buffer(unsigned int id = 0) {

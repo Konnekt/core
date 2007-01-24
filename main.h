@@ -38,25 +38,25 @@
 
 #define STACKTRACE() stackTrace = dcallstack()
 
-
+using namespace Stamina;
 
 
 namespace Konnekt {
 	//DWORD curThread;
 	//	CStdString versionSig;
-	extern CStdString appPath;
-	extern CStdString appFile;
-	extern CStdString sessionName; // ID sesji - MD5 katalogu z profilem
-	extern CStdString tempPath;
-	extern CStdString dataPath;
+	extern String appPath;
+	extern String appFile;
+	extern String sessionName; // ID sesji - MD5 katalogu z profilem
+	extern String tempPath;
+	extern String dataPath;
 	extern HINTERNET hInternet; // uchwyt do globalnej sesji sieciowej...
 	extern bool noCatch;
 
 	//	bool suspended = false;
 
-	extern CStdString versionInfo;
+	extern String versionInfo;
 	extern unsigned int versionNumber;
-	extern CStdString  suiteVersionInfo;
+	extern String suiteVersionInfo;
 	extern bool newVersion;
 
 	//CStdString password;
@@ -86,7 +86,7 @@ namespace Konnekt {
 
 	void loadRegistry();
 	int saveRegistry();
-	void __cdecl restart ( void );
+	void __cdecl restart ( bool withProfile = true );
 	void __cdecl removeProfileAndRestart ( void );
 
 	void showArgumentsHelp(bool force);

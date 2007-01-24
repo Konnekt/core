@@ -46,7 +46,7 @@ namespace Konnekt {
 	}
 
 
-	extern inline StringRef UserThread::getName() {
+	StringRef UserThread::getName() {
 		return this->_info->name;
 	}
 

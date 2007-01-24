@@ -38,7 +38,7 @@ namespace Konnekt { namespace Debug {
 						continue;
 					time_t curTime = time(0);
 					if ((curTime - st.st_mtime) > 86400*2 || (st.st_size > 500000 && (curTime - st.st_mtime) > 3600))
-						unlink(file);
+						_unlink(file);
 				} while (FindNextFile(hFile , &fd));
 				FindClose(hFile);
 			}
@@ -56,7 +56,7 @@ namespace Konnekt { namespace Debug {
 		if (Debug::logFile == 0) debug = false;
 
 	#if defined(__WITHDEBUGALL)
-		Debug::debugAll = getArgV(ARGV_DEBUGALL);
+		Debug::debugAll = argVExists(ARGV_DEBUGALL);
 	#else
 		Debug::debugAll = false;
 	#endif
@@ -296,7 +296,7 @@ namespace Konnekt { namespace Debug {
 		static Stamina::Time64 lastLog(false);
 		Stamina::Time64 now(true);
 		// co 5 minut, lub o ka¿dej pe³nej godzinie wstawia pe³n¹ datê
-		if (now - lastLog > 60*5 || (int)(lastLog / 86400) < (int)(now / 86400)) {
+		if (((__int64)(now - lastLog) > 60*5) || ((int)(lastLog / 86400) < (int)(now / 86400))) {
 			fprintf(Debug::logFile, "[%s] ------------ \n", now.strftime("%c").c_str());
 		}
 		lastLog = now;

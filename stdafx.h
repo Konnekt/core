@@ -1,5 +1,10 @@
 #define WIN32_LEAN_AND_MEAN
 #define _WIN32_WINNT 0x0500
+
+#define _CRT_SECURE_NO_DEPRECATE
+
+#include <Stamina/Stamina.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <winsock2.h>
@@ -22,7 +27,7 @@
 #include <stdexcept>
 #include <direct.h>
 #include <Wininet.h>
-#include <md5.h>
+#include <md5/md5.h>
 #include <Shlobj.h>
 #include <Richedit.h>
 #include <tchar.h>
@@ -55,7 +60,7 @@
 
 //#include "include\func.h"
 //#include "include\preg.h"
-#include "include\callstack.h"       
+#include "depends\callstack.h"       
 //#include "include\dbtable.h"
 //#include "include\dtablebin.h"
 //#include "include\time64.h"

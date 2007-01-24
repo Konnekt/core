@@ -11,11 +11,11 @@ using namespace Stamina;
 namespace Konnekt {
 
 	namespace PLG {
-		const tColId file = 0;
-		const tColId md5 = 1;
-		const tColId sig = 2;
-		const tColId load = 3;
-		const tColId isNew = 4;
+		const DT::tColId file = 0;
+		const DT::tColId md5 = 1;
+		const DT::tColId sig = 2;
+		const DT::tColId load = 3;
+		const DT::tColId isNew = 4;
 	};
 
 	extern tTableId tablePlugins;

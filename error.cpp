@@ -108,7 +108,7 @@ namespace Konnekt {
 		Beta::imdigest(addInfo);
 		Beta::stackdigest(addInfo);
 
-		toDigest += RegEx::doReplace("/0x\\d+/", "", addInfo);
+		toDigest += RegEx::doReplace("/0x\\d+/", "", addInfo).c_str();
 
 		msg += addInfo;
 		Beta::errorreport(REPTYPE_ERROR , (exName/*+" at 0x"+inttostr((int)xr.ExceptionAddress,16,8)*/) , msg, Beta::makeDigest(toDigest).c_str(), log);
@@ -127,7 +127,7 @@ namespace Konnekt {
 		Beta::imdigest(addInfo);
 		Debug::stackTrace=dcallstack(0 , false);
 		Beta::stackdigest(addInfo);
-		toDigest += RegEx::doReplace("/0x\\d+/", "", addInfo);
+		toDigest += RegEx::doReplace("/0x\\d+/", "", addInfo).c_str();
 		msg += addInfo;
 		Beta::errorreport(REPTYPE_EXCEPTION , e , msg, Beta::makeDigest(toDigest).c_str(), Beta::info_log());
 		//  printf("\n X %s @ %d" , __throwFileName , __throwLineNumber);

@@ -132,10 +132,10 @@ messagedelete:
 		m.body = (char*)mbBody.c_str();
 		m.ext = (char*)mbExt.c_str();
 		if (dup) {
-			m.fromUid = strdup(m.fromUid);
-			m.toUid = strdup(m.toUid);
-			m.body = strdup(m.body);
-			m.ext = strdup(m.ext);
+			m.fromUid = _strdup(m.fromUid);
+			m.toUid = _strdup(m.toUid);
+			m.body = _strdup(m.body);
+			m.ext = _strdup(m.ext);
 		}
 		m.flag=msg->getInt(pos , MSG_FLAG);
 		m.action.parent=msg->getInt(pos , MSG_ACTIONP);

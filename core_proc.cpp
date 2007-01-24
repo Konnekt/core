@@ -347,7 +347,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 		case IMC_STATUSCHANGE: {
 			ISRUNNING();
-			IMESSAGE_TS(0);
+			IMESSAGE_TS();
 			sIMessage_StatusChange sc(msgBase);
 			sc.net = NET_BC;
 			sc.type = IMT_ALL;
@@ -359,7 +359,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 		case IMC_CNT_SETSTATUS: {
 			ISRUNNING();       
-			IMESSAGE_TS(0);
+			IMESSAGE_TS();
 			sIMessage_StatusChange sc(msgBase);
 			sc.net = NET_BC;
 			sc.type = IMT_ALL;
@@ -459,7 +459,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				} else
 					return 1; // wszystkie tu pasuj¹
 			}
-			return stricmp(Tables::cnt->getString(msg->p1 , CNT_GROUP).c_str() , group.c_str()) == 0;
+			return _stricmp(Tables::cnt->getString(msg->p1 , CNT_GROUP).c_str() , group.c_str()) == 0;
 		}
 
 		case IMC_IGN_ADD:
@@ -549,7 +549,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			Tables::cfg->setString(0, CFG_GROUPS, RegEx::doReplace(("/^" + std::string((char*)msg->p1) + "$/mi").c_str(), (const char*)msg->p2, Tables::cfg->getString(0, CFG_GROUPS).c_str(), 1) ); 
 
 			for (int i = 1; i < (int)Tables::cnt->getRowCount() ; i++) {
-				if (stricmp((char*)msg->p1 , Tables::cnt->getString(i, CNT_GROUP).c_str()) == 0) {
+				if (_stricmp((char*)msg->p1 , Tables::cnt->getString(i, CNT_GROUP).c_str()) == 0) {
 					Tables::cnt->setString(i , CNT_GROUP , (char*)msg->p2);
 					sIMessage_CntChanged cc(IM_CNT_CHANGED , i);
 					cc._changed.group = true;
@@ -577,19 +577,14 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		{
 			ISRUNNING();
 			IMESSAGE_TS();
-			if (access((profilesDir+(char*)msg->p1).c_str() , 0)) {
+			if (_access((profilesDir+(char*)msg->p1).c_str() , 0)) {
 				if (!msg->p2) return 0;
 				else
-					mkdir((profilesDir+(char*)msg->p1).c_str());
+					_mkdir((profilesDir+(char*)msg->p1).c_str());
 			}
 			profile = (char*)msg->p1;
-			// trzeba wywyaliæ -profile z parametrów...
-			char * argProfile = (char*)getArgV(ARGV_PROFILE , false , 0);
-			if (argProfile) {
-				*argProfile = 0;
-			}
 			deinitialize(false);
-			restart();
+			restart(false);
 			//            Init();
 			//            IMCore(IMC_SHUTDOWN , 0 , 0 , 0);
 			return 1;
@@ -700,7 +695,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			if (msgDc->async == sIMessage_debugCommand::asynchronous) {
 				const char ** argv = new const char * [msgDc->argc];
 				for (int i = 0; i < msgDc->argc; i++)
-					argv[i] = strdup(msgDc->argv[i]);
+					argv[i] = _strdup(msgDc->argv[i]);
 				sIMessage_debugCommand dc (msgDc->argc, argv, sIMessage_debugCommand::duringAsynchronous);
 				return Ctrl->RecallIMTS(0, false, &dc, pluginCore);
 			}
@@ -738,7 +733,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			}
 
 		case Konnekt::IM::runTests:
-			return Konnekt::runCoreTests(static_cast<sIMessage_plugArgs*>(msgBase));
+			return Konnekt::runCoreTests(static_cast<IM::RunTests*>(msgBase));
 
 
 	}

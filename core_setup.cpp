@@ -162,23 +162,23 @@ namespace Konnekt {
 			//          !RegOpenKeyEx(hKey,sig.c_str(),0,KEY_READ,&hKey))
 			//       if (!RegCreateKey(hKey,"Stamina"
 			//      {
-			if (getArgV(ARGV_PROFILE))
+			if (argVExists(ARGV_PROFILE))
 				profile = getArgV(ARGV_PROFILE , true);
 			else
 				profile = regQueryString(hKey,"Profile");
 
-			if (getArgV(ARGV_PROFILESDIR,true,0)) {
+			if (argVExists(ARGV_PROFILESDIR)) {
 				profilesDir = getArgV(ARGV_PROFILESDIR , true);
 			} else
 				profilesDir = regQueryString(hKey,"ProfilesDir");
 
 			profilesDir = Stamina::unifyPath(profilesDir, true);
-			str=regQueryString(hKey,"Version");
-			newVersion = (str != versionInfo);
+			str = regQueryString(hKey,"Version");
+			newVersion = (str != versionInfo.c_str());
 			Debug::superUser=false;
 	#ifdef __DEBUG
 			Debug::superUser=regQueryDWord(hKey , "superUser" , 0)==1;
-			if (getArgV(ARGV_DEBUG))
+			if (argVExists(ARGV_DEBUG))
 				Debug::superUser = true;
 
 			if (Debug::superUser) {
@@ -207,8 +207,9 @@ namespace Konnekt {
 			!RegCreateKeyEx(hKey,string("Software\\Stamina\\"+sig).c_str(),0,"",0,KEY_ALL_ACCESS,0,&hKey,0)
 			)
 		{
-			if (!getArgV(ARGV_PROFILE))
+			if (!argVExists(ARGV_PROFILE)) {
 				regSetString(hKey,"Profile",profile);
+			}
 			regSetString(hKey,"ProfilesDir",profilesDir);
 			regSetString(hKey,"Version",versionInfo);
 	#ifdef __DEBUG

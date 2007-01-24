@@ -5,6 +5,8 @@
 #include <Stamina\ObjectImpl.h>
 #include <Stamina\Array.h>
 
+#include <Konnekt/test_cppunit.h>
+
 #include <cppunit/BriefTestProgressListener.h>
 #include <cppunit/TextTestProgressListener.h>
 #include <cppunit/CompilerOutputter.h>
@@ -16,12 +18,14 @@
 namespace Konnekt {
 
 	bool getCoreTests(IM::GetTests* gt) {
-	
+		cppunit_getTests(gt);
 		return true;
 
 	}
 
-	int runCoreTests(sIMessage_plugArgs * arg) {
+	int runCoreTests(IM::RunTests* rt) {
+
+		cppunit_runTests(rt);
 
 		return 0;
 
@@ -29,17 +33,29 @@ namespace Konnekt {
 
 };
 
-bool runTest(Plugin* plugin, sIMessage_debugCommand * arg, int& sumup) {
-	IMDEBUG(DBG_TEST_TITLE, "Test %s :: %s", plugin->getSig().c_str(), arg->getArg(2));
-	sIMessage_plugArgs testArg(arg->argc, arg->argv);
-	testArg.id = IM::runTests;
-	int result = plugin->IMessageDirect(Ctrl, &testArg);
+bool runTest(Plugin* plugin, const StringRef& test, int& sumup) {
+	IMDEBUG(DBG_TEST_TITLE, "Test %s :: %s", plugin->getSig().c_str(), test.a_str());
+
+	IM::RunTests rt (new Stamina::Array<IM::TestInfo>());
+
+	rt.tests->append( IM::TestInfo(test) );
+
+	plugin->IMessageDirect(Ctrl, &rt);
+
+	int result = 0;
+
+	for (int i = 0; i < rt.tests->size(); ++i) {
+		if (rt.tests->at(i).getFlag(IM::TestInfo::flagFailed)) {
+			result ++;
+		}
+	}
+
 	bool ok = (Ctrl->getError() != Konnekt::errorNoResult ? 1 : 0);
 	if (ok) {
 		if (result) {
-			IMDEBUG(DBG_TEST_FAILED, "Test na %s zakoñczy³ siê NIEPOWODZENIEM! Wyst¹pi³o %d b³êdów!", plugin->getName().c_str(), result);
+			IMDEBUG(DBG_TEST_FAILED, "Test na %s zakoñczy³ siê NIEPOWODZENIEM! Wyst¹pi³o %d b³êdów!", plugin->getName().a_str(), result);
 		} else {
-			IMDEBUG(DBG_TEST_PASSED, "Test na %s zakoñczy³ siê powodzeniem!", plugin->getName().c_str(), sumup);
+			IMDEBUG(DBG_TEST_PASSED, "Test na %s zakoñczy³ siê powodzeniem!", plugin->getName().a_str(), sumup);
 		}
 		sumup += result;
 		return true;
@@ -63,8 +79,18 @@ int Konnekt::command_test(sIMessage_debugCommand * arg) {
 			IM::GetTests gt(new Array<IM::TestInfo>);
 			if (plugin->IMessageDirect(Ctrl, &gt)) {
 				IMDEBUG(DBG_COMMAND, "Dostêpne testy:");
+				String indent;
 				for (int i = 0; i < gt.tests->size(); ++i) {
-					IMDEBUG(DBG_COMMAND, "%s : \"%s\"", gt.tests->at(i).name.a_str(), gt.tests->at(i).command.a_str());
+					IM::TestInfo* ti = &gt.tests->at(i);
+					if (ti->name.empty() == false) {
+						IMDEBUG(DBG_COMMAND, "%s%s : \"%s\"", indent.a_str(), gt.tests->at(i).name.a_str(), gt.tests->at(i).command.a_str());
+					}
+					if (ti->getFlag(IM::TestInfo::flagSubOpen)) {
+						indent += "  ";
+					}
+					if (ti->getFlag(IM::TestInfo::flagSubClose)) {
+						indent.erase(0, 2);
+					}
 				}
 			} else {
 				IMDEBUG(DBG_COMMAND, "Wtyczka %s nie udostêpnia testów!", arg->getArg(1));
@@ -74,26 +100,11 @@ int Konnekt::command_test(sIMessage_debugCommand * arg) {
 		}
 	} else {
 		int sumup = 0;
-		if (arg->argEq(1, "*")) {
-			int run = 0;
-			IMDEBUG(DBG_COMMAND, "Wykonujê test na wszystkich wtyczkach!");
-			for (Plugins::tList::iterator it = plugins.begin(); it != plugins.end(); ++it) {
-				run += runTest(it->get(), arg, sumup);
-			}
-
-			if (sumup) {
-				IMDEBUG(DBG_TEST_FAILED, "Test %s :: %s zakoñczy³ siê NIEPOWODZENIEM! Wyst¹pi³o %d b³êdów!", arg->getArg(1), arg->getArg(2), sumup);
-			} else {
-				IMDEBUG(DBG_TEST_PASSED, "Test %s :: %s zakoñczy³ siê powodzeniem!", arg->getArg(1), arg->getArg(2), sumup);
-			}
-
+		Plugin* plugin = plugins.findSig(arg->getArg(1));
+		if (plugin) {
+			runTest(plugin, arg->getArg(2), sumup);
 		} else {
-			Plugin* plugin = plugins.findSig(arg->getArg(1));
-			if (plugin) {
-				runTest(plugin, arg, sumup);
-			} else {
-				IMDEBUG(DBG_COMMAND, "Taka wtyczka nie istnieje!");
-			}
+			IMDEBUG(DBG_COMMAND, "Taka wtyczka nie istnieje!");
 		}
 
 

@@ -37,18 +37,18 @@ using namespace Stamina;
 namespace Konnekt {
 	using namespace Debug;
 
-	CStdString appPath;
-	CStdString appFile;
-	CStdString sessionName; // ID sesji - MD5 katalogu z profilem
-	CStdString tempPath;
-	CStdString dataPath;
+	String appPath;
+	String appFile;
+	String sessionName; // ID sesji - MD5 katalogu z profilem
+	String tempPath;
+	String dataPath;
 	HINTERNET hInternet = 0; // uchwyt do globalnej sesji sieciowej...
 	bool noCatch = false;
 	//	bool suspended = false;
 
-	CStdString versionInfo;
+	String versionInfo;
 	unsigned int versionNumber;
-	CStdString  suiteVersionInfo;
+	String  suiteVersionInfo;
 	bool newVersion = true;
 
 	HANDLE hMainThread;
@@ -193,7 +193,7 @@ namespace Konnekt {
 			Stamina::debugDumpObjects(new LoggerFile(Debug::logFile, Stamina::logAll));
 
 			fclose(Debug::logFile);
-			unlink(logPath + "konnekt_bck.log");
+			_unlink(logPath + "konnekt_bck.log");
 			rename(logPath + "konnekt.log" , logPath + "konnekt_bck.log");
 			rename(logFileName , logPath + "konnekt.log");
 		}
@@ -206,17 +206,20 @@ namespace Konnekt {
 	}
 
 
-	void __cdecl restart ( void ) {
+	void __cdecl restart ( bool withProfile ) {
 		string args;
-		if (!getArgV("-restart" , false)) {
+		if (!argVExists("-restart")) {
 			args += "-restart";
 		}
 		for (int i=1; i < __argc; i++) {
+			if (!withProfile && String(__argv[i]).compare(ARGV_PROFILE, true, strlen(ARGV_PROFILE))) {
+				continue;
+			}
 			if (!args.empty()) {
 				args += " ";
 			}
 			args += "\"";
-			args += __argv[i];
+			args += addSlashes(__argv[i]);
 			args += "\"";
 		}
 
@@ -229,18 +232,18 @@ namespace Konnekt {
 #endif
 
 		atexit_finish();
-		ShellExecute(0 , "open" , appFile , args.c_str() , "" , SW_SHOW);
+		ShellExecute(0 , "open" , appFile.c_str() , args.c_str() , "" , SW_SHOW);
 		//   _execl(_argv[0] , _argv[0] , "/restart");
 		gracefullExit();
 	}
 
 	void __cdecl removeProfileAndRestart ( void ) {
 		Stamina::removeDirTree((char*)profileDir.c_str());
-		restart();
+		restart(false);
 	}
 
 	bool restoreRunningInstance() {
-		HWND wnd = FindWindow("UItop."+sessionName , 0);
+		HWND wnd = FindWindow(("UItop."+sessionName).c_str() , 0);
 		if (!wnd) {
 			wnd = FindWindow("UImain" , 0); // niech bêdzie dowolny inny...
 			if (wnd)
@@ -279,7 +282,7 @@ namespace Konnekt {
 	}
 
 
-	WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+	int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 	{
 
 		Stamina::setHInstance(hInstance);
@@ -306,7 +309,7 @@ namespace Konnekt {
 		noCatch = true;
 		mainProgramBlock();
 	#else
-		noCatch = getArgV(ARGV_NOCATCH);
+		noCatch = argVExists(ARGV_NOCATCH);
 		if (noCatch) {
 			mainProgramBlock();
 		} else {
@@ -321,6 +324,6 @@ namespace Konnekt {
 };
 
 
-WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	return Konnekt::WinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }

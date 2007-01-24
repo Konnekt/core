@@ -70,7 +70,7 @@ namespace Konnekt {
 		unsigned short __stdcall DTunlock(tTable db , unsigned int row , int reserved);
 		int __stdcall getLevel() {return 1;}
 		void * __stdcall malloc(size_t size) {return ::malloc(size);} 
-		char * __stdcall strdup(const char * str) {return ::strdup(str);}
+		char * __stdcall strdup(const char * str) {return ::_strdup(str);}
 		void __stdcall free(void * buff) {::free(buff);}
 		int __stdcall DTgetOld(tTable db , unsigned int row , unsigned int col);
 		int __stdcall DTsetOld(tTable db , unsigned int row , unsigned int col , int val , int mask=0);

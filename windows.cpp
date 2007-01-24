@@ -40,7 +40,7 @@ namespace Konnekt {
 			found = FindNextFile(hFile , &fd);
 			if (found && strcmp(fd.cFileName , "..") && fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				SendMessage(item , CB_ADDSTRING , 0 , (LPARAM)fd.cFileName);
-				if (!stricmp(profile , fd.cFileName)) {SendMessage(item , CB_SETCURSEL , i , 0);ok=true;}
+				if (!_stricmp(profile , fd.cFileName)) {SendMessage(item , CB_SETCURSEL , i , 0);ok=true;}
 				i++;
 			}
 		}

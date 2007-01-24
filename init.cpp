@@ -63,8 +63,8 @@ namespace Konnekt {
 		ff.setFileOnly();
 		while (ff.find()) {
 			struct _stat stData, stMain;
-			CStdString file = dataPath + "dll\\" + ff.found().getFileName();
-			CStdString fileMain = ff.found().getFileName();
+			String file = dataPath + "dll\\" + ff.found().getFileName();
+			String fileMain = ff.found().getFileName();
 			// je¿eli w kat. Konnekta nie ma tego dll'a, olewamy sprawê...
 			// skoro ju¿ jesteœmy w tym miejscu, znaczy ¿e s¹ wszystkie potrzebne
 			// do rozruchu.
@@ -74,14 +74,14 @@ namespace Konnekt {
 			if (ff.found().getFileName() == "ui.dll") continue;
 
 			// koñczymy gdy jest katalogiem, lub nie mozemy odczytac czasow
-			if (_stat(file , &stData) || _stat(fileMain , &stMain))
+			if (_stat(file.a_str() , &stData) || _stat(fileMain.a_str() , &stMain))
 				continue;
 			if (stMain.st_mtime <= stData.st_mtime) {
-				unlink(fileMain + ".old");
-				rename(fileMain, fileMain + ".old");
+				_unlink((fileMain + ".old").a_str());
+				rename(fileMain.a_str(), (fileMain + ".old").a_str());
 			} else {
-				unlink(file + ".old");
-				rename(file, file + ".old");
+				_unlink((file + ".old").a_str());
+				rename(file.a_str(), (file + ".old").a_str());
 			}
 		}
 	}
@@ -90,8 +90,8 @@ namespace Konnekt {
 //---------------------------------------------------------------------------
 
 	void showArgumentsHelp(bool force) {
-		if (force || getArgV(ARGV_HELP)) {
-			string nfo;
+		if (force || argVExists(ARGV_HELP)) {
+			String nfo;
 			nfo += "Konnekt.exe mo¿na uruchomiæ z nast. parametrami:\r\n";
 			nfo += "\r\n  " ARGV_RESTORE " tylko przekazuje parametry do otwartego okna Konnekta";
 			nfo += "\r\n  " ARGV_PROFILE "=<nazwa profilu lub ?> : uruchamia program z wybranym profilem (? - okno wyboru).";
@@ -110,8 +110,8 @@ namespace Konnekt {
 
 
 	void initializePaths() {
-		GetModuleFileName(0 , appFile.GetBuffer(MAX_PATH) , MAX_PATH);
-		appFile.ReleaseBuffer();
+		GetModuleFileName(0 , appFile.useBuffer<char>(MAX_PATH) , MAX_PATH);
+		appFile.releaseBuffer<char>();
 
 		// katalog aplikacji
 		appPath = Stamina::getFileDirectory(appFile);
@@ -131,20 +131,20 @@ namespace Konnekt {
 		CStdString envPath;
 		GetEnvironmentVariable("PATH", envPath.GetBuffer(1024), 1024);
 		envPath.ReleaseBuffer();
-		SetEnvironmentVariable("PATH", dataPath + "dll;" + envPath);
-		_SetDllDirectory(dataPath + "dll");
+		SetEnvironmentVariable("PATH", (dataPath + "dll;" + envPath).c_str());
+		_SetDllDirectory((dataPath + "dll").c_str());
 
 		if (fileExists(dataPath) == false) {
-			MessageBox(0, "Brakuje katalogu z danymi!\r\n" + dataPath, "Konnekt", MB_ICONERROR);
+			MessageBox(0, ("Brakuje katalogu z danymi!\r\n" + dataPath).c_str(), "Konnekt", MB_ICONERROR);
 			gracefullExit();
 		}
 
 		/*HACK: Przenoszenie plików bety*/
 		if ( fileExists("beta.dtb") == true && fileExists(dataPath + "beta\\beta.dtb") == false )  {
 			createDirectories(dataPath + "beta");
-			rename("beta.dtb", dataPath + "beta\\beta.dtb");
-			rename("beta_reports.dtb", dataPath + "beta\\beta_reports.dtb");
-			rename("beta_stats.dtb", dataPath + "beta\\beta_stats.dtb");
+			rename("beta.dtb", (dataPath + "beta\\beta.dtb").c_str());
+			rename("beta_reports.dtb", (dataPath + "beta\\beta_reports.dtb").c_str());
+			rename("beta_stats.dtb", (dataPath + "beta\\beta_stats.dtb").c_str());
 		}
 
 		moveAdditionalLibraries();
@@ -188,7 +188,7 @@ namespace Konnekt {
 		// FileVersionInfo(_argv[0] , versionInfo);
 		setlocale( LC_ALL, "Polish" );
 		// dla restore
-		if (getArgV(ARGV_RESTORE , false)) {
+		if (argVExists(ARGV_RESTORE)) {
 			restoreRunningInstance();
 			gracefullExit();
 		}
@@ -219,8 +219,8 @@ namespace Konnekt {
 		Beta::init();
 	#endif
 
-		if (getArgV("-makeReport")) {
-			CStdString value = getArgV("-makeReport", true, "");
+		if (argVExists("-makeReport")) {
+			String value = getArgV("-makeReport", true, "");
 			bool useDate = value.empty();
 			bool silent = false;
 			if (value == "all") {
@@ -231,7 +231,7 @@ namespace Konnekt {
 				useDate = true;
 				silent = true;
 			}
-			Beta::makeReport(value, true, useDate, silent);
+			Beta::makeReport(value.c_str(), true, useDate, silent);
 			gracefullExit();
 		}
 
@@ -259,22 +259,22 @@ namespace Konnekt {
 		saveRegistry();
 
 		// Sprawdzamy teraz, czy przypadkiem jakis inny K nie bawi sie juz tym profilem...
-		GetFullPathName(profileDir.c_str() , 1024 , sessionName.GetBuffer(1024) , 0);
+		GetFullPathName(profileDir.c_str() , 1024 , sessionName.useBuffer<char>(1024) , 0);
 		IMLOG("profileDir=%s", profileDir.c_str());
 
 		// ustawiamy œcie¿kê plików tymczasowych
-		tempPath = (string(getenv("TEMP")) + "\\Konnekt_"+string(profile)+"_"+string(MD5Hex(CStdString(appPath + profileDir).ToLower())).substr(0, 8));
+		tempPath = getEnvironmentVariable("TEMP") + "\\Konnekt_" + profile + "_" + MD5Hex((appPath + profileDir).toLower()).substr(0, 8);
 		Stamina::createDirectories(tempPath);
-		SetEnvironmentVariable("KonnektTemp" , tempPath);
+		setEnvironmentVariable("KonnektTemp" , tempPath);
 		IMLOG("tempDir=%s", tempPath.c_str());
 
 
-		sessionName.ReleaseBuffer();
-		sessionName.ToLower();
-		sessionName = MD5Hex((char*)sessionName.c_str()).substr(0 , 8);
+		sessionName.releaseBuffer<char>();
+		sessionName.makeLower();
+		sessionName = MD5Hex(sessionName).substr(0 , 8);
 
 
-		semaphore = CreateSemaphore(0 , 1 , 1 , "KONNEKT." + sessionName);
+		semaphore = CreateSemaphore(0 , 1 , 1 , ("KONNEKT." + sessionName).c_str());
 		if (GetLastError() == ERROR_ALREADY_EXISTS) {
 			if (!restoreRunningInstance())
 				MessageBox(0 , loadString(IDS_ERR_ONEINSTANCE).c_str() , "Konnekt" , MB_OK | MB_ICONERROR);

@@ -11,15 +11,15 @@
 using namespace Stamina;
 
 namespace Konnekt {
-	CStdString profile;
-	CStdString profileDir;
-	CStdString profilesDir;
+	String profile;
+	String profileDir;
+	String profilesDir;
 	bool newProfile = false;
 
 	MD5Digest passwordDigest;
 
 	void initializeProfileDirectory() {
-		if (getArgV(ARGV_PROFILESDIR) && !getArgV(ARGV_PROFILESDIR , true , 0)) {
+		if (argVExists(ARGV_PROFILESDIR) && !argVExists(ARGV_PROFILESDIR)) {
 			if (profilesDir.empty()) {
 				MessageBox(0 , "Katalog profili jeszcze nie zosta³ zdefiniowany!" , "Konnekt" , MB_ICONWARNING);
 			} else {
@@ -85,7 +85,7 @@ namespace Konnekt {
 
 	int setProfile(bool load , bool check) {
 
-		profileDir = Stamina::unifyPath(( profilesDir[1] != ':' && profilesDir[1] != '\\' ) ? getFileDirectory(appPath) : "", true) + string(profilesDir);
+		profileDir = Stamina::unifyPath(( profilesDir.a_str()[1] != ':' && profilesDir.a_str()[1] != '\\' ) ? getFileDirectory(appPath) : "", true) + string(profilesDir);
 
 		// Sprawdzamy czy w katalogu profili s¹ ju¿ jakieœ katalogi i jak s¹, to w³¹czamy wybór profilu...
 		if (profile == "") {
@@ -101,8 +101,8 @@ namespace Konnekt {
 		if (profile == "") {
 			// pobieramy nazwê domyœlnego profilu...
 			unsigned long i = 255;
-			GetUserName(stringBuffer(profile, i), &i);
-			stringRelease(profile, i);
+			GetUserName(profile.useBuffer<TCHAR>(i), &i);
+			profile.releaseBuffer<TCHAR>(i);
 
 			if (profile.empty()) profile="podstawowy";
 

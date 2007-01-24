@@ -388,10 +388,10 @@ namespace Konnekt { namespace Beta {
 
 	__int64 info_serialInstance() {
 		DWORD serialNumberInstance = 0;
-		CStdString instancePath = appPath;
-		instancePath = Stamina::RegEx::doGet("#^((?:[a-z]:\\\\)|(?:\\\\{2}.+?\\\\.+?\\\\))#i", instancePath, 1, instancePath);
-		if (GetVolumeInformation(instancePath , 0 , 0 , &serialNumberInstance , 0 , 0 , 0 , 0)) {
-			return MD5_64(inttostr(serialNumberInstance) + appPath.ToLower());
+		String instancePath = appPath;
+		instancePath = Stamina::RegEx::doGet("#^((?:[a-z]:\\\\)|(?:\\\\{2}.+?\\\\.+?\\\\))#i", instancePath.a_str(), 1, instancePath.a_str());
+		if (GetVolumeInformation(instancePath.c_str() , 0 , 0 , &serialNumberInstance , 0 , 0 , 0 , 0)) {
+			return MD5_64(inttostr(serialNumberInstance).c_str() + appPath.toLower());
 		} else {
 			return info_serialSystem();
 		}
@@ -399,10 +399,10 @@ namespace Konnekt { namespace Beta {
 
 	__int64 info_oldSerialInstance() {
 		DWORD serialNumberInstance = 0;
-		CStdString instancePath = appPath;
-		instancePath = Stamina::RegEx::doGet("#^((?:[a-z]:\\\\)|(?:\\\\{2}.+?\\\\.+?\\\\))#i", instancePath, 1, instancePath);
-		if (GetVolumeInformation(instancePath , 0 , 0 , &serialNumberInstance , 0 , 0 , 0 , 0)) {
-			return MD5_64(inttostr(serialNumberInstance) + appPath);
+		String instancePath = appPath;
+		instancePath = Stamina::RegEx::doGet("#^((?:[a-z]:\\\\)|(?:\\\\{2}.+?\\\\.+?\\\\))#i", instancePath.a_str(), 1, instancePath.a_str());
+		if (GetVolumeInformation(instancePath.c_str() , 0 , 0 , &serialNumberInstance , 0 , 0 , 0 , 0)) {
+			return MD5_64(inttostr(serialNumberInstance).c_str() + appPath);
 		} else {
 			return info_serialSystem();
 		}
@@ -428,8 +428,8 @@ namespace Konnekt { namespace Beta {
 		string s;
 #ifdef __DEBUG
 		if (Debug::logFile) {
-			FILE * f = fopen(Debug::logFileName , "rt");
-			if (!f) return "";
+			FILE * f;
+			if (fopen_s(&f, Debug::logFileName , "rt") != 0) return "";
 			fseek(f , -logReadout , SEEK_END);
 			if (fread(stringBuffer(s, logReadout) , 1 , logReadout , f)) {
 				stringRelease(s);
@@ -456,7 +456,7 @@ namespace Konnekt { namespace Beta {
 			int newUrid = (_time64(0) - reportInterval) & 0xFFFFFF;
 			beta->setInt(0, BETA_URID, newUrid);
 			// od razu tworzymy katalog
-			if (_access(PATH_BETA, 0)) {
+			if (!fileExists(PATH_BETA)) {
 				Stamina::createDirectories(PATH_BETA);
 			}
 			beta->save();
@@ -502,8 +502,10 @@ namespace Konnekt { namespace Beta {
 		//   IMLOG("- Beta comm %s" , lParam?"retry":"first try");
 		FILE * log;
 		try {
-			log = fopen(Debug::logPath + "reports.log" , "at");
-
+			if (fopen_s(&log, Debug::logPath + "reports.log" , "at") != 0) {
+				log = 0;
+			}
+			
 
 			int reportsCount = 0;
 			int statsCount = 0;
@@ -906,7 +908,7 @@ namespace Konnekt { namespace Beta {
 		LoadString(Stamina::getHInstance() , IDS_ERR_EXCEPTION , format.GetBuffer(500) , 500);
 		format.ReleaseBuffer();
 		stringf(ER.msg , format , msg.c_str());
-		ER.msg = RegEx::doReplace("/(?<!\\r)\\n/g" , "\r\n" , ER.msg);
+		ER.msg = RegEx::doReplace("/(?<!\\r)\\n/g" , "\r\n" , ER.msg).c_str();
 		DialogBoxParam(Stamina::getHInstance() , MAKEINTRESOURCE(IDD_ERROR) , 0 , ErrorDialogProc , (LPARAM)&ER);   
 		// To co sie zmienilo, trzeba teraz zapisac
 		if (ER.info.empty()) return;

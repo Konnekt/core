@@ -92,7 +92,7 @@ namespace Konnekt {
 					}
 				}
 			
-			} while ( reverse ? ( (it--) != end ) : ( (++it) != end ) ); // przy cofaniu, sprawdzamy czy obecnie przerobiony nie jest ostatnim... W normalnym zawsze mamy zapas...
+			} while ( reverse ? ( it != end && (it-- == it /*zeby poszlo*/) ) : ( (++it) != end ) ); // przy cofaniu, sprawdzamy czy obecnie przerobiony nie jest ostatnim... W normalnym zawsze mamy zapas...
 
 			if (Debug::logAll && net.isSpecial()) {
 				logIMessageBCResult(msg, result, hits);

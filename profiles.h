@@ -1,8 +1,10 @@
 #pragma once
+#include <Stamina/String.h>
+using namespace Stamina;
 namespace Konnekt {
-	extern CStdString profile;
-	extern CStdString profileDir;
-	extern CStdString profilesDir;
+	extern String profile;
+	extern String profileDir;
+	extern String profilesDir;
 	extern bool newProfile;
 
 	extern Stamina::MD5Digest passwordDigest;
