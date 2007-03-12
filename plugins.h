@@ -77,6 +77,14 @@ namespace Konnekt {
 			return this->_netName;
 		}
 
+		virtual const String& getNetShortName() {
+			return this->_netShortName;
+		}
+
+		virtual const String& getUIDName() {
+			return this->_uidName;
+		}
+
 		virtual enPluginPriority getPriority() {
 			return this->_priority;
 		}
@@ -176,6 +184,8 @@ namespace Konnekt {
 		String _sig;
 		String _name;
 		String _netName;
+		String _netShortName;
+		String _uidName;
 		COLORREF _debugColor;
 		bool _running;
 		tPluginId _id;

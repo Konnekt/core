@@ -134,6 +134,8 @@ namespace Konnekt {
 		this->_net = (tNet)this->IMessageDirect(IM_PLUG_NET, 0 ,0);
 		this->_name = safeChar(this->IMessageDirect(IM_PLUG_NAME, 0 ,0));
 		this->_netName = safeChar(this->IMessageDirect(IM_PLUG_NETNAME, 0 ,0));
+		this->_netShortName = safeChar(this->IMessageDirect(IM_PLUG_NETSHORTNAME, 0 ,0));
+		this->_uidName = safeChar(this->IMessageDirect(IM_PLUG_UIDNAME, 0 ,0));
 
 		if (this->IMessageDirect(IM_PLUG_SDKVERSION, 0 ,0) < KONNEKT_SDK_V) { 
 			throw ExceptionString("Wtyczka przygotowana zosta³a dla starszej wersji API. Poszukaj nowszej wersji!");

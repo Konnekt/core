@@ -50,7 +50,7 @@ namespace Konnekt { namespace Messages {
 		// obs³u¿enie najpierw UI
 		r = plugins[pluginUI].IMessageDirect(IM_MSG_RCV,(int)m, 0);
 		if (r & IM_MSG_delete) {handler=-1;goto messagedelete;}
-		if (r & IM_MSG_ok) handler = 0;
+		if (r & IM_MSG_ok) handler = Konnekt::pluginUI;
 		for (Plugins::tList::reverse_iterator it = plugins.rbegin(); it != plugins.rend(); ++it) {
 			Plugin& plugin = **it;
 			if (plugin.getId() == pluginUI) break;
@@ -63,7 +63,7 @@ namespace Konnekt { namespace Messages {
 				handler = plugins.getIndex(plugin.getId());
 			}
 		}
-		if (m->flag & MF_HANDLEDBYUI) handler=0;
+		if (m->flag & MF_HANDLEDBYUI) handler = Konnekt::pluginUI;
 messagedelete:
 
 		oTableImpl msg(tableMessages);

@@ -18,7 +18,7 @@ namespace Konnekt {
 				fprintf(Debug::logFile , "\n\nANOTHER Critical Structured Exception caught!!! Aborting...");
 				fflush(Debug::logFile);
 			}
-			exit(1);
+			abort();
 		}
 
 		SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);

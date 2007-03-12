@@ -55,9 +55,9 @@ BEGIN
             VALUE "FileDescription", "Konnekt - Core"
             VALUE "FileVersion", "0.6.24.139"
             VALUE "InternalName", "Konnekt"
-            VALUE "LegalCopyright", "Copyright ©2002,2003,2004,2005 Stamina"
+            VALUE "LegalCopyright", "Copyright ©2002-2007 Stamina"
             VALUE "ProductName", "Konnekt"
-            VALUE "ProductVersion", "0.6"
+            VALUE "ProductVersion", "0.7"
             VALUE "URL", "http://www.konnekt.info/"
         END
     END
@@ -99,36 +99,28 @@ STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Konnekt@Dev"
 FONT 8, "Tahoma", 0, 0, 0xEE
 BEGIN
-    CONTROL         "",IDC_MSG,"RichEdit20A",ES_MULTILINE | ES_WANTRETURN | 
-                    WS_VSCROLL | WS_TABSTOP,37,1,230,80
-    COMBOBOX        IDC_COMMAND,4,131,48,30,CBS_DROPDOWN | WS_VSCROLL | 
-                    WS_TABSTOP
+    CONTROL         "",IDC_MSG,"RichEdit20A",ES_MULTILINE | ES_WANTRETURN | WS_VSCROLL | WS_TABSTOP,37,1,230,80
+    COMBOBOX        IDC_COMMAND,4,131,48,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON   "Wykonaj",IDOK,3,129,50,14
 END
 
 IDD_BETA DIALOGEX 0, 0, 248, 132
-STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
-    WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "KONNEKT.beta"
 FONT 8, "Tahoma", 0, 0, 0xEE
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,167,44,70,17
-    CTEXT           "Wpisz swój login i has³o do systemu BETA\r\ni naciœnij OK.\r\n\r\nJe¿eli nie masz konta i nie chcesz go zak³adaæ - pozostaw oba pola PUSTE.\r\nRejestracja nie jest wymagana.",
-                    IDC_STATIC1,7,72,156,54,0,WS_EX_TRANSPARENT
+    CTEXT           "Wpisz swój login i has³o do systemu BETA\r\ni naciœnij OK.\r\n\r\nJe¿eli nie masz konta i nie chcesz go zak³adaæ - pozostaw oba pola PUSTE.\r\nRejestracja nie jest wymagana.",IDC_STATIC1,7,72,156,54,0,WS_EX_TRANSPARENT
     GROUPBOX        "Login / Has³o",IDC_STATIC2,7,37,234,28
     EDITTEXT        IDE_LOGIN,11,48,62,12,ES_AUTOHSCROLL
     EDITTEXT        IDE_PASS,76,48,52,12,ES_PASSWORD | ES_AUTOHSCROLL
-    PUSHBUTTON      "Zarejestruj siê,\nPrzypomnij has³o",IDWWWREGISTER,167,
-                    70,70,25,BS_MULTILINE
-    PUSHBUTTON      "IDB_BETA",IDWWW,-1,-1,251,37,BS_BITMAP | BS_CENTER | 
-                    BS_FLAT,WS_EX_TRANSPARENT
-    PUSHBUTTON      "Wygeneruj\r\nzestawienie",IDC_STATICREPORT,167,100,70,
-                    24,BS_MULTILINE
+    PUSHBUTTON      "Zarejestruj siê,\nPrzypomnij has³o",IDWWWREGISTER,167,70,70,25,BS_MULTILINE
+    PUSHBUTTON      "IDB_BETA",IDWWW,-1,-1,251,37,BS_BITMAP | BS_CENTER | BS_FLAT,WS_EX_TRANSPARENT
+    PUSHBUTTON      "Wygeneruj\r\nzestawienie",IDC_STATICREPORT,167,100,70,24,BS_MULTILINE
 END
 
 IDD_REPORT DIALOGEX 0, 0, 249, 150
-STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
-    WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Zg³oszenie problemu/propozycji"
 FONT 8, "Tahoma", 0, 0, 0xEE
 BEGIN
@@ -138,20 +130,15 @@ BEGIN
     EDITTEXT        IDE_TITLE,36,7,206,12,ES_AUTOHSCROLL
     LTEXT           "Typ",IDC_STATIC4,7,24,13,8
     LTEXT           "Dotyczy",IDC_STATIC2,109,24,26,8
-    COMBOBOX        IDE_TYPE,36,22,70,107,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
-    COMBOBOX        IDE_RELATIVE,139,22,103,107,CBS_DROPDOWN | WS_VSCROLL | 
-                    WS_TABSTOP
+    COMBOBOX        IDE_TYPE,36,22,70,107,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDE_RELATIVE,139,22,103,107,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Treœæ",IDC_STATIC3,7,39,18,8
-    EDITTEXT        IDE_MSG,36,39,206,83,ES_MULTILINE | ES_AUTOVSCROLL | 
-                    ES_WANTRETURN | WS_VSCROLL
-    LTEXT           "Razem z raportem zostan¹ wys³ane:\nw. systemu/typ komp./w. wtyczek",
-                    IDC_STATIC1,7,127,128,16
+    EDITTEXT        IDE_MSG,36,39,206,83,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
+    LTEXT           "Razem z raportem zostan¹ wys³ane:\nw. systemu/typ komp./w. wtyczek",IDC_STATIC1,7,127,128,16
 END
 
 IDD_PROFILE DIALOGEX 0, 0, 166, 134
-STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
-    WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Konnekt - wybieranie profilu"
 FONT 8, "Tahoma", 0, 0, 0xEE
 BEGIN
@@ -161,57 +148,44 @@ BEGIN
     GROUPBOX        "Podaj has³o (jeœli jest)",IDC_STATIC1,6,90,96,38
     GROUPBOX        "Zmieñ profil",IDC_STATIC,6,50,152,37
     EDITTEXT        IDC_PASS1,14,106,78,12,ES_PASSWORD | ES_AUTOHSCROLL
-    COMBOBOX        IDC_COMBO,13,63,78,1000,CBS_DROPDOWNLIST | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
-    CTEXT           "Wybierz, lub utwórz nowy profil lokalny w którym przechowywane bêd¹ Twoje ustawienia, lista kontaktów itd.\r\nJe¿eli wybrany profil zabezpieczany jest has³em, musisz je teraz podaæ.",
-                    IDC_STATIC,7,7,153,41
+    COMBOBOX        IDC_COMBO,13,63,78,1000,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CTEXT           "Wybierz, lub utwórz nowy profil lokalny w którym przechowywane bêd¹ Twoje ustawienia, lista kontaktów itd.\r\nJe¿eli wybrany profil zabezpieczany jest has³em, musisz je teraz podaæ.",IDC_STATIC,7,7,153,41
 END
 
 IDD_PLUGS DIALOGEX 0, 0, 329, 227
-STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Konnekt - wtyczki"
 FONT 8, "Tahoma", 400, 0, 0xEE
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,260,204,61,18
     PUSHBUTTON      "Anuluj",IDCANCEL,198,204,56,18
-    CTEXT           "Wybierz wtyczki , które maj¹ byæ uruchamiane w twoim profilu.\nAlt+góra/dó³ zmienia kolejnoœæ uruchamiania.",
-                    IDC_STATIC,53,5,224,23
-    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_REPORT | WS_BORDER | 
-                    WS_TABSTOP,8,24,313,156
+    CTEXT           "Wybierz wtyczki , które maj¹ byæ uruchamiane w twoim profilu.\nAlt+góra/dó³ zmienia kolejnoœæ uruchamiania.",IDC_STATIC,53,5,224,23
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_REPORT | WS_BORDER | WS_TABSTOP,8,24,313,156
     ICON            IDI_PLUG_NEW,IDC_STATIC1,7,211,21,20,SS_REALSIZEIMAGE
     LTEXT           "Nowa",IDC_STATIC2,20,212,27,10
     ICON            IDI_PLUG_BAN,IDC_STATIC3,41,211,21,20,SS_REALSIZEIMAGE
     LTEXT           "Wy³¹czona",IDC_STATIC4,54,212,37,10
     ICON            IDI_PLUG_ERROR,IDC_STATIC5,89,211,21,20,SS_REALSIZEIMAGE
     LTEXT           "Nie uruchamia siê",IDC_STATIC6,102,212,60,10
-    CONTROL         "W³¹cz wszystkie",IDC_SELECT,"Button",BS_OWNERDRAW | 
-                    WS_TABSTOP,87,182,80,14
-    CONTROL         "Tylko polecane",IDC_RECOMMEND,"Button",BS_OWNERDRAW | 
-                    WS_TABSTOP,8,182,78,14
-    CONTROL         "Dowiedz siê jak pobraæ wtyczki",IDC_DOWNLOAD,"Button",
-                    BS_OWNERDRAW | BS_RIGHT | WS_TABSTOP,195,182,126,14
+    CONTROL         "W³¹cz wszystkie",IDC_SELECT,"Button",BS_OWNERDRAW | WS_TABSTOP,87,182,80,14
+    CONTROL         "Tylko polecane",IDC_RECOMMEND,"Button",BS_OWNERDRAW | WS_TABSTOP,8,182,78,14
+    CONTROL         "Dowiedz siê jak pobraæ wtyczki",IDC_DOWNLOAD,"Button",BS_OWNERDRAW | BS_RIGHT | WS_TABSTOP,195,182,126,14
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,8,199,313,2
     LTEXT           "Oznaczenia:",IDC_LEGEND,8,203,68,7
 END
 
 IDD_ERROR DIALOGEX 0, 0, 249, 150
-STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_NOIDLEMSG | 
-    DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION
+STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_NOIDLEMSG | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION
 EXSTYLE WS_EX_NOPARENTNOTIFY | WS_EX_APPWINDOW
 CAPTION "KONNEKT - Komentarz b³êdu krytycznego"
 FONT 8, "Tahoma", 0, 0, 0xEE
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,192,129,50,14
-    LTEXT           "Wyst¹pi³ b³¹d krytyczny! Napisz co przed chwil¹ robi³eœ, lub co Twoim zdaniem, mog³o przyczyniæ siê do powstania b³êdu...",
-                    IDC_STATIC,37,3,207,17
-    EDITTEXT        IDE_MSG,3,78,241,44,ES_MULTILINE | ES_AUTOVSCROLL | 
-                    ES_WANTRETURN | WS_VSCROLL
+    LTEXT           "Wyst¹pi³ b³¹d krytyczny! Napisz co przed chwil¹ robi³eœ, lub co Twoim zdaniem, mog³o przyczyniæ siê do powstania b³êdu...",IDC_STATIC,37,3,207,17
+    EDITTEXT        IDE_MSG,3,78,241,44,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
     ICON            "MAINICON",IDI_PLUG_BAN,10,4,20,20,0,WS_EX_TRANSPARENT
-    EDITTEXT        IDC_MSG,3,28,241,47,ES_MULTILINE | ES_READONLY | 
-                    WS_VSCROLL
-    LTEXT           "Wpisz rzeczy, co do których jesteœ pewien. Jeœli ci siê nie chce, NIC nie wpisuj!",
-                    IDC_STATIC1,7,127,172,16
+    EDITTEXT        IDC_MSG,3,28,241,47,ES_MULTILINE | ES_READONLY | WS_VSCROLL
+    LTEXT           "Wpisz rzeczy, co do których jesteœ pewien. Jeœli ci siê nie chce, NIC nie wpisuj!",IDC_STATIC1,7,127,172,16
 END
 
 

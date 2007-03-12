@@ -737,7 +737,9 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 
 	}
-	Ctrl->setError(IMERROR_NORESULT);
+	if (Ctrl) {
+		Ctrl->setError(IMERROR_NORESULT);
+	}
 	return 0;
 }
 

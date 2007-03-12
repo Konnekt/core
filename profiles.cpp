@@ -134,32 +134,40 @@ namespace Konnekt {
 		}
 
 		DT::FileBin fb;
-		// sprawdzamy czy jest has³o...
-		try {
-			DT::DataTable dt;
-			dt.setPasswordDigest(passwordDigest);
-			fb.assign(dt);
-			fb.open(profileDir + "cfg.dtb", DT::fileRead);
+		int retry = 0;
+		while (1) {
+			// sprawdzamy czy jest has³o...
+			try {
+				DT::DataTable dt;
+				dt.setPasswordDigest(passwordDigest);
+				fb.assign(dt);
+				fb.open(profileDir + "cfg.dtb", DT::fileRead);
 
-			fb.close();
-		} catch (DT::DTException e) {
-			fb.close();
-			switch (e.errorCode) {
-				case DT::errNotAuthenticated:
-				{
-					if (passwordDigest.empty() == false) {// has³o by³o ustawiane - trzeba wrzuciæ monit o z³ym haœle...
-						ICMessage(IMI_ERROR , (int)loadString(IDS_ERR_BADPASSWORD).c_str());
+				fb.close();
+			} catch (DT::DTException e) {
+				fb.close();
+				switch (e.errorCode) {
+					case DT::errNotAuthenticated:
+					{
+						if (passwordDigest.empty() == false) {// has³o by³o ustawiane - trzeba wrzuciæ monit o z³ym haœle...
+							ICMessage(IMI_ERROR , (int)loadString(IDS_ERR_BADPASSWORD).c_str());
+						}
+						int r = 0;
+						if ((r = DialogBox(Stamina::getHInstance(), MAKEINTRESOURCE(IDD_PROFILE), 0, ProfileDialogProc)) != IDCANCEL) return r;
+						break;
 					}
-					int r = 0;
-					if ((r = DialogBox(Stamina::getHInstance(), MAKEINTRESOURCE(IDD_PROFILE), 0, ProfileDialogProc)) != IDCANCEL) return r;
-					break;
-				}
-				case DT::errFileNotFound:
-					break;
-				default:
-					ICMessage(IMI_WARNING , (int)stringf(loadString(IDS_INF_BADFILE).c_str(),fb.getFileName().c_str()).c_str(),0);
-					exit(1);
-			};
+					case DT::errFileNotFound:
+						break;
+					default:
+						if (retry == 0 && fb.restoreLastBackup()) {
+							++retry;
+							continue;
+						}
+						ICMessage(IMI_WARNING , (int)stringf(loadString(IDS_INF_BADFILE).c_str(),fb.getFileName().c_str()).c_str(),0);
+						exit(1);
+				};
+			}
+			break;
 		}
 
 
