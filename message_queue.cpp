@@ -246,7 +246,7 @@ messagedelete:
 				msg->setInt(id , MSG_FLAG , m->flag);
 			}
 			if (cntID != -1 && m->notify) {
-				SETCNTI(cntID , CNT_NOTIFY , m->notify);
+				setCntInt(cntID , CNT_NOTIFY , m->notify);
 				SETCNTI(cntID , CNT_NOTIFY_MSG , m->id);
 				SETCNTI(cntID , CNT_ACT_PARENT , m->action.parent);
 				SETCNTI(cntID , CNT_ACT_ID , m->action.id);

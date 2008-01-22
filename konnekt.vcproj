@@ -40,11 +40,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\depends;..\..\depends\stamina.lib; ..\..\depends\stamina.lib\depends"
+				InlineFunctionExpansion="0"
+				AdditionalIncludeDirectories="..\..\depends;..\..\depends\stamina.lib_0.7;..\..\depends\stamina.lib_0.7\depends;..\..\depends\konnekt_0.7"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;KONNEKT_SDK_NOEXPORT;KONNEKT_SDK_BUILD_CORE;__BETA;__WITHDEBUGALL"
 				StringPooling="true"
 				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
 				BufferSecurityCheck="true"
 				DefaultCharIsUnsigned="true"
@@ -52,7 +53,7 @@
 				BrowseInformation="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				DisableSpecificWarnings="4800"
 			/>
 			<Tool
@@ -69,7 +70,8 @@
 				AdditionalDependencies="comctl32.lib Wininet.lib Dbghelp.lib Msimg32.lib version.lib Rasapi32.lib shell32.lib stamina_d.lib stamina_ui_d.lib datatable_d.lib cppunitd.lib"
 				OutputFile="$(OutDir)/konnekt.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\depends\lib;..\..\depends\konnekt;..\..\depends\stamina.lib\lib;..\..\depends\stamina.lib\depends\lib"
+				AdditionalLibraryDirectories="..\..\depends\lib;..\..\depends\konnekt_0.7\konnekt;..\..\depends\stamina.lib_0.7\lib;..\..\depends\stamina.lib_0.7\depends\lib"
+				AdditionalManifestDependencies=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/konnekt.pdb"
 				GenerateMapFile="true"
@@ -103,7 +105,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="../../_publish/"
+			OutputDirectory="../../publish/"
 			IntermediateDirectory="..\..\_$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
@@ -130,7 +132,7 @@
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="..\..\depends;..\..\depends\stamina.lib; ..\..\depends\stamina.lib\depends"
+				AdditionalIncludeDirectories="..\..\depends;..\..\depends\stamina.lib_0.7;..\..\depends\stamina.lib_0.7\depends;..\..\depends\konnekt_0.7"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;__BETA;KONNEKT_SDK_NOEXPORT;KONNEKT_SDK_BUILD_CORE;__WITHDEBUGALL"
 				StringPooling="true"
 				MinimalRebuild="false"
@@ -154,10 +156,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib Wininet.lib imagehlp.lib Msimg32.lib version.lib Rasapi32.lib ../../__libs/shared.lib shell32.lib stamina.lib stamina_ui.lib"
+				AdditionalDependencies="comctl32.lib Wininet.lib Dbghelp.lib Msimg32.lib version.lib Rasapi32.lib shell32.lib stamina.lib stamina_ui.lib datatable.lib cppunit.lib"
 				OutputFile="$(OutDir)/__main/konnekt.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\depends\lib;..\..\depends\lib\konnekt;..\..\depends\stamina.lib\lib;..\..\depends\stamina.lib\depends\lib"
+				AdditionalLibraryDirectories="..\..\depends\lib;..\..\depends\konnekt_0.7\konnekt;..\..\depends\stamina.lib_0.7\lib;..\..\depends\stamina.lib_0.7\depends\lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/debug/konnekt.pdb"
 				GenerateMapFile="true"
@@ -168,6 +170,7 @@
 				EnableCOMDATFolding="2"
 				ImportLibrary="$(OutDir)/konnekt.lib"
 				TargetMachine="1"
+				AllowIsolation="false"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -223,7 +226,7 @@
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="..\..\depends;..\..\depends\stamina.lib; ..\..\depends\stamina.lib\depends"
+				AdditionalIncludeDirectories="..\..\depends;..\..\depends\stamina.lib_0.7;..\..\depends\stamina.lib_0.7\depends;..\..\depends\konnekt_0.7"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;__NOCATCH;__BETA;KONNEKT_SDK_NOEXPORT;KONNEKT_SDK_BUILD_CORE"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -250,7 +253,7 @@
 				AdditionalDependencies="comctl32.lib Wininet.lib imagehlp.lib Msimg32.lib version.lib Rasapi32.lib ..\..\__libs\shared.lib shell32.lib"
 				OutputFile="\c++\konnekt\__sdk\__output\konnekt_dev.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\depends\lib;..\..\depends\lib\konnekt;..\..\depends\stamina.lib\lib;..\..\depends\stamina.lib\depends\lib"
+				AdditionalLibraryDirectories="..\..\depends\lib;..\..\depends\konnekt_0.7\konnekt;..\..\depends\stamina.lib_0.7\lib;..\..\depends\stamina.lib_0.7\depends\lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/konnekt.pdb"
 				GenerateMapFile="true"
@@ -314,7 +317,7 @@
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="..\..\depends;..\..\depends\stamina.lib; ..\..\depends\stamina.lib\depends"
+				AdditionalIncludeDirectories="..\..\depends;..\..\depends\stamina.lib_0.7;..\..\depends\stamina.lib_0.7\depends;..\..\depends\konnekt_0.7"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;__DEBUGALL;__NOCATCH;KONNEKT_SDK_NOEXPORT;KONNEKT_SDK_BUILD_CORE"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -341,7 +344,7 @@
 				AdditionalDependencies="comctl32.lib Wininet.lib imagehlp.lib Msimg32.lib version.lib Rasapi32.lib ../../__libs/shared.lib shell32.lib stamina.lib"
 				OutputFile="\c++\konnekt\__sdk\__output\konnekt_dev_log.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\depends\lib;..\..\depends\lib\konnekt;..\..\depends\stamina.lib\lib;..\..\depends\stamina.lib\depends\lib"
+				AdditionalLibraryDirectories="..\..\depends\lib;..\..\depends\konnekt_0.7\konnekt;..\..\depends\stamina.lib_0.7\lib;..\..\depends\stamina.lib_0.7\depends\lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/konnekt.pdb"
 				GenerateMapFile="true"
@@ -402,7 +405,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\depends;..\..\depends\stamina.lib; ..\..\depends\stamina.lib\depends"
+				AdditionalIncludeDirectories="..\..\depends;..\..\depends\stamina.lib_0.7;..\..\depends\stamina.lib_0.7\depends;..\..\depends\konnekt_0.7"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;__NOCATCH;__DEBUGALL;KONNEKT_SDK_NOEXPORT;KONNEKT_SDK_BUILD_CORE"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -431,7 +434,7 @@
 				AdditionalDependencies="comctl32.lib Wininet.lib Dbghelp.lib Msimg32.lib version.lib Rasapi32.lib ../../__libs/shared_debug.lib shell32.lib stamina_d.lib"
 				OutputFile="\\kompadriana\konnekt\konnekt.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\depends\lib;..\..\depends\lib\konnekt;..\..\depends\stamina.lib\lib;..\..\depends\stamina.lib\depends\lib"
+				AdditionalLibraryDirectories="..\..\depends\lib;..\..\depends\konnekt_0.7\konnekt;..\..\depends\stamina.lib_0.7\lib;..\..\depends\stamina.lib_0.7\depends\lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/konnekt.pdb"
 				GenerateMapFile="true"
@@ -1157,10 +1160,26 @@
 							UsePrecompiledHeader="2"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\test\TestPlugin.cpp"
 					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 		</Filter>
@@ -1209,7 +1228,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\messages.h"
+				RelativePath=".\message_queue.h"
 				>
 			</File>
 			<File

@@ -907,7 +907,7 @@ namespace Konnekt { namespace Beta {
 		CStdString format;
 		LoadString(Stamina::getHInstance() , IDS_ERR_EXCEPTION , format.GetBuffer(500) , 500);
 		format.ReleaseBuffer();
-		stringf(ER.msg , format , msg.c_str());
+		ER.msg = stringf(format , msg.c_str());
 		ER.msg = RegEx::doReplace("/(?<!\\r)\\n/g" , "\r\n" , ER.msg).c_str();
 		DialogBoxParam(Stamina::getHInstance() , MAKEINTRESOURCE(IDD_ERROR) , 0 , ErrorDialogProc , (LPARAM)&ER);   
 		// To co sie zmienilo, trzeba teraz zapisac

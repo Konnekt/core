@@ -237,8 +237,57 @@ namespace Konnekt { namespace Tables {
 		return result;
 	}
 
+	unsigned int TableImpl::getFileRowCount(const StringRef& filepath) {
+		String file = (filepath.empty() == false) ? filepath : this->getFilepath();
+		file = Stamina::expandEnvironmentStrings(file.c_str());
+		if (file.empty()) return -1;
+
+		FileBin fb;
+		fb.warningDialogs = false;
+		DataTable dt;
+		fb.assign(dt);
+		
+		try {
+			fb.open(file , fileRead);
+			fb.close();
+		} catch(...) {
+			return -1;
+		}
+		return fb.getStoredRowsCount();
+	}
+
+	enResult TableImpl::loadPartial(unsigned int start, unsigned int count, unsigned int* seek, const StringRef& filepath) {
+		enResult result;
+		{
+			Stamina::ObjLocker lock(this, lockDefault);
+			String file = (filepath.empty() == false) ? filepath : this->getFilepath();
+			file = Stamina::expandEnvironmentStrings(file.c_str());
+			result = errFileNotFound;
+			if (!file.empty()) {
+				FileBin fb;
+				fb.warningDialogs = false;
+				fb.assign(_dt);
+
+				mainLogger->log(Stamina::logFunc, "Tables", "load partial", "%s %d %d", file.c_str(), start, count);
+
+				if (getOpt(optMakeBackups)) {
+					fb.makeBackups = true;
+				}
+
+				result = fb.loadPartial(file, start, count, seek, (this->getOpt(optDiscardLoadedColumns) == false && this->_columnsSet == false) ? loadColumns : noOperation);
+
+			}
+			this->_columnsSet = true;
+			this->_loaded = true;
+		}
+		if (result == success) 
+			this->broadcastEvent(IM::afterLoad);
+		return result;
+	}
+
 
 	enResult TableImpl::save(bool force, const StringRef& filepath) {
+		if (getOpt(optReadOnly)) return errReadOnly;
 		if ((!force && _dt.isChanged() == false)) return errNotChanged;
 		if (_columnsSet == false || (getOpt(optAutoLoad) && !isLoaded())) return errNotLoaded;
 		_lateSaveTimer.reset();

@@ -103,6 +103,9 @@ namespace Konnekt { namespace Tables {
 		enResult save(bool force = false, const StringRef& filePath = StringRef());
 		void lateSave(bool enabled);
 
+		unsigned int getFileRowCount(const StringRef& filepath = StringRef());
+		enResult loadPartial(unsigned int start, unsigned int count, unsigned int* seek = 0, const StringRef& filepath = StringRef());
+
 		bool setOpt(enTableOptions option , bool enabled);
 		bool getOpt(enTableOptions option) {
 			ObjLocker lock(this, lockRead);

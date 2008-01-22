@@ -473,33 +473,29 @@ namespace Konnekt {
 		// Na poczatku wszystkie wtyczki maja 0 dziêki czemu bêdziemy je
 		// trzymaæ na samym koñcu listy przez ca³y czas...
 		tList::iterator it = _list.begin();
-		while (it != _list.end()) {
+		tList newList;
+		for (it = _list.begin(); it != _list.end(); ++it) {
 			ptrPlugin current = *it;
 			Plugin* plugin = &*current;
 			if (plugin->getId() == pluginCore || plugin->getId() == pluginUI) {
 				plugin->_priority = priorityCore;
-				it ++;
-				continue;
+			} else {
+				// sprawdzamy priorytety
+				plugin->_priority = (enPluginPriority)plugin->IMessageDirect(IM_PLUG_PRIORITY, 0 ,0);
+				if (!plugin->_priority || plugin->_priority > priorityHighest) {
+					plugin->_priority = priorityStandard;
+				}
 			}
 
-			// sprawdzamy priorytety
-			plugin->_priority = (enPluginPriority)plugin->IMessageDirect(IM_PLUG_PRIORITY, 0 ,0);
-			if (!plugin->_priority || plugin->_priority > priorityHighest) {
-				plugin->_priority = priorityStandard;
-			}
-			// usuwamy, ¿eby nie przeszkadza³...
-			it = _list.erase(it);
 			// szukamy teraz, gdzie go wrzucic... na pewno gdzies wczesniej
-			tList::iterator ins = _list.begin();
-			while (ins != _list.end() && (*ins)->getPriority() >= plugin->_priority) {
+			tList::iterator ins = newList.begin();
+			while (ins != newList.end() && (*ins)->getPriority() >= plugin->_priority) {
 				ins++;
 			}
 
-			_list.insert(ins , current);
-			if (it != _list.end()) {
-				it ++;
-			}
+			newList.insert(ins , current);
 		}
+		_list = newList;
 	}
 
 	void Plugins::cleanUp() {

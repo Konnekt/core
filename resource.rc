@@ -27,7 +27,7 @@ LANGUAGE LANG_POLISH, SUBLANG_DEFAULT
 // RT_MANIFEST
 //
 
-1                       RT_MANIFEST             "res\\.manifest"
+//1                       RT_MANIFEST             "res\\.manifest"
 
 /////////////////////////////////////////////////////////////////////////////
 //

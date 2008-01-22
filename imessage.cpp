@@ -77,18 +77,23 @@ namespace Konnekt {
 
 				if (thread.stack.getError() != errorNoResult) {
 					hits++;
-					switch (net.getResultType()) {
-						case Broadcast::resultAnd:
-							result = (hits == 1) ? retVal : result & retVal;
-							break;
-						case Broadcast::resultOr:
-							result |= retVal;
-							break;
-						case Broadcast::resultSum:
-							result += retVal;
-							break;
-						default: // last
-							result = retVal;
+					if (net.isFirstOnly()) {
+						result = retVal;
+						break;
+					} else {
+						switch (net.getResultType()) {
+							case Broadcast::resultAnd:
+								result = (hits == 1) ? retVal : result & retVal;
+								break;
+							case Broadcast::resultOr:
+								result |= retVal;
+								break;
+							case Broadcast::resultSum:
+								result += retVal;
+								break;
+							default: // last
+								result = retVal;
+						}
 					}
 				}
 			

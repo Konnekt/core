@@ -198,7 +198,33 @@ namespace Konnekt {
 
 
 	void * __stdcall Controler1::GetTempBuffer(unsigned int size) {
-		return TLSU().buffer(this->ID()).getBuffer(size);
+		static Stamina::FastMutex mutex;
+
+		struct tempBuffInfo {
+			__time64_t time;
+			void * buff;
+		};
+
+		static std::queue<tempBuffInfo> buffers;
+
+		{ // mutex protected
+			Stamina::FastLocker<Stamina::FastMutex> locker(mutex);
+
+			__time64_t now;
+			_time64(&now);
+
+			// czyœcimy...
+			while (buffers.empty() == false && buffers.front().time < (now - 10)) {
+				free(buffers.front().buff);
+				buffers.pop();
+			}
+			tempBuffInfo temp;
+			temp.time = now;
+			temp.buff = malloc(size);
+			// dodajemy nowy
+			buffers.push(temp);
+			return temp.buff;
+		}
 	}
 
 	int __stdcall Controler1::Sleep(unsigned int time) {
@@ -293,8 +319,7 @@ namespace Konnekt {
 		return Tables::getTable(tableId);
 	}
 	Konnekt::oPlugin __stdcall Controler1::getPlugin(Konnekt::tPluginId pluginId) {
-		return oPlugin();
-		/*TODO: getPlugin*/
+		return plugins.get(pluginId);
 	}
 
 	void __stdcall Controler1::onThreadStart(const char* name) {
