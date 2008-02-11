@@ -19,14 +19,14 @@
 #include "argv.h"
 #include "mru.h"
 #include "tables.h"
-
+#include "message_queue.h"
 #include <Stamina\Logger.h>
 #include <Stamina\Exception.h>
 #include <Stamina\iArray.h>
 #include "KLogger.h"
 
 using namespace Stamina;
-
+using namespace Messages;
 
 extern "C" __declspec(dllexport) void __stdcall KonnektApiRegister(fApiVersionCompare reg) {
 	using namespace Stamina;
@@ -131,7 +131,7 @@ namespace Konnekt {
 		CStdString envPath;
 		GetEnvironmentVariable("PATH", envPath.GetBuffer(1024), 1024);
 		envPath.ReleaseBuffer();
-		SetEnvironmentVariable("PATH", (dataPath + "dll;" + envPath).c_str());
+		SetEnvironmentVariable("PATH", (dataPath + "dll;" + envPath.c_str()).c_str());
 		_SetDllDirectory((dataPath + "dll").c_str());
 
 		if (fileExists(dataPath) == false) {
@@ -232,13 +232,9 @@ namespace Konnekt {
 				silent = true;
 			}
 			Beta::makeReport(value.c_str(), true, useDate, silent);
+			Tables::deinitialize();
 			gracefullExit();
 		}
-
-
-
-
-
 
 		// UI
 		try {
@@ -247,6 +243,7 @@ namespace Konnekt {
 			CStdString msg;
 			msg.Format(loadString(IDS_ERR_NOUI).c_str(), e.getReason().a_str());
 			MessageBox(NULL, msg.c_str(), loadString(IDS_APPNAME).c_str(),MB_ICONERROR|MB_OK|MB_TASKMODAL ); 
+			Tables::deinitialize();
 			exit(0); 
 		}
 
@@ -278,6 +275,8 @@ namespace Konnekt {
 		if (GetLastError() == ERROR_ALREADY_EXISTS) {
 			if (!restoreRunningInstance())
 				MessageBox(0 , loadString(IDS_ERR_ONEINSTANCE).c_str() , "Konnekt" , MB_OK | MB_ICONERROR);
+
+			Tables::deinitialize();
 			exit(0);
 		}
 		SetEnvironmentVariable("KonnektProfile" , profileDir.substr(0 , profileDir.size()-1).c_str());
@@ -330,12 +329,29 @@ namespace Konnekt {
 			IMLOG("--- NEW profile passed ---");
 		}
 
+		// Podlaczenie starej kolejki wiadomosci
+		for (Plugins::tList::reverse_iterator it = plugins.rbegin(); it != plugins.rend(); ++it) {
+			Plugin& plugin = **it;
+			if (plugin.getId() == pluginCore) break;
+
+			if ((plugin.getType() & IMT_ALLMESSAGES) || (plugin.getType() & IMT_MESSAGE)) {
+				// || IMessageDirect(IM_PLUG_SDKVERSION, 0 ,0) < KONNEKT_SDK_V)) {
+
+			mhlist.registerHandler(oPlugin(plugins.get(plugin.getId())), 
+				new OldPluginMessageHandler(plugin.getId()), (iMessageHandler::enMessageQueue) -1, plugin.getPriority());
+			}
+		}
+
 		Connections::startUp();
 		IMessage(IM_NEEDCONNECTION,Net::broadcast,imtProtocol);
 		Connections::connect();
 		IMLOG("--- Auto-Connected ---");
-		Messages::initMessages();
-		Messages::runMessageQueue(&sMESSAGESELECT(NET_BC , 0 , -1 , 0 , MF_SEND));
+
+		MessageQueue* mq = MessageQueue::getInstance();
+		mq->init();
+		mq->loadMessages();
+		mq->runMessageQueue(&MessageSelect(Net::broadcast, 0, Message::typeAll, Message::flagNone, Message::flagSend));
+
 		IMLOG("--- First MSGQueue (rcv) ---");
 		/*
 		if (EXP_YEAR && (newVersion || newProfile)) {
@@ -363,7 +379,6 @@ namespace Konnekt {
 	#ifdef __BETA
 		Beta::sendPostponed();
 	#endif
-
 
 		return;
 	}
@@ -411,12 +426,14 @@ namespace Konnekt {
 			if (plugins[i].isVirtual()) continue;
 			plugins.plugOut(plugins[i], false);
 		}
+
 		IMLOG("-plugs unpluged");
 
+		MessageQueue::getInstance()->deinit();
+
 		Tables::deinitialize();
-
-
 		IMLOG("-tables cleaned");
+
 	#ifdef __DEBUG
 		Debug::debug = false;
 	#endif

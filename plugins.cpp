@@ -278,7 +278,7 @@ namespace Konnekt {
 		}
 
 		String namePlug = this->getName();
-		String nameSender = sender->getPlugin()->getName();
+		String nameSender = sender->getPlugin(sender->ID())->getName();
 		
 		bool result = true;
 
@@ -442,15 +442,24 @@ namespace Konnekt {
 	bool Plugins::plugOut(Plugin& plugin, bool removeFromList) {
 		plugin.deinitialize();
 		if (removeFromList) {
-	
-			plugins.cleanUp(); // wywalamy to co ew. zosta³o wypiête w deinitialize
+			bool fPlug = false;
 
 			for (tList::iterator it = _list.begin(); it != _list.end(); ++it) {
 				if (it->get() == &plugin) {
+					fPlug = true;
+					break;
+				}
+			}
+			plugins.cleanup(); // wywalamy to co ew. zosta³o wypiête w deinitialize
+			/*
+			for (tList::iterator it = _list.begin(); it != _list.end(); ++it) {
+				if (it->get() == p) {
 					_list.erase(it);
 					return true;
 				}
 			}
+			*/
+			if (fPlug) return true;
 			bool pluginOnList = false;
 			S_ASSERT(pluginOnList == true);
 			return false;

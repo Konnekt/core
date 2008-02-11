@@ -194,14 +194,14 @@ namespace Konnekt {
 		Tables::oTableImpl msg (Tables::tableMessages);
 		msg->lockData(Tables::allRows);
 		for (unsigned int i = 0; i < msg->getRowCount() ; i++) {
-			if (msg->getInt(i , MSG_FLAG) & MF_NOSAVE) {
+			if (msg->getInt(i , Message::colFlag) & Message::flagNoSave) {
 				msg->removeRow(i--);
 				continue;
 			}
 			// Usuwamy zbêdne flagi
-			int newFlag = msg->getInt(i, MSG_FLAG);
-			newFlag &= ~(MF_PROCESSING|MF_OPENED);
-			msg->setInt(i, MSG_FLAG, newFlag);
+			int newFlag = msg->getInt(i, Message::colFlag);
+			newFlag &= ~(Message::flagProcessing|Message::flagOpened);
+			msg->setInt(i, Message::colFlag, newFlag);
 		}
 		msg->unlockData(Tables::allRows);
 	}

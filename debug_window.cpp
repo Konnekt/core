@@ -366,22 +366,22 @@ namespace Konnekt { namespace Debug {
 		for (unsigned int i=0; i<msg->getRowCount(); i++) {
 			RE_BOLD(1);
 			RE_COLOR(RGB(0x0,80,0));
-			RE_ADD(stringf("\r\nMSG %x %s from '%s' to '%s' [%s]\r\n", msg->getInt(i,MSG_ID) 
-				, IMessage(IM_PLUG_NETNAME, (tNet)msg->getInt(i,MSG_NET),IMT_PROTOCOL)
-				, msg->getString(i,MSG_FROMUID).c_str()
-				, msg->getString(i,MSG_TOUID).c_str()
-				, msg->getString(i,MSG_BODY).substr(0,30).c_str()));
+			RE_ADD(stringf("\r\nMSG %x %s from '%s' to '%s' [%s]\r\n", msg->getInt(i,Message::colId) 
+				, IMessage(IM_PLUG_NETNAME, (tNet)msg->getInt(i,Message::colNet),IMT_PROTOCOL)
+				, msg->getString(i,Message::colFromUid).c_str()
+				, msg->getString(i,Message::colToUid).c_str()
+				, msg->getString(i,Message::colBody).substr(0,30).c_str()));
 			RE_BOLD(0);
 			RE_COLOR(RGB(0,0,0));
-			RE_ADD("EXT []" + msg->getString(i , MSG_EXT) + "\r\n");
-			int flag = msg->getInt(i,MSG_FLAG);
-			RE_ADD(stringf("Type=%d  flag=%x " , msg->getInt(i,MSG_TYPE)
+			RE_ADD("EXT []" + msg->getString(i , Message::colExt) + "\r\n");
+			int flag = msg->getInt(i,Message::colFlag);
+      RE_ADD(stringf("Type=%d  flag=%x " , msg->getInt(i,Message::colType)
 				, flag));
 			RE_COLOR(RGB(80,0,0));
 			RE_ADD(stringf("%s %s %s\r\n" 
-				, flag&MF_SEND?"MF_SEND":""
-				, flag&MF_PROCESSING?"MF_PROCESSING":""
-				, flag&MF_OPENED?"MF_OPENED":""
+				, flag&Message::flagSend?"MF_SEND":""
+				, flag&Message::flagProcessing?"MF_PROCESSING":""
+				, flag&Message::flagOpened?"MF_OPENED":""
 				));
 			RE_COLOR(RGB(0,0,0));
 		}

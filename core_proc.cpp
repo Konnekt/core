@@ -14,7 +14,7 @@ Obs³uga "rdzeniowych" komunikatów
 #include "imessage.h"
 #include "threads.h"
 #include "profiles.h"
-#include "messages.h"
+#include "message_queue.h"
 #include "beta.h"
 #include "tables.h"
 #include "contacts.h"
@@ -31,7 +31,7 @@ Obs³uga "rdzeniowych" komunikatów
 #include <Konnekt/plugin_test.h>
 
 using namespace Stamina;
-
+using namespace Messages;
 
 //  IMessage do Core
 int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
@@ -129,46 +129,70 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			IMessage(IM_DISCONNECT , Net::broadcast , IMT_PROTOCOL); 
 			return 0;
 
-		case IMC_NEWMESSAGE: 
+		case Message::IM::imcNewMessage: 
 			ISRUNNING();
 			IMESSAGE_TS();
-			return Messages::newMessage((cMessage *)msg->p1);
+			return MessageQueue::getInstance()->addMessage((Message *)msg->p1, false, 0);
+		//	return Messages::newMessage((Message *)msg->p1);
 
-		case IMC_MESSAGEACK: 
+		case MessageAck::IM::imcSendAck: 
 			ISRUNNING(); 
-			if (((cMessageAck*)msg->p1)->flag & MACK_NOBROADCAST) {
-				plugins[pluginUI].IMessageDirect(IM_MSG_ACK , msg->p1 , 0); 
+			if (((MessageAck*)msg->p1)->flag & MessageAck::flagNoBroadcast) {
+				plugins[pluginUI].IMessageDirect(MessageAck::IM::imReceiveAck , msg->p1 , 0); 
 			} else {
-				IMessage(IM_MSG_ACK, Net::broadcast, imtMessageAck, msg->p1, 0); 
+				IMessage(MessageAck::IM::imReceiveAck, Net::broadcast, imtMessageAck, msg->p1, 0); 
 			}
+
 			return true;
 
-		case IMC_MESSAGEQUEUE:
+		case MessageSelect::IM::imcMessageQueue:
 			ISRUNNING();
 			IMESSAGE_TS();
-			Messages::runMessageQueue((sMESSAGESELECT*)msg->p1 , msg->p2);
+			MessageQueue::getInstance()->runMessageQueue((MessageSelect*)msg->p1 , msg->p2);
+			//Messages::runMessageQueue((MessageSelect*)msg->p1 , msg->p2);
 			return 0;
 
-		case IMC_MESSAGENOTIFY: 
-			return Messages::messageNotify((sMESSAGENOTIFY *)msg->p1);
+		case MessageNotify::IM::imcMessageNotify: 
+			return MessageQueue::getInstance()->messageNotify((MessageNotify *)msg->p1);
+			//return Messages::messageNotify((MessageNotify *)msg->p1);
 
-		case IMC_MESSAGEWAITING: 
-			return Messages::messageWaiting((sMESSAGEWAITING *)msg->p1);
+		case MessageSelect::IM::imcMessageWaiting: 
+			return MessageQueue::getInstance()->messageWaiting((MessageSelect *)msg->p1);
+			//return Messages::messageWaiting((MessageSelect *)msg->p1);
 
-		case IMC_MESSAGEREMOVE:
+		case MessageSelect::IM::imcMessageRemove:
 			ISRUNNING();
 			IMESSAGE_TS();
-			return Messages::removeMessage((sMESSAGEWAITING *)msg->p1,msg->p2);
+			return MessageQueue::getInstance()->removeMessage((MessageSelect*)msg->p1,msg->p2);
+			//return Messages::removeMessage((MessageSelect *)msg->p1,msg->p2);
 
-		case IMC_MESSAGEGET: 
+		case MessageSelect::IM::imcMessageGet: 
 			ISRUNNING();
 			IMESSAGE_TS();
-			return Messages::getMessage((sMESSAGEWAITING *)msg->p1 , (cMessage*)msg->p2);
+			return MessageQueue::getInstance()->getMessage((MessageSelect *)msg->p1 , (Message*)msg->p2);
+			//return Messages::getMessage((MessageSelect*)msg->p1 , (Message*)msg->p2);
 
-		case IMC_MESSAGEPROCESSED: 
+		case Message::IM::imcSetProcessed: 
 			ISRUNNING();
 			IMESSAGE_TS();
-			Messages::messageProcessed(msg->p1 , msg->p2); return 1;
+			MessageQueue::getInstance()->messageProcessed(msg->p1 , msg->p2); return 1;
+			//Messages::messageProcessed(msg->p1 , msg->p2); return 1;
+
+		case MessageHandler::IM::imcRegisterMessageHandler:
+			ISRUNNING();
+			IMESSAGE_TS();
+			{
+				MessageHandler::IM& msg_ = (MessageHandler::IM&) msg;
+				return mhlist.registerHandler(oPlugin(plugins.get(msg_.sender)), msg_.handler, msg_.queue, msg_.priority);
+			}
+
+		case MessageHandler::IM::imcUnregisterMessageHandler:
+			ISRUNNING();
+			IMESSAGE_TS();
+			{
+				MessageHandler::IM& msg_ = (MessageHandler::IM&) msg;
+				return mhlist.unregisterHandler(msg_.handler); 
+			}
 
 		case IMC_FINDCONTACT: 
 			return Contacts::findContact(msg->p1,(char *)msg->p2);
@@ -233,7 +257,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 								 ,(int)stringf(loadString(IDS_ASK_CNTREMOVE).c_str(),Tables::cnt->getString(msg->p1,CNT_DISPLAY).c_str()).c_str()
 								 ,0))) 
 			{
-				Messages::removeMessage(&sMESSAGESELECT(Tables::cnt->getInt(msg->p1,CNT_NET),Tables::cnt->getString(msg->p1,CNT_UID).c_str(),MT_MESSAGE,0,MF_SEND),-1);
+				MessageQueue::getInstance()->removeMessage(&MessageSelect((tNet)Tables::cnt->getInt(msg->p1,CNT_NET),Tables::cnt->getString(msg->p1,CNT_UID).a_str(),Message::typeMessage,Message::flagNone,Message::flagSend),-1);
 				IMessage(IM_CNT_REMOVE, NET_BC, IMT_CONTACT, msg->p1, msg->p2);
 				bool result = Tables::cnt->removeRow(msg->p1);
 				IMessage(IM_CNT_REMOVED, NET_BC, IMT_CONTACT, msg->p1, msg->p2);
@@ -730,7 +754,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 	
 		case Konnekt::IM::getTests: {
 			return Konnekt::getCoreTests(static_cast<IM::GetTests*>(msgBase));
-			}
+		}
 
 		case Konnekt::IM::runTests:
 			return Konnekt::runCoreTests(static_cast<IM::RunTests*>(msgBase));

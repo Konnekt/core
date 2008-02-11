@@ -13,7 +13,7 @@
 #include "main.h"
 #include "beta.h"
 #include "resources.h"
-#include "messages.h"
+#include "message_queue.h"
 #include "plugins.h"
 #include "pseudo_export.h"
 #include "imessage.h"
@@ -31,6 +31,7 @@ using Stamina::RegEx;
 using Stamina::ExceptionString;
 
 using namespace Stamina;
+using namespace Messages;
 
 using Tables::oTable;
 using Tables::oTableImpl;
@@ -264,19 +265,20 @@ namespace Konnekt { namespace Beta {
 			uptime = 86400;
 		if (uptime > 0)
 			stats->setInt(row , STATS_UPTIME , stats->getInt(row , STATS_UPTIME) + uptime);
-		stats->setInt(row , STATS_MSGSENT , stats->getInt(row , STATS_MSGSENT) + Messages::msgSent);
-		stats->setInt(row , STATS_MSGRECV , stats->getInt(row , STATS_MSGRECV) + Messages::msgRecv);
+		stats->setInt(row , STATS_MSGSENT , stats->getInt(row , STATS_MSGSENT) + MessageQueue::getInstance()->msgSent());
+		stats->setInt(row , STATS_MSGRECV , stats->getInt(row , STATS_MSGRECV) + MessageQueue::getInstance()->msgRecv());
 		stats->setInt64(row , STATS_DATE , (days * 86400) + 14400 );
 		// 
 
 		// Zerujemy wszystkie liczniki
 		time_started = GetTickCount();
 		lastStat = _time64(0);
-		lastMsgRecv = Messages::msgRecv;
-		lastMsgSent = Messages::msgSent;
+		lastMsgRecv = MessageQueue::getInstance()->msgRecv();
+		lastMsgSent = MessageQueue::getInstance()->msgSent();
 		// Zamawiamy timer, do wykonania nastêpnego dnia...
 		statTimer.start(setStats, 0, (86400 - (lastStat % 86400)) * 1000);
-		IMLOG("Statystyka id = %d; uptime = %d; msgSent = %d; msgRecv = %d" , id , uptime , Messages::msgSent , Messages::msgRecv);
+		IMLOG("Statystyka id = %d; uptime = %d; msgSent = %d; msgRecv = %d" , id , uptime , MessageQueue::getInstance()->msgSent(),
+		MessageQueue::getInstance()->msgRecv());
 
 		stats->save();
 		
@@ -660,15 +662,19 @@ namespace Konnekt { namespace Beta {
 				}
 				if (!error_msgs.empty()) {
 					error_msgs = "Podczas przetwarzania raportów, system Beta zwróci³ nast. b³êdy:\r\n" + error_msgs + "\r\n\r\nNajlepiej poinformuj nas o tym na FORUM.";
-					cMessage m;
-					m.type = MT_SERVEREVENT;
-					m.body = (char*)error_msgs.c_str();
-					m.time = _time64(0);
-					m.flag = MF_HANDLEDBYUI;
+					Message m;
+					m.setType(Message::typeServerEvent);
+					m.setBody(error_msgs.c_str());
+					m.setTime(_time64(0));
+					m.setFlags(Message::flagHandledByUI);
+					m.saveToQueue();
+					m.runQueue();
+					/*
 					sMESSAGESELECT ms;
 					ms.id = ICMessage(IMC_NEWMESSAGE , (int)&m);
 					if (ms.id)
 						ICMessage(IMC_MESSAGEQUEUE , (int)&ms);
+					*/
 				}
 				response.reset();
 
@@ -822,7 +828,7 @@ namespace Konnekt { namespace Beta {
 
 	// dodaje raport do kolejki
 	int report(int type , const char * title , const char * msg , const char * digest, const CStdString& log, bool send) {
-		Tables::oTableImpl reports(tableReports);
+		oTableImpl reports(tableReports);
 		tRowId i = reports->addRow();
 		reports->setInt64(i , REP_DATE , _time64(0));
 		reports->setInt(i , REP_TYPE , type);

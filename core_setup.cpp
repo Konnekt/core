@@ -6,7 +6,6 @@
 #include "profiles.h"
 #include "argv.h"
 #include "debug.h"
-
 using namespace Stamina;
 
 namespace Konnekt {
@@ -52,19 +51,19 @@ namespace Konnekt {
 
 		// Wiadomoœci
 		oTableImpl msg(tableMessages);
-		msg->setColumn(MSG_ID,   ctypeInt , "ID");
-		msg->setColumn(MSG_NET,  ctypeInt , "Net");
-		msg->setColumn(MSG_TYPE, ctypeInt , "Type");
-		msg->setColumn(MSG_FROMUID, ctypeString|cflagXor , "FromUID");
-		msg->setColumn(MSG_TOUID, ctypeString|cflagXor , "ToUID");
-		msg->setColumn(MSG_BODY, ctypeString|cflagXor , "Body");
-		msg->setColumn(MSG_EXT, ctypeString|cflagXor , "Ext");
-		msg->setColumn(MSG_FLAG, ctypeInt , "Flag");
-		msg->setColumn(MSG_NOTIFY, ctypeInt | cflagDontSave);
-		msg->setColumn(MSG_ACTIONP, ctypeInt | cflagDontSave);
-		msg->setColumn(MSG_ACTIONI, ctypeInt | cflagDontSave);
-		msg->setColumn(MSG_HANDLER, ctypeInt | cflagDontSave);
-		msg->setColumn(MSG_TIME, ctypeInt64 , "Time");
+		msg->setColumn(Message::colId,ctypeInt , "ID");
+		msg->setColumn(Message::colNet,  ctypeInt , "Net");
+		msg->setColumn(Message::colType, ctypeInt , "Type");
+		msg->setColumn(Message::colFromUid, ctypeString|cflagXor , "FromUID");
+		msg->setColumn(Message::colToUid, ctypeString|cflagXor , "ToUID");
+		msg->setColumn(Message::colBody, ctypeString|cflagXor , "Body");
+		msg->setColumn(Message::colExt, ctypeString|cflagXor , "Ext");
+		msg->setColumn(Message::colFlag, ctypeInt , "Flag");
+		msg->setColumn(Message::colNotify, ctypeInt | cflagDontSave);
+		msg->setColumn(Message::colActionP, ctypeInt | cflagDontSave);
+		msg->setColumn(Message::colActionI, ctypeInt | cflagDontSave);
+		msg->setColumn(Message::colHandler, ctypeInt | cflagDontSave);
+		msg->setColumn(Message::colTime, ctypeInt64 , "Time");
 
 		// Konfiguracja
 		cfg->setColumn(CFG_VERSIONS, ctypeString , "Versions");

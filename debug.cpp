@@ -128,14 +128,14 @@ namespace Konnekt { namespace Debug {
 				sUIActionInfo* ai = (sUIActionInfo*)p1;
 				return stringf("act(%d / %d / %x), txt=%s, mask=%x, p2=%x", ai->act.id, ai->act.parent, ai->act.cnt, (ai->mask & UIAIM_TXT) ? ai->txt : 0, ai->mask, p2);
 				}
-			case IMC_NEWMESSAGE :
-			case IM_MSG_SEND :
-			case IM_MSG_RCV :
-			case IM_MSG_OPEN :
+			case Message::IM::imcNewMessage:
+			case Message::IM::imSendMessage:
+			case Message::IM::imReceiveMessage:
+			case Message::IM::imOpenMessage:
 				{
 				if (!p1) return "B³¹d!";
-				cMessage * m = (cMessage *) p1;
-				return stringf("id=%d net=%d from[\"%.50s\"] to[\"%.50s\"]" , m->id , m->net , m->fromUid , m->toUid);
+				Message * m = (Message *) p1;
+				return stringf("id=%d net=%d from[\"%.50s\"] to[\"%.50s\"]" , m->getId() , m->getNet() , m->getFromUid().a_str() , m->getToUid().a_str());
 				}
 			case IMC_CNT_IGNORED :
 			case IMC_FINDCONTACT :
@@ -170,12 +170,12 @@ namespace Konnekt { namespace Debug {
 			case IMI_REFRESH_CNT:return "IMI_REFRESH_CNT";
 			case IMI_NOTIFY:	return "IMI_NOTIFY";
 			case IMI_NEWNOTIFY:	return "IMI_NEWNOTIFY";
-			case IMC_MESSAGENOTIFY:return "IMC_MESSAGENOTIFY";
+			case MessageNotify::IM::imcMessageNotify:return "IMC_MESSAGENOTIFY";
 			case IMC_SHUTDOWN :	return "IMC_SHUTDOWN";
-			case IMC_NEWMESSAGE :return "IMC_NEWMESSAGE";
-			case IMC_MESSAGEQUEUE:return "IMC_MESSAGEQUEUE";
-			case IMC_MESSAGEWAITING:return "IMC_MESSAGEWAITING";
-			case IMC_MESSAGEREMOVE:return "IMC_MESSAGEREMOVE";
+			case Message::IM::imcNewMessage :return "IMC_NEWMESSAGE";
+			case MessageSelect::IM::imcMessageQueue:return "IMC_MESSAGEQUEUE";
+			case MessageSelect::IM::imcMessageWaiting:return "IMC_MESSAGEWAITING";
+			case MessageSelect::IM::imcMessageRemove:return "IMC_MESSAGEREMOVE";
 			case IMC_CNT_IGNORED:return "IMC_CNT_IGNORED";
 			case IMC_FINDCONTACT:return "IMC_FINDCONTACT";
 			case IMC_PROFILEDIR:return "IMC_PROFILEDIR";
@@ -188,9 +188,9 @@ namespace Konnekt { namespace Debug {
 			case IM_UIACTION :	return "IM_UIACTION";
 			case IM_CONNECT :	return "IM_CONNECT";
 			case IM_UI_PREPARE:	return "IM_UI_PREPARE";
-			case IM_MSG_OPEN:	return "IM_MSG_OPEN";
-			case IM_MSG_SEND:	return "IM_MSG_SEND";
-			case IM_MSG_RCV:	return "IM_MSG_RCV";
+			case Message::IM::imOpenMessage:	return "IM_MSG_OPEN";
+			case Message::IM::imSendMessage:	return "IM_MSG_SEND";
+			case Message::IM::imReceiveMessage:	return "IM_MSG_RCV";
 			case IM_CNT_STATUSCHANGE:return "IM_CNT_STATUSCHANGE";
 			case IMC_IGN_DEL:	return "IMC_IGN_DEL";
 			case IM_AWAY:		return "IM_AWAY";
