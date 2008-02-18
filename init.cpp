@@ -337,8 +337,8 @@ namespace Konnekt {
 			if ((plugin.getType() & IMT_ALLMESSAGES) || (plugin.getType() & IMT_MESSAGE)) {
 				// || IMessageDirect(IM_PLUG_SDKVERSION, 0 ,0) < KONNEKT_SDK_V)) {
 
-			mhlist.registerHandler(oPlugin(plugins.get(plugin.getId())), 
-				new OldPluginMessageHandler(plugin.getId()), (iMessageHandler::enMessageQueue) -1, plugin.getPriority());
+				mhlist.registerHandler(new OldPluginMessageHandler(plugin.getNet(), 
+					plugin.getId()), plugin.getPriority());
 			}
 		}
 
@@ -429,6 +429,7 @@ namespace Konnekt {
 
 		IMLOG("-plugs unpluged");
 
+		mhlist.clear();
 		MessageQueue::getInstance()->deinit();
 
 		Tables::deinitialize();

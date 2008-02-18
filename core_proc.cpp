@@ -183,7 +183,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			IMESSAGE_TS();
 			{
 				MessageHandler::IM& msg_ = (MessageHandler::IM&) msg;
-				return mhlist.registerHandler(oPlugin(plugins.get(msg_.sender)), msg_.handler, msg_.queue, msg_.priority);
+				return mhlist.registerHandler(msg_.handler, msg_.priority);
 			}
 
 		case MessageHandler::IM::imcUnregisterMessageHandler:

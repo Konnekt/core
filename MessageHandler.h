@@ -13,50 +13,37 @@ namespace Konnekt { namespace Messages {
       friend MessageHandlerList;
 
     public:
-      typedef unsigned int tHId; 
+      Handler(iMessageHandler* handler, enPluginPriority priority) 
+        : _handler(handler), _priority(priority) { }
 
     public:
-      Handler(oPlugin& plugin, iMessageHandler* handler, enPluginPriority priority, 
-        iMessageHandler::enMessageQueue type) 
-        : _plugin(plugin), _handler(handler), _priority(priority), _type(type) { _id = sid++; }
-
-    public:
-      Message::enMessageResult operator() (Message* m, 
-        iMessageHandler::enMessageQueue type = (iMessageHandler::enMessageQueue) -1) {
-        return _handler->handleMessage(m, (iMessageHandler::enMessageQueue)(getType() & type), getPriority());
+      Message::enMessageResult operator() (iMessageHandler::enMessageQueue type, Message* m) {
+        return _handler->handleMessage(m, type, getPriority());
       }
 
     public:
-      inline tHId getId() {
-        return _id;
-      }
       inline enPluginPriority getPriority() {
         return _priority;
       }
-      inline iMessageHandler::enMessageQueue getType() {
-        return _type;
-      }
-      inline oPlugin getPlugin() {
-        return _plugin;
+      inline Stamina::SharedPtr<iMessageHandler>& getHandler() {
+        return _handler;
       }
 
     private:
-      tHId _id;
-      oPlugin _plugin;
       Stamina::SharedPtr<iMessageHandler> _handler;
       enPluginPriority _priority;
-      iMessageHandler::enMessageQueue _type;
-
-      static tHId sid;
     };
 
   private:
     typedef deque<Handler> tList;
 
   public:
-    bool registerHandler(oPlugin& plugin, iMessageHandler* handler, iMessageHandler::enMessageQueue type,
-      enPluginPriority priority);
+    bool registerHandler(iMessageHandler* handler, enPluginPriority priority);
     bool unregisterHandler(iMessageHandler* handler);
+
+    void clear() {
+      _list.clear();
+    }
 
   public:
     inline Handler& getHandler(unsigned int id) {
@@ -68,15 +55,6 @@ namespace Konnekt { namespace Messages {
 
     inline Handler& operator [] (int id) {
       return _list[id];
-    }
-
-    inline Handler& operator [] (Handler::tHId id) {
-      for (tList::iterator it = _list.begin(); _list.end() != it; it++) {
-        if (it->getId() == id) {
-          return *it;
-        }
-      }
-      throw Stamina::ExceptionString("No handler under this handler id");
     }
 
     inline unsigned int count() {
@@ -91,12 +69,15 @@ namespace Konnekt { namespace Messages {
 
   class OldPluginMessageHandler : public MessageHandler {
   public:
-    OldPluginMessageHandler(int plugid) : _plugid(plugid) { }
+    OldPluginMessageHandler(tNet net, int plugid) 
+      : MessageHandler((enMessageQueue) -1, net), _plugid(plugid) { }
 
   public:
     Message::enMessageResult handleMessage(Message* msg, enMessageQueue queue, Konnekt::enPluginPriority priority);
+    bool handlingMessage(enMessageQueue type, Message* m);
 
   private:
     int _plugid;
+
   };
 };};

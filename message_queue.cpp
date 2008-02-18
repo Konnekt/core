@@ -40,45 +40,54 @@ namespace Konnekt { namespace Messages {
   }
 
   int MessageQueue::addMessage(Message* m, bool load, tRowId row) {
-    int handler = -1;
-    int r = 0;
-
+    bool candelete = true;
     bool notinlist = false;
 
+    msg->lateSave(false);
+
+    m->setOneFlag(Message::flagLoaded, load);
+
+    // TODO przekierowac do UI
     if (!(m->getFlags() & Message::flagSend) && !(m->getType() & Message::typeMask_NotOnList) && 
       m->getFromUid().size() && Contacts::findContact(m->getNet(), (char*) m->getFromUid().a_str()) < 0) {
 
-        if (!ICMessage(IMI_MSG_NOTINLIST, (int)m)) {
+        if (!ICMessage(IMI_MSG_NOTINLIST, (int) m)) {
+          candelete = true;
           notinlist = true;
-          handler = -1;
           goto messagedelete;
         }
     }
 
+    if (!load) {
+      row = msg->getRowPos(msg->addRow());
+    }
 
-    int id = 0;
+    m->setId(msg->getRowId(row));
 
-    while (id < mhlist.count()) {
-      MessageHandlerList::Handler& h = mhlist[id];
+    int i = 0;
+    int r = 0;
 
-      if ((h.getType() & iMessageHandler::enMessageQueue::mqReceive) 
-        && ((!m->getNet() /*|| !h.getPlugin().getNet()*/|| h.getPlugin()->getNet() == m->getNet())
-        || h.getPlugin()->getPluginId() == pluginUI)) {
+    iMessageHandler::enMessageQueue rcvtype = m->getFlags() & Message::flagSend 
+      ? iMessageHandler::mqReceiveSend : iMessageHandler::mqReceiveOpen;
 
-        m->setId(0);
-        r = h(m, iMessageHandler::enMessageQueue::mqReceive);
+    while (i < mhlist.count()) {
+      MessageHandlerList::Handler& h = mhlist[i];
+
+      if (h.getHandler()->handlingMessage(rcvtype, m)) {
+
+        r = h(rcvtype, m);
 
         if (r & Message::resultDelete) {
-          handler = -1;
-          goto messagedelete;
+          candelete = true;
+          break;
         } else if (r & Message::resultOk) {
-          handler = h.getId();
+          candelete = false;
         }
       }
-      id++;
+      i++;
     }
 
-    // Core bez UI nie zadziala, zatem UI musi istniec
+/*    // Core bez UI nie zadziala, zatem UI musi istniec
     if (m->getFlags() & Message::flagHandledByUI) {
 
       id = 0;
@@ -90,6 +99,7 @@ namespace Konnekt { namespace Messages {
         id++;
       }
     }
+    */
 
 /*
 
@@ -123,12 +133,10 @@ namespace Konnekt { namespace Messages {
 
     if (m->getFlags() & Message::flagHandledByUI) handler = Konnekt::pluginUI;
 */
-
-
 messagedelete:
     msg->lateSave(false);
 
-    if (handler == -1) {
+    if (candelete) {
       // Zapisywanie w historii
       if (m->getType() == Message::typeMessage && !(m->getFlags() & Message::flagDontAddToHistory)) {
         sHISTORYADD ha;
@@ -142,39 +150,36 @@ messagedelete:
 
       IMLOG("_Wiadomosc bez obslugi lub usunieta - %.50s...", m->getBody().a_str());
 
-      if (load) msg->removeRow(row);
+      if (!notinlist || load) msg->removeRow(row);
 
-      return 0;
-    }
+      m->setId(0);
 
-    // Zapisywanie
-    if (!load) row = msg->getRowPos(msg->addRow());
+    } else {
+      int cntID = m->getType() & Message::typeMask_NotOnList ? 0 
+        : ICMessage(IMC_FINDCONTACT, m->getNet(),(int) m->getFromUid().a_str());
 
-    m->setId(msg->getRowId(row));
+      if (cntID != -1) cnt->setInt(cntID, CNT_LASTMSG, m->getId());
 
-    int cntID = m->getType() & Message::typeMask_NotOnList ? 0 
-      : ICMessage(IMC_FINDCONTACT, m->getNet(),(int)m->getFromUid().a_str());
+      IMLOG("- Wiadomoœæ %d %s", m->getId(), load ? "jest w kolejce" : "dodana do kolejki");
 
-    if (cntID != -1) cnt->setInt(cntID, CNT_LASTMSG, m->getId());
+      m->setOneFlag(Message::flagLoaded, false);
 
-    IMLOG("- Wiadomoœæ %d %s", m->getId(), load ? "jest w kolejce" : "dodana do kolejki");
-
-    {
-      TableLocker lock(msg, row);
-      updateMessage(row, m);
-      msg->setInt(row, Message::colId, m->getId());
-      msg->setInt(row, Message::colHandler, handler);
-    }
-
-    msg->lateSave(true);
-
-    // stats
-    if (!load && m->getType() == Message::typeMessage) {
-      if (m->getFlags() & Message::flagSend) {
-        _msgSent++;
-      } else {
-        _msgRecv++;
+      {
+        TableLocker lock(msg, row);
+        updateMessage(row, m);
+        msg->setInt(row, Message::colId, m->getId());
       }
+
+      // stats
+      if (!load && m->getType() == Message::typeMessage) {
+        if (m->getFlags() & Message::flagSend) {
+          _msgSent++;
+        } else {
+          _msgRecv++;
+        }
+      }
+
+      msg->lateSave(true);
     }
 
     return m->getId();
@@ -403,21 +408,44 @@ messagedelete:
 
       msg->setInt(row, Message::colFlag, m.getFlags() | Message::flagProcessing);
       r = Message::resultOk;
+      iMessageHandler::enMessageQueue handlerType = (iMessageHandler::enMessageQueue)0;
 
       if (!(m.getFlags() & Message::flagOpened) && !notifyOnly) {
         if (m.getFlags() & Message::flagSend) {
-          //r = plugins[msg->getInt(row, Message::colHandler)].IMessageDirect(Message::IM::imSendMessage,(int)&m, 0);
-          r = mhlist[(MessageHandlerList::Handler::tHId) msg->getInt(row, Message::colHandler)](&m, iMessageHandler::enMessageQueue::mqSend);
+          handlerType = iMessageHandler::mqSend;
         } else {
           if (!(m.getType() & Message::typeMask_NotOnList) && 
-            m.getUid().size() && Contacts::findContact(m.getNet(), (char*)m.getFromUid().a_str()) < 0) {
+            m.getUid().size() && Contacts::findContact(m.getNet(), (char*) m.getFromUid().a_str()) < 0) {
             r = Message::resultDelete;
           } else {
-            r = mhlist[(MessageHandlerList::Handler::tHId) msg->getInt(row, Message::colHandler)](&m, iMessageHandler::enMessageQueue::mqOpen);
-            //r = plugins[msg->getInt(row, Message::colHandler)].IMessageDirect(Message::IM::imOpenMessage,(int)&m, 0);
+            handlerType = iMessageHandler::mqOpen;
           }
         }
       }
+
+      if (handlerType) {
+        int id = 0;
+
+        while (id < mhlist.count()) {
+          MessageHandlerList::Handler& h = mhlist[id];
+
+          if (h.getHandler()->handlingMessage(handlerType, &m)) {
+
+            r = h(handlerType, &m);
+            if (r & Message::resultDelete) {
+              break;
+            } else if (r & Message::resultUpdate) {
+              updateMessage(row, &m);
+            }
+            if (r & Message::resultProcessing) {
+              m.setOneFlag(Message::flagProcessing, true);
+              break;
+            }
+          }
+          id++;
+        }
+      }
+
       if (r & Message::resultDelete) {
         IMLOG("_Wiadomosc obsluzona - %d r=%x", msg->getInt(row, Message::colId), r);
 
@@ -426,13 +454,10 @@ messagedelete:
         }
         msg->removeRow(row);
         continue;
-      } else if (r & Message::resultUpdate) {
-        updateMessage(row, &m);
       }
-      if (!(r & Message::resultProcessing)) {
-        m.setOneFlag(Message::flagProcessing, false);
-        msg->setInt(row, Message::colFlag, m.getFlags());
-      }
+
+      msg->setInt(row, Message::colFlag, m.getFlags());
+
       if (cntID != -1 && m.getNotify()) {
         SETCNTI(cntID, CNT_NOTIFY, m.getNotify());
         SETCNTI(cntID, CNT_NOTIFY_MSG, m.getId());
