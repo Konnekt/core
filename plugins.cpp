@@ -278,7 +278,7 @@ namespace Konnekt {
 		}
 
 		String namePlug = this->getName();
-		String nameSender = sender->getPlugin(sender->ID())->getName();
+		String nameSender = sender->getPlugin()->getName();
 		
 		bool result = true;
 

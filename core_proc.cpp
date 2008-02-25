@@ -195,7 +195,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			}
 
 		case IMC_FINDCONTACT: 
-			return Contacts::findContact(msg->p1,(char *)msg->p2);
+			return Contacts::findContact((tNet) msg->p1,(char *) msg->p2);
 
 		case IMC_CNT_CHANGED: {
 			ISRUNNING();
@@ -231,7 +231,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			IMESSAGE_TS();
 			int cnt = -1;
 			if (msg->p1 && msg->p2 && *(char*)msg->p2) {
-				int cnt = Contacts::findContact(msg->p1,(char *)msg->p2);
+				int cnt = Contacts::findContact((tNet) msg->p1,(char *) msg->p2);
 				if (cnt != -1) {
 					int r = IMessage(&sIMessage_msgBox(IMI_CONFIRM, stringf(loadString(IDS_ASK_CNTOVERWRITE).c_str(), msg->p2, msg->p1, Tables::cnt->getString(cnt, CNT_DISPLAY)).c_str(), "Dodawanie kontaktu", MB_YESNOCANCEL));
 					switch (r) {
@@ -495,9 +495,10 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				list += inttostr(msg->p1) + "@";
 				list += (char*) msg->p2;
 				list += "\n";
+				Tables::cfg->setString(0,CFG_IGNORE, list);
 
-				Contacts::updateContact(Contacts::findContact(msg->p1 , (char*)msg->p2));
-				IMessage(IM_IGN_CHANGED , NET_BC , IMT_CONTACT , msg->p1 , msg->p2);
+				Contacts::updateContact(Contacts::findContact((tNet) msg->p1 , (char*) msg->p2));
+				IMessage(IM_IGN_CHANGED, Net::broadcast , IMT_CONTACT , msg->p1 , msg->p2);
 				return 1;
 			}
 			return 0;
@@ -512,7 +513,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			if (found != std::string::npos) {
 				list.erase(found, item.length() - 1);
 				Tables::cfg->setString(0, CFG_IGNORE, list);
-				Contacts::updateContact(Contacts::findContact(msg->p1 , (char*)msg->p2));
+				Contacts::updateContact(Contacts::findContact((tNet) msg->p1, (char*) msg->p2));
 				IMessage(IM_IGN_CHANGED , NET_BC , IMT_CONTACT , -msg->p1 , msg->p2);
 			}
 			return 0;

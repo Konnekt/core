@@ -50,34 +50,34 @@ namespace Konnekt { namespace Messages {
     return false;
   }
 
-  bool OldPluginMessageHandler::handlingMessage(iMessageHandler::enMessageQueue type, Message* m) {
-    return (_mq & type) && (_net == Net::all || _net == Net::none || _net == m->getNet());
+  bool OldPluginMessageHandler::handlingMessage(enMessageQueue queue, Message* msg) {
+    return (_queue & queue) && (_net == Net::all || _net == Net::none || _net == msg->getNet());
   }
 
-  Message::enMessageResult OldPluginMessageHandler::handleMessage(Message* m, enMessageQueue queue, 
-    Konnekt::enPluginPriority priority) {
+  tMsgResult OldPluginMessageHandler::handleMessage(Message* msg, enMessageQueue queue, 
+    enPluginPriority priority) {
 
       using namespace Tables;
 
       if (iMessageHandler::mqReceive & queue) {
-        Message::enMessageResult r = (Message::enMessageResult) plugins[_plugid].IMessageDirect(Message::IM::imReceiveMessage, 
-          (int) m, 0);
+        tMsgResult r = (tMsgResult) plugins[_plugid].IMessageDirect(Message::IM::imReceiveMessage, 
+          (int) msg, 0);
 
         if (r & Message::resultOk) {
-          oTable(tableMessages)->setInt(m->getId(), Message::colHandler, 
-            m->getOneFlag(Message::flagHandledByUI) ? pluginUI : _plugid);
+          oTable(tableMessages)->setInt(msg->getId(), Message::colHandler, 
+            msg->getOneFlag(Message::flagHandledByUI) ? pluginUI : _plugid);
         }
         return r;
       }
 
       // handler nie obsluguje wiadomosci
-      if (oTable(tableMessages)->getInt(m->getId(), Message::colHandler) != _plugid) {
-        return (Message::enMessageResult) 0;
+      if (oTable(tableMessages)->getInt(msg->getId(), Message::colHandler) != _plugid) {
+        return (tMsgResult) 0;
       }
 
       tIMid id = iMessageHandler::mqOpen == queue ? Message::IM::imOpenMessage : Message::IM::imSendMessage;
 
-      return (Message::enMessageResult) plugins[_plugid].IMessageDirect(id, (int) m, 0);
+      return (tMsgResult) plugins[_plugid].IMessageDirect(id, (int) msg, 0);
   }
 
 };};

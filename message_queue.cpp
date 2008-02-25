@@ -71,11 +71,11 @@ namespace Konnekt { namespace Messages {
       ? iMessageHandler::mqReceiveSend : iMessageHandler::mqReceiveOpen;
 
     while (i < mhlist.count()) {
-      MessageHandlerList::Handler& h = mhlist[i];
+      MessageHandlerList::Handler& handler = mhlist[i];
 
-      if (h.getHandler()->handlingMessage(rcvtype, m)) {
+      if (handler()->handlingMessage(rcvtype, m)) {
 
-        r = h(rcvtype, m);
+        r = handler()->handleMessage(m, rcvtype, handler.getPriority());
 
         if (r & Message::resultDelete) {
           candelete = true;
@@ -140,7 +140,7 @@ messagedelete:
       // Zapisywanie w historii
       if (m->getType() == Message::typeMessage && !(m->getFlags() & Message::flagDontAddToHistory)) {
         sHISTORYADD ha;
-        ha.m =  m;
+        ha.m = m;
         ha.dir = "deleted";
         ha.cnt = 0;
         ha.name = m->getFlags() & Message::flagSend ? "nie wys³ane" : (notinlist ? "spoza listy" : "nie obs³u¿one");
@@ -407,8 +407,9 @@ messagedelete:
       }
 
       msg->setInt(row, Message::colFlag, m.getFlags() | Message::flagProcessing);
+
       r = Message::resultOk;
-      iMessageHandler::enMessageQueue handlerType = (iMessageHandler::enMessageQueue)0;
+      iMessageHandler::enMessageQueue handlerType = (iMessageHandler::enMessageQueue) 0;
 
       if (!(m.getFlags() & Message::flagOpened) && !notifyOnly) {
         if (m.getFlags() & Message::flagSend) {
@@ -427,11 +428,11 @@ messagedelete:
         int id = 0;
 
         while (id < mhlist.count()) {
-          MessageHandlerList::Handler& h = mhlist[id];
+          MessageHandlerList::Handler& handler = mhlist[id];
 
-          if (h.getHandler()->handlingMessage(handlerType, &m)) {
+          if (handler()->handlingMessage(handlerType, &m)) {
 
-            r = h(handlerType, &m);
+            r = handler()->handleMessage(&m, handlerType, handler.getPriority());
             if (r & Message::resultDelete) {
               break;
             } else if (r & Message::resultUpdate) {

@@ -174,6 +174,7 @@ namespace Konnekt {
 		__except(except_filter((*GetExceptionInformation()),"Core")) 
 		{
 			IMLOG("Aborting...");
+			Tables::deinitialize();
 			exit(1);
 		}
 #endif // NOCATCH

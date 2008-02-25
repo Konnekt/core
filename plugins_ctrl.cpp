@@ -319,7 +319,7 @@ namespace Konnekt {
 		return Tables::getTable(tableId);
 	}
 	Konnekt::oPlugin __stdcall Controler1::getPlugin(Konnekt::tPluginId pluginId) {
-		return plugins.get(pluginId);
+		return plugins.get(pluginId != pluginNotFound ? pluginId : this->_plugin.getId());
 	}
 
 	void __stdcall Controler1::onThreadStart(const char* name) {

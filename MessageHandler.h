@@ -17,20 +17,20 @@ namespace Konnekt { namespace Messages {
         : _handler(handler), _priority(priority) { }
 
     public:
-      Message::enMessageResult operator() (iMessageHandler::enMessageQueue type, Message* m) {
-        return _handler->handleMessage(m, type, getPriority());
+      oMessageHandler& operator() () {
+        return getHandler();
       }
 
     public:
       inline enPluginPriority getPriority() {
         return _priority;
       }
-      inline Stamina::SharedPtr<iMessageHandler>& getHandler() {
+      inline oMessageHandler& getHandler() {
         return _handler;
       }
 
     private:
-      Stamina::SharedPtr<iMessageHandler> _handler;
+      oMessageHandler _handler;
       enPluginPriority _priority;
     };
 
@@ -73,11 +73,10 @@ namespace Konnekt { namespace Messages {
       : MessageHandler((enMessageQueue) -1, net), _plugid(plugid) { }
 
   public:
-    Message::enMessageResult handleMessage(Message* msg, enMessageQueue queue, Konnekt::enPluginPriority priority);
-    bool handlingMessage(enMessageQueue type, Message* m);
+    tMsgResult handleMessage(Message* msg, enMessageQueue queue, enPluginPriority priority);
+    bool handlingMessage(enMessageQueue type, Message* msg);
 
   private:
     int _plugid;
-
   };
 };};
