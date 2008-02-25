@@ -182,16 +182,16 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			ISRUNNING();
 			IMESSAGE_TS();
 			{
-				MessageHandler::IM& msg_ = (MessageHandler::IM&) msg;
-				return mhlist.registerHandler(msg_.handler, msg_.priority);
+				iMessageHandler::IM* msg_ = (iMessageHandler::IM*) msg;
+				return mhlist.registerHandler(msg_->handler, msg_->priority);
 			}
 
 		case MessageHandler::IM::imcUnregisterMessageHandler:
 			ISRUNNING();
 			IMESSAGE_TS();
 			{
-				MessageHandler::IM& msg_ = (MessageHandler::IM&) msg;
-				return mhlist.unregisterHandler(msg_.handler); 
+				iMessageHandler::IM* msg_ = (iMessageHandler::IM*) msg;
+				return mhlist.unregisterHandler(msg_->handler); 
 			}
 
 		case IMC_FINDCONTACT: 
