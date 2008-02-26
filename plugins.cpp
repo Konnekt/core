@@ -23,7 +23,7 @@ namespace Konnekt {
 
 	VersionControl apiVersions;
 
-	void pluginsInit() {
+	void initializePluginsTable() {
 		using namespace Tables;
 		oTable plg = registerTable(Ctrl, "Plugins", optPrivate | optAutoLoad | optAutoSave | /*optAutoUnload |*/ optDiscardLoadedColumns | optMakeBackups | optUseCurrentPassword);
 		plg->setFilename("plg.dtb");
@@ -603,6 +603,7 @@ namespace Konnekt {
 		Tables::oTableImpl plg(tablePlugins);
 		while (ff.find())
 		{
+			if (!RegEx::doMatch("/^[A-Za-z].*\\.dll$/", ff.found().getFileName())) continue;
 			if (_stricmp("ui.dll" , ff.found().getFileName().c_str())) {
 				tRowId p = plg->findRow(0, DT::Find::EqStr(plg->getColumn(PLG::file), plugDir + ff.found().getFileName())).getId();
 					if (p == DT::rowNotFound) {

@@ -212,9 +212,6 @@ namespace Konnekt {
 
 		Stamina::mainLogger = plugins[pluginCore].getLogger();
 
-
-		pluginsInit();
-
 	#ifdef __BETA
 		Beta::init();
 	#endif
@@ -232,7 +229,7 @@ namespace Konnekt {
 				silent = true;
 			}
 			Beta::makeReport(value.c_str(), true, useDate, silent);
-			Tables::deinitialize();
+			//Tables::deinitialize();
 			gracefullExit();
 		}
 
@@ -243,7 +240,7 @@ namespace Konnekt {
 			CStdString msg;
 			msg.Format(loadString(IDS_ERR_NOUI).c_str(), e.getReason().a_str());
 			MessageBox(NULL, msg.c_str(), loadString(IDS_APPNAME).c_str(),MB_ICONERROR|MB_OK|MB_TASKMODAL ); 
-			Tables::deinitialize();
+			//Tables::deinitialize();
 			exit(0); 
 		}
 
@@ -276,12 +273,13 @@ namespace Konnekt {
 			if (!restoreRunningInstance())
 				MessageBox(0 , loadString(IDS_ERR_ONEINSTANCE).c_str() , "Konnekt" , MB_OK | MB_ICONERROR);
 
-			Tables::deinitialize();
+			//Tables::deinitialize();
 			exit(0);
 		}
 		SetEnvironmentVariable("KonnektProfile" , profileDir.substr(0 , profileDir.size()-1).c_str());
 		SetEnvironmentVariable("KonnektUser" , profile.c_str());
 
+		initializePluginsTable();
 		initializeMainTables();
 
 		MRU::init();

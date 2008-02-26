@@ -20,7 +20,7 @@ namespace Konnekt {
 
 	extern tTableId tablePlugins;
 
-	void pluginsInit();
+	void initializePluginsTable();
 
 	class Controler_;
 
