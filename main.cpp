@@ -203,6 +203,11 @@ namespace Konnekt {
 #endif
 	}
 
+  void exit(int code) {
+    tables.unregisterAll();
+    ::exit(code);
+  }
+
 	void gracefullExit() {
 		atexit_finish();
 		exit(0);

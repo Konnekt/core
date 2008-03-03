@@ -51,7 +51,7 @@ namespace Konnekt { namespace Messages {
   }
 
   bool OldPluginMessageHandler::handlingMessage(enMessageQueue queue, Message* msg) {
-    return (_queue & queue) && (_net == Net::all || _net == Net::none || _net == msg->getNet());
+    return (_queue & queue) && (_net == Net::all /*|| _net == Net::none ||*/ || _net == msg->getNet());
   }
 
   tMsgResult OldPluginMessageHandler::handleMessage(Message* msg, enMessageQueue queue, 
@@ -65,7 +65,7 @@ namespace Konnekt { namespace Messages {
 
         if (r & Message::resultOk) {
           oTable(tableMessages)->setInt(msg->getId(), Message::colHandler, 
-            msg->getOneFlag(Message::flagHandledByUI) ? pluginUI : _plugid);
+           /* msg->getOneFlag(Message::flagHandledByUI) ? pluginUI : */_plugid);
         }
         return r;
       }

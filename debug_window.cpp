@@ -340,7 +340,11 @@ namespace Konnekt { namespace Debug {
 		RE_COLOR(0);
 		for (int i=0; i < plugins.count(); i++) {
 			RE_BOLD(1);
-			RE_ADD("\r\n -> " + plugins[i].getDllFile());  
+			if (plugins[i].isVirtual()) {
+				RE_ADD(stringf("\r\n -> [virtual] %s (%s)", plugins[i].getName().c_str(), plugins[i].getDllFile().c_str()));
+			} else {
+				RE_ADD("\r\n -> " + plugins[i].getDllFile());
+			}
 			RE_BOLD(0);
 			RE_ADD(stringf("\r\n    ID = %d hModule = 0x%x net = %d type = %x prrt = %d " , plugins[i].getId() , plugins[i].getDllModule() , plugins[i].getNet() , plugins[i].getType() ,  plugins[i].getPriority()));
 			RE_ADD(stringf("\r\n    name = \"%s\" sig=\"%s\"  v %s" , plugins[i].getName().c_str() , plugins[i].getSig().c_str() , plugins[i].getVersion().getString().c_str()));

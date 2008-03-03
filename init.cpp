@@ -330,7 +330,7 @@ namespace Konnekt {
 		// Podlaczenie starej kolejki wiadomosci
 		for (Plugins::tList::reverse_iterator it = plugins.rbegin(); it != plugins.rend(); ++it) {
 			Plugin& plugin = **it;
-			if (plugin.getId() == pluginCore) break;
+			if (plugin.getId() == pluginUI) break;
 
 			if ((plugin.getType() & IMT_ALLMESSAGES) || (plugin.getType() & IMT_MESSAGE)) {
 				// || IMessageDirect(IM_PLUG_SDKVERSION, 0 ,0) < KONNEKT_SDK_V)) {

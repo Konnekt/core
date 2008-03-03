@@ -345,11 +345,10 @@ namespace Konnekt {
 		this->_plugin.getLogger()->logMsg(level, module, where, msg);
 	}
 
-
 	//-----------------------------------------------
 
 	void __stdcall Controler3::PlugOut(unsigned int id , const char * reason , bool restart) {
-		this->IMessage(&sIMessage_plugOut(id, reason, restart ? sIMessage_plugOut::erYes : sIMessage_plugOut::erNo, sIMessage_plugOut::euNowAndOnNextStart));
+		this->IMessage(&sIMessage_plugOut((tPluginId) id, reason, restart ? sIMessage_plugOut::erYes : sIMessage_plugOut::erNo, sIMessage_plugOut::euNowAndOnNextStart));
 	}
 
 

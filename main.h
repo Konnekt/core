@@ -103,6 +103,7 @@ namespace Konnekt {
 	void updateCore(int from);
 
 	void gracefullExit();
+  void exit(int code);
 
 };
 using namespace Konnekt;

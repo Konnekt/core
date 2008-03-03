@@ -49,7 +49,7 @@ namespace Konnekt { namespace Messages {
 
     // TODO przekierowac do UI
     if (!(m->getFlags() & Message::flagSend) && !(m->getType() & Message::typeMask_NotOnList) && 
-      m->getFromUid().size() && Contacts::findContact(m->getNet(), (char*) m->getFromUid().a_str()) < 0) {
+      m->getFromUid().size() && Contacts::findContact(m->getNet(), (char*) m->getFromUid().a_str()) == -1) {
 
         if (!ICMessage(IMI_MSG_NOTINLIST, (int) m)) {
           candelete = true;
@@ -87,52 +87,6 @@ namespace Konnekt { namespace Messages {
       i++;
     }
 
-/*    // Core bez UI nie zadziala, zatem UI musi istniec
-    if (m->getFlags() & Message::flagHandledByUI) {
-
-      id = 0;
-      while (id < mhlist.count()) {
-        MessageHandlerList::Handler& h = mhlist[id];
-        if (h.getPlugin()->getPluginId() == pluginUI) {
-          handler = h.getId();
-        }
-        id++;
-      }
-    }
-    */
-
-/*
-
-    r = plugins[pluginUI].IMessageDirect(Message::IM::imReceiveMessage, (int)m, 0);
-    if (r & Message::resultDelete) {
-      handler = -1;
-      goto messagedelete;
-    }
-    if (r & Message::resultOk) handler = Konnekt::pluginUI;
-
-    for (Plugins::tList::reverse_iterator it = plugins.rbegin(); it != plugins.rend(); ++it) {
-      Plugin& plugin = **it;
-      if (plugin.getId() == pluginUI) break;
-
-      m->setId(0);
-
-      if (!(plugin.getType() & IMT_ALLMESSAGES) && (!(plugin.getType() & IMT_MESSAGE) || 
-        (m->getNet() && plugin.getNet() && plugin.getNet() != m->getNet()))) {
-          continue;
-      }
-
-      r = plugin.IMessageDirect(Message::IM::imReceiveMessage,(int)m, 0);
-      if (r & Message::resultDelete) { // Wiadomosc nie zostaje dodana
-        handler = -1;
-        goto messagedelete;
-      }
-      if (r & Message::resultOk) {
-        handler = plugins.getIndex(plugin.getId());
-      }
-    }
-
-    if (m->getFlags() & Message::flagHandledByUI) handler = Konnekt::pluginUI;
-*/
 messagedelete:
     msg->lateSave(false);
 
@@ -416,7 +370,7 @@ messagedelete:
           handlerType = iMessageHandler::mqSend;
         } else {
           if (!(m.getType() & Message::typeMask_NotOnList) && 
-            m.getUid().size() && Contacts::findContact(m.getNet(), (char*) m.getFromUid().a_str()) < 0) {
+            m.getUid().size() && Contacts::findContact(m.getNet(), (char*) m.getFromUid().a_str()) == -1) {
             r = Message::resultDelete;
           } else {
             handlerType = iMessageHandler::mqOpen;

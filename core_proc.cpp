@@ -336,11 +336,30 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			return plugin ? plugin->getId() : 0;
 		}
 
-		case sIMessage_plugOut::__msgID: {
+		case sIMessage_plugVirtualAdd::__msgId: {
+			ISRUNNING();
+			IMESSAGE_TS();
+
+			sIMessage_plugVirtualAdd* pa = static_cast<sIMessage_plugVirtualAdd*>(msgBase);
+
+
+			if (plugins.getIndex(pa->_plugId) != pluginNotFound) {
+				return 0;
+			}
+
+			tPluginId senderId = plugins.getId(pa->sender);
+			if (senderId == pluginNotFound) return 0;
+
+			plugins.plugInVirtual(plugins[senderId], pa->_object, pa->_proc, pa->_plugId);
+
+			return (*plugins.rbegin())->getId();
+		}
+
+		case sIMessage_plugOut::__msgId: {
 			ISRUNNING();
 			IMESSAGE_TS();
 			sIMessage_plugOut * po = static_cast<sIMessage_plugOut*>(msgBase);
-			tPluginId ID = plugins.getId((tPluginId)po->_plugID);
+			tPluginId ID = plugins.getId((tPluginId)po->_plugId);
 			tPluginId senderID = plugins.getId(po->sender);
 			if (ID == pluginNotFound || senderID == pluginNotFound) return 0;
 
