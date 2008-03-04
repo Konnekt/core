@@ -97,7 +97,7 @@ namespace Konnekt {
 					}
 				}
 			
-			} while ( reverse ? ( it != end && (it-- == it /*zeby poszlo*/) ) : ( (++it) != end ) ); // przy cofaniu, sprawdzamy czy obecnie przerobiony nie jest ostatnim... W normalnym zawsze mamy zapas...
+			} while ( reverse ? ( it != end && (--it == it /*zeby poszlo*/) ) : ( (++it) != end ) ); // przy cofaniu, sprawdzamy czy obecnie przerobiony nie jest ostatnim... W normalnym zawsze mamy zapas...
 
 			if (Debug::logAll && net.isSpecial()) {
 				logIMessageBCResult(msg, result, hits);
@@ -113,7 +113,7 @@ namespace Konnekt {
 	int Plugin::sendIMessage(sIMessage_base*im) {
 
 		if (this->_running == false && im->id != IM_PLUG_DEINIT && this->_ctrl != 0) {
-			TLSU().stack.setError(IMERROR_BADPLUG);
+			TLSU().stack.setError(errorBadPlugin);
 			return 0;
 		}
 		TLSU().stack.pushMsg(im, *this);

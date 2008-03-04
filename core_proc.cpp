@@ -42,8 +42,8 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 	switch (msg->id) {
 
 
-		case IM_PLUG_NET:        return NET_NONE;
-		case IM_PLUG_TYPE:       return IMT_ALL & ~(IMT_MSGUI | IMT_NETSEARCH | IMT_NETUID);
+		case IM_PLUG_NET:        return Net::none;
+		case IM_PLUG_TYPE:       return imtAll & ~(imtMsgUI | imtNetSearch | imtNetUID);
 		case IM_PLUG_VERSION:    return (int)"";
 		case IM_PLUG_SDKVERSION: return KONNEKT_SDK_V;
 		case IM_PLUG_SIG:        return (int)"CORE";
@@ -106,7 +106,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			ISRUNNING();
 			IMESSAGE_TS();
 			IMLOG("- IMC_SHUTDOWN (od %s) ... " , plugins.getName(msg->sender).c_str());
-			if (!msg->p1 && (!canQuit || IMessage(IM_CANTQUIT , Net::Broadcast().setResult(Net::Broadcast::resultSum), IMT_ALL, 0, 0))) {
+			if (!msg->p1 && (!canQuit || IMessage(IM_CANTQUIT , Net::Broadcast().setResult(Net::Broadcast::resultSum), imtAll, 0, 0))) {
 				IMLOG("- IMC_SHUTDOWN anulowany");
 				return 0;
 			}
@@ -126,14 +126,13 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 		case IMC_DISCONNECT: 
 			ISRUNNING();
-			IMessage(IM_DISCONNECT , Net::broadcast , IMT_PROTOCOL); 
+			IMessage(IM_DISCONNECT, Net::broadcast, imtProtocol); 
 			return 0;
 
 		case Message::IM::imcNewMessage: 
 			ISRUNNING();
 			IMESSAGE_TS();
 			return MessageQueue::getInstance()->addMessage((Message *)msg->p1, false, 0);
-		//	return Messages::newMessage((Message *)msg->p1);
 
 		case MessageAck::IM::imcSendAck: 
 			ISRUNNING(); 
@@ -148,35 +147,29 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		case MessageSelect::IM::imcMessageQueue:
 			ISRUNNING();
 			IMESSAGE_TS();
-			MessageQueue::getInstance()->runMessageQueue((MessageSelect*)msg->p1 , msg->p2);
-			//Messages::runMessageQueue((MessageSelect*)msg->p1 , msg->p2);
+			MessageQueue::getInstance()->runMessageQueue((MessageSelect*) msg->p1 , msg->p2);
 			return 0;
 
 		case MessageNotify::IM::imcMessageNotify: 
-			return MessageQueue::getInstance()->messageNotify((MessageNotify *)msg->p1);
-			//return Messages::messageNotify((MessageNotify *)msg->p1);
+			return MessageQueue::getInstance()->messageNotify((MessageNotify*) msg->p1);
 
 		case MessageSelect::IM::imcMessageWaiting: 
-			return MessageQueue::getInstance()->messageWaiting((MessageSelect *)msg->p1);
-			//return Messages::messageWaiting((MessageSelect *)msg->p1);
+			return MessageQueue::getInstance()->messageWaiting((MessageSelect *) msg->p1);
 
 		case MessageSelect::IM::imcMessageRemove:
 			ISRUNNING();
 			IMESSAGE_TS();
-			return MessageQueue::getInstance()->removeMessage((MessageSelect*)msg->p1,msg->p2);
-			//return Messages::removeMessage((MessageSelect *)msg->p1,msg->p2);
+			return MessageQueue::getInstance()->removeMessage((MessageSelect*) msg->p1,msg->p2);
 
 		case MessageSelect::IM::imcMessageGet: 
 			ISRUNNING();
 			IMESSAGE_TS();
-			return MessageQueue::getInstance()->getMessage((MessageSelect *)msg->p1 , (Message*)msg->p2);
-			//return Messages::getMessage((MessageSelect*)msg->p1 , (Message*)msg->p2);
+			return MessageQueue::getInstance()->getMessage((MessageSelect*) msg->p1, (Message*) msg->p2);
 
 		case Message::IM::imcSetProcessed: 
 			ISRUNNING();
 			IMESSAGE_TS();
-			MessageQueue::getInstance()->messageProcessed(msg->p1 , msg->p2); return 1;
-			//Messages::messageProcessed(msg->p1 , msg->p2); return 1;
+			MessageQueue::getInstance()->messageProcessed(msg->p1, msg->p2); return 1;
 
 		case MessageHandler::IM::imcRegisterMessageHandler:
 			ISRUNNING();
@@ -204,12 +197,12 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			Contacts::updateContact(msgCC._cntID);
 			if (Tables::cnt->getInt(msgCC._cntID,CNT_INTERNAL)&1) {
 				Tables::cnt->setInt(msgCC._cntID,CNT_INTERNAL, Tables::cnt->getInt(msgCC._cntID,CNT_INTERNAL)& (~1));
-				IMessage(IM_CNT_ADD,NET_BC,IMT_CONTACT, Tables::cnt->getRowId(msgCC._cntID),0);
+				IMessage(IM_CNT_ADD, Net::broadcast, imtContact, Tables::cnt->getRowId(msgCC._cntID),0);
 			}
 			else {
 				msgCC.id = IM_CNT_CHANGED;
-				msgCC.net = NET_BC;
-				msgCC.type = IMT_CONTACT;
+				msgCC.net = Net::broadcast;
+				msgCC.type = imtContact;
 				// Trzeba upewniæ siê, ¿e oba pola s¹ wype³nione
 				if (msgCC._changed.net || msgCC._changed.uid) {
 					if (!msgCC._oldUID) {
@@ -217,7 +210,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 						temp = Tables::cnt->getString(msgCC._cntID , CNT_UID);
 						msgCC._oldUID = temp.c_str();
 					}
-					if (!msgCC._changed.net && msgCC._oldNet == NET_NONE) msgCC._oldNet = Tables::cnt->getInt(msgCC._cntID , CNT_NET);
+					if (!msgCC._changed.net && msgCC._oldNet == Net::none) msgCC._oldNet = Tables::cnt->getInt(msgCC._cntID , CNT_NET);
 				}
 				IMessage(&msgCC);
 			}
@@ -258,9 +251,9 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 								 ,0))) 
 			{
 				MessageQueue::getInstance()->removeMessage(&MessageSelect((tNet)Tables::cnt->getInt(msg->p1,CNT_NET),Tables::cnt->getString(msg->p1,CNT_UID).a_str(),Message::typeMessage,Message::flagNone,Message::flagSend),-1);
-				IMessage(IM_CNT_REMOVE, NET_BC, IMT_CONTACT, msg->p1, msg->p2);
+				IMessage(IM_CNT_REMOVE, Net::broadcast, imtContact, msg->p1, msg->p2);
 				bool result = Tables::cnt->removeRow(msg->p1);
-				IMessage(IM_CNT_REMOVED, NET_BC, IMT_CONTACT, msg->p1, msg->p2);
+				IMessage(IM_CNT_REMOVED, Net::broadcast, imtContact, msg->p1, msg->p2);
 				return result;
 			} else {
 				return 0;
@@ -392,8 +385,8 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			ISRUNNING();
 			IMESSAGE_TS();
 			sIMessage_StatusChange sc(msgBase);
-			sc.net = NET_BC;
-			sc.type = IMT_ALL;
+			sc.net = Net::broadcast;
+			sc.type = imtAll;
 			sc.id = IM_STATUSCHANGE;
 			sc.plugID = sc.sender;
 			sc.sender = pluginCore;
@@ -404,8 +397,8 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			ISRUNNING();       
 			IMESSAGE_TS();
 			sIMessage_StatusChange sc(msgBase);
-			sc.net = NET_BC;
-			sc.type = IMT_ALL;
+			sc.net = Net::broadcast;
+			sc.type = imtAll;
 			sc.id = IM_CNT_STATUSCHANGE;
 			sc.sender = pluginCore;
 			IMessage(&sc);
@@ -517,7 +510,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				Tables::cfg->setString(0,CFG_IGNORE, list);
 
 				Contacts::updateContact(Contacts::findContact((tNet) msg->p1 , (char*) msg->p2));
-				IMessage(IM_IGN_CHANGED, Net::broadcast , IMT_CONTACT , msg->p1 , msg->p2);
+				IMessage(IM_IGN_CHANGED, Net::broadcast , imtContact , msg->p1 , msg->p2);
 				return 1;
 			}
 			return 0;
@@ -533,7 +526,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				list.erase(found, item.length() - 1);
 				Tables::cfg->setString(0, CFG_IGNORE, list);
 				Contacts::updateContact(Contacts::findContact((tNet) msg->p1, (char*) msg->p2));
-				IMessage(IM_IGN_CHANGED , NET_BC , IMT_CONTACT , -msg->p1 , msg->p2);
+				IMessage(IM_IGN_CHANGED , Net::broadcast , imtContact , -msg->p1 , msg->p2);
 			}
 			return 0;
 		}
@@ -553,7 +546,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				list += (char*)msg->p1;
 				list += "\n";
 				Tables::cfg->setString(0, CFG_GROUPS, list);
-				IMessage(IM_GRP_CHANGED , NET_BC , IMT_CONTACT , 0 , 0);
+				IMessage(IM_GRP_CHANGED , Net::broadcast , imtContact, 0 , 0);
 				return 1;
 			}
 			return 0;
@@ -578,7 +571,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 						Ctrl->IMessage(&cc);
 					}
 				}
-				IMessage(IM_GRP_CHANGED , NET_BC , IMT_CONTACT , 0 , 0);
+				IMessage(IM_GRP_CHANGED , Net::broadcast , imtContact , 0 , 0);
 			}
 			return 0;
 		}
@@ -600,7 +593,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 					Ctrl->IMessage(&cc);
 				}
 			}
-			IMessage(IM_GRP_CHANGED , NET_BC , IMT_CONTACT , 0 , 0);
+			IMessage(IM_GRP_CHANGED , Net::broadcast , imtContact, 0 , 0);
 			return 0;
 		}
 
@@ -652,7 +645,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		case IMC_CFG_CHANGED:
 			ISRUNNING();
 			IMESSAGE_TS();
-			IMessage(IM_CFG_CHANGED , NET_BC , IMT_CONFIG , 0 , 0);
+			IMessage(IM_CFG_CHANGED , Net::broadcast , imtConfig , 0 , 0);
 			return 0;
 
 		case IMC_SAVE_CFG:
@@ -745,8 +738,8 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			}
 			IMESSAGE_TS();
 			sIMessage_debugCommand dc = *msgDc;
-			dc.net = NET_BROADCAST;
-			dc.type = IMT_ALL;
+			dc.net = Net::broadcast;
+			dc.type = imtAll;
 			dc.id = IM_DEBUG_COMMAND;
 			IMessage(&dc);
 			if (msgDc->async == (sIMessage_debugCommand::duringAsynchronous)) {
@@ -782,7 +775,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 	}
 	if (Ctrl) {
-		Ctrl->setError(IMERROR_NORESULT);
+		Ctrl->setError(errorNoResult);
 	}
 	return 0;
 }

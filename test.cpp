@@ -18,14 +18,14 @@
 namespace Konnekt {
 
 	bool getCoreTests(IM::GetTests* gt) {
-		//cppunit_getTests(gt);
+		cppunit_getTests(gt);
 		return true;
 
 	}
 
 	int runCoreTests(IM::RunTests* rt) {
 
-		//cppunit_runTests(rt);
+		cppunit_runTests(rt);
 
 		return 0;
 

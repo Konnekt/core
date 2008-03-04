@@ -371,7 +371,7 @@ namespace Konnekt { namespace Debug {
 			RE_BOLD(1);
 			RE_COLOR(RGB(0x0,80,0));
 			RE_ADD(stringf("\r\nMSG %x %s from '%s' to '%s' [%s]\r\n", msg->getInt(i,Message::colId) 
-				, IMessage(IM_PLUG_NETNAME, (tNet)msg->getInt(i,Message::colNet),IMT_PROTOCOL)
+				, IMessage(IM_PLUG_NETNAME, (tNet)msg->getInt(i,Message::colNet),imtProtocol)
 				, msg->getString(i,Message::colFromUid).c_str()
 				, msg->getString(i,Message::colToUid).c_str()
 				, msg->getString(i,Message::colBody).substr(0,30).c_str()));

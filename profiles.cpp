@@ -56,7 +56,7 @@ namespace Konnekt {
 
 		IMDEBUG(DBG_WARN, "Has³o profilu zosta³o zmienione.");
 		// rozsy³amy informacjê
-		IMessage(IM_PASSWORDCHANGED, NET_BROADCAST, IMT_ALL, 0, 0);
+		IMessage(IM_PASSWORDCHANGED, Net::broadcast, imtAll, 0, 0);
 
 		Tables::tables.setProfilePassword(passwordDigest);
 
@@ -220,7 +220,7 @@ namespace Konnekt {
 		}
 
 		prepareProfile();
-		IMessage(IM_CFG_LOAD , Net::broadcast, IMT_CONFIG|IMT_CONTACT , 0 ,0);
+		IMessage(IM_CFG_LOAD , Net::broadcast, imtConfig|imtContact , 0 ,0);
 		return 0;
 	}
 

@@ -292,7 +292,7 @@ namespace Konnekt {
 
 		// £aduje pluginy...
 		Plugins::setPlugins();
-		IMessage(IM_ALLPLUGINSINITIALIZED , NET_BROADCAST , IMT_ALL);
+    IMessage(IM_ALLPLUGINSINITIALIZED, Net::broadcast, imtAll);
 		IMLOG("--- Plugins loaded ---");
 
 		// zamawianie kolumn - sposób nowoczesny
@@ -332,8 +332,7 @@ namespace Konnekt {
 			Plugin& plugin = **it;
 			if (plugin.getId() == pluginUI) break;
 
-			if ((plugin.getType() & IMT_ALLMESSAGES) || (plugin.getType() & IMT_MESSAGE)) {
-				// || IMessageDirect(IM_PLUG_SDKVERSION, 0 ,0) < KONNEKT_SDK_V)) {
+			if ((plugin.getType() & imtAllMessages) || (plugin.getType() & imtMessage)) {
 
 				mhlist.registerHandler(new OldPluginMessageHandler(plugin.getNet(), 
 					plugin.getId()), plugin.getPriority());
@@ -404,7 +403,7 @@ namespace Konnekt {
 		}
 		IMLOG("- deInitialization started");
 		startTime = GetTickCount();
-		IMessage(IM_BEFOREEND , NET_BROADCAST , IMT_ALL , !canWait , 0);
+		IMessage(IM_BEFOREEND , Net::broadcast, imtAll, !canWait , 0);
 		isRunning=false;
 	#ifdef __BETA
 		Beta::close();

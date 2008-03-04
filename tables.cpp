@@ -395,16 +395,16 @@ namespace Konnekt { namespace Tables {
 	void TableImpl::broadcastEvent(tIMid imId, bool force) {
 		if (!force && !getOpt(optBroadcastEvents)) return;
 		IM::TableIM im (imId, oTable(this));
-		im.net = NET_BROADCAST;
-		im.type = IMT_ALL;
+		im.net = Net::broadcast;
+		im.type = imtAll;
 		Ctrl->IMessage(&im);
 	}
 
 	void TableImpl::broadcastRowEvent(tIMid imId, tRowId rowId, bool force) {
 		if (!force && !getOpt(optBroadcastEvents)) return;
 		IM::TableRow im (imId, oTable(this), rowId);
-		im.net = NET_BROADCAST;
-		im.type = IMT_ALL;
+		im.net = Net::broadcast;
+		im.type = imtAll;
 		Ctrl->IMessage(&im);
 	}
 
