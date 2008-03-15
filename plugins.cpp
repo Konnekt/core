@@ -228,7 +228,7 @@ namespace Konnekt {
 		}
 
 		this->_running = true;
-		if (this->IMessageDirect(IM_PLUG_INIT, (tIMP)this->_ctrl, (tIMP)this->_id) == 0) {
+		if (this->IMessageDirect(IM_PLUG_INIT, (int)this->_ctrl, (int)this->_id) == 0) {
 			throw ExceptionString("Inicjalizacja siê nie powiod³a!");
 		}
 	}

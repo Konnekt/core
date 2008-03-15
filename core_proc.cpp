@@ -329,7 +329,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			return plugin ? plugin->getId() : 0;
 		}
 
-		case sIMessage_plugVirtualAdd::__msgId: {
+		case sIMessage_plugVirtualAdd::__msgID: {
 			ISRUNNING();
 			IMESSAGE_TS();
 
@@ -348,7 +348,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			return (*plugins.rbegin())->getId();
 		}
 
-		case sIMessage_plugOut::__msgId: {
+		case sIMessage_plugOut::__msgID: {
 			ISRUNNING();
 			IMESSAGE_TS();
 			sIMessage_plugOut * po = static_cast<sIMessage_plugOut*>(msgBase);
