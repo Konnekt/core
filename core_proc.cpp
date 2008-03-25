@@ -325,7 +325,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
       ISRUNNING();
       IMESSAGE_TS();
 
-      if (ICMessage(Account::IM::imcAccountIdExist, msg->p1) -1) {
+      if (ICMessage(Account::IM::imcAccountIdExist, msg->p1) == 0) {
         break;
       }
       IMessage(Account::IM::imAccountChanged, Net::broadcast, imtProtocol, msg->p1);

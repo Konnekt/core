@@ -16,7 +16,6 @@
 #include "tables.h"
 #include "connections.h"
 #include "contacts.h"
-#include "messages.h"
 #include "windows.h"
 #include "error.h"
 #include "unique.h"
