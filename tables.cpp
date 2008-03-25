@@ -24,6 +24,7 @@ namespace Konnekt { namespace Tables {
 	CdTable Cnt;
 	CdTable Plg; // Informacje o wtyczkach
 */
+	oTable accounts;
 	oTable cfg;
 	oTable cnt;
 	oTable global;

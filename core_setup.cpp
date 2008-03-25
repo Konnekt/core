@@ -19,6 +19,11 @@ namespace Konnekt {
 		cfg->setFilename("cfg.dtb");
 		cfg->setDirectory();
 
+		Tables::accounts = registerTable(Ctrl, tableAccounts, optBroadcastEvents | optAutoLoad | optAutoSave | optMakeBackups | optUseCurrentPassword);
+		Unique::registerId(Unique::domainTable, tableConfig, "Accounts");
+		accounts ->setFilename("accounts.dtb");
+		accounts ->setDirectory();
+
 		Tables::cnt = registerTable(Ctrl, tableContacts, optBroadcastEvents | optAutoLoad | optAutoSave | optMakeBackups | optUseCurrentPassword);
 		Unique::registerId(Unique::domainTable, tableConfig, "Contacts");
 		cnt->setFilename("cnt.dtb");
@@ -64,6 +69,7 @@ namespace Konnekt {
 		msg->setColumn(Message::colActionI, ctypeInt | cflagDontSave);
 		msg->setColumn(Message::colHandler, ctypeInt | cflagDontSave);
 		msg->setColumn(Message::colTime, ctypeInt64 , "Time");
+		//msg->setColumn(Message::colAccount,  ctypeInt , "Account");
 
 		// Konfiguracja
 		cfg->setColumn(CFG_VERSIONS, ctypeString , "Versions");
@@ -146,7 +152,15 @@ namespace Konnekt {
 		cnt->setColumn(CNT_WORK_COUNTRY , ctypeString | cflagXor , "Work/Country");
 		cnt->setColumn(CNT_WORK_MORE , ctypeString | cflagXor , "Work/More");
 
-
+		// Konta
+		accounts->setColumn(Account::colHandler, ctypeInt | cflagNoSave , "Handler")->setInt(rowDefault, 0);
+		accounts->setColumn(Account::colUid, ctypeString | cflagXor , "UID");
+		accounts->setColumn(Account::colPassword, ctypeString | cflagXor | cflagSecret , "Password");
+		accounts->setColumn(Account::colNet, ctypeInt , "Net");
+		accounts->setColumn(Account::colDisplay, ctypeString | cflagXor , "Display");
+		accounts->setColumn(Account::colStartStatus, ctypeInt , "StartStatus");
+		accounts->setColumn(Account::colStatus, ctypeInt , "Status");
+		accounts->setColumn(Account::colStatusInfo, ctypeInt , "StatusInfo");
 		return;
 	}
 

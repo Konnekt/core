@@ -217,7 +217,7 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			break;}
 
 		case IMC_CNT_IDEXISTS: 
-			return Tables::cnt->getRowPos(msg->p1) != Tables::rowNotFound;         
+			return Tables::cnt->getRowPos(msg->p1) != Tables::rowNotFound;
 
 		case IMC_CNT_ADD: {
 			ISRUNNING();
@@ -261,6 +261,76 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 
 		case IMC_CNT_COUNT: 
 			return Tables::cnt->getRowCount();
+
+    case Account::IM::imcFindAccount: {
+      char* uid = (char*) msg->p2;
+      int net = msg->p1;
+
+      if (net == Net::all) {
+        return Tables::accounts->findRow(0, DT::Find::EqStr(Tables::accounts->getColumn(Account::colDisplay), uid)).getId();
+      }
+      return Tables::accounts->findRow(0, DT::Find::EqInt(Tables::accounts->getColumn(Account::colNet), net), 
+        DT::Find::EqStr(Tables::cnt->getColumn(Account::colUid), uid)).getId();
+    }
+
+    case Account::IM::imcAccountIdExist:
+      return Tables::accounts->getRowPos(msg->p1) != Tables::rowNotFound;
+
+    case Account::IM::imcAccountCount:
+      return Tables::accounts->getRowCount();
+
+    case Account::IM::imcAccountAdd: {
+      ISRUNNING();
+      IMESSAGE_TS();
+
+      if (!msg->p1 || (msg->p2 && ICMessage(Account::IM::imcFindAccount, -1, msg->p2) != -1)) {
+        return -1;
+      }
+
+      tAccountId id = Tables::accounts->getRowId(Tables::accounts->addRow());
+
+      Tables::accounts->setInt(id, Account::colNet, msg->p1);
+      Tables::accounts->setString(id, Account::colDisplay, (char*) msg->p2);
+
+      IMessage(Account::IM::imAccountAdd, Net::broadcast, imtProtocol, id);
+
+      tPluginId plugid;
+      if ((plugid = (tPluginId) IMessage(IM_ACCOUNTINSTANCE_RUN,(tNet) msg->p1, imtProtocol, id)) != pluginNotFound) {
+        Tables::accounts->setInt(id, Account::colHandler, plugid);
+      }
+      return id;
+    }
+
+    case Account::IM::imAccountRemove: {
+      ISRUNNING();
+
+      tAccountId id = Tables::accounts->getRowId(msg->p1);
+
+      if (id == accountNotExist) {
+        return false;
+      }
+      tNet net = (tNet) Tables::accounts->getInt(id, Account::colNet);
+      //MessageQueue::getInstance()->removeMessage(&MessageSelect(), -1);
+
+      IMessage(IM_ACCOUNTINSTANCE_STOP, net, imtProtocol, id);
+      IMessage(Account::IM::imAccountRemove, Net::broadcast, imtProtocol, id);
+
+      bool result = Tables::accounts->removeRow(id);
+
+      IMessage(Account::IM::imAccountRemoved, Net::broadcast, imtProtocol, id);
+      return result;
+    }
+
+    case Account::IM::imcAccountChanged:
+      ISRUNNING();
+      IMESSAGE_TS();
+
+      if (ICMessage(Account::IM::imcAccountIdExist, msg->p1) -1) {
+        break;
+      }
+      IMessage(Account::IM::imAccountChanged, Net::broadcast, imtProtocol, msg->p1);
+      break;
+
 
 		case IMC_CFG_SETCOL: 
 		case IMC_CNT_SETCOL: {

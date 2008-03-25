@@ -21,6 +21,7 @@ namespace Konnekt { namespace Tables {
 	using namespace Stamina;
 
 	//extern oTable msg;
+	extern oTable accounts;
 	extern oTable cfg;
 	extern oTable cnt;
 	extern oTable global;

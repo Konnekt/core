@@ -298,12 +298,24 @@ namespace Konnekt {
 		// zamawianie kolumn - sposób nowoczesny
 		Tables::cfg->requestColumns(Ctrl);
 		Tables::cnt->requestColumns(Ctrl);
+		Tables::accounts->requestColumns(Ctrl);
 
 		// Ustawia inne wtyczki
 		IMessage(IM_SETCOLS, Net::Broadcast().notNet(Net::core), imtAll);
 
-
 		IMLOG("--- Plugin columns set ---");
+
+		for (tRowId id = Tables::accounts->getRowCount(); id != -1; id--) {
+			tNet net = (tNet) Tables::accounts->getInt(id, Account::colNet);
+			tAccountId aid = Tables::accounts->getRowId(id);
+
+			tPluginId plugid;
+			if ((plugid = (tPluginId) IMessage(IM_ACCOUNTINSTANCE_RUN, net, imtProtocol, aid)) != pluginNotFound) {
+				Tables::accounts->setInt(aid, Account::colHandler, plugid);
+			}
+		}
+		IMLOG("--- Account instance created ---");
+
 		loadProfile();
 		Contacts::updateAllContacts();
 		IMLOG("--- Profile loaded ---");
@@ -417,6 +429,17 @@ namespace Konnekt {
 			Tables::saveProfile(false);
 			// IMLOG("-profile saved if changed");
 		}
+
+		// nakazujemy wtyczkom zaprzestanie obslugi protokolow
+		for (tRowId id = Tables::accounts->getRowCount(); id != -1; --id) {
+			tNet net = (tNet) Tables::accounts->getInt(id, Account::colNet);
+			tAccountId aid = Tables::accounts->getRowId(id);
+
+			IMessage(IM_ACCOUNTINSTANCE_STOP, net, imtProtocol, aid);
+			Tables::accounts->setInt(id, Account::colHandler, 0);
+		}
+
+		IMLOG("--- Account instance destroyed ---");
 
 		// odpinamy wszystkie wtyczki...
 		for (int i = plugins.count() - 1; i >= 0; --i) {

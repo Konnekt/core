@@ -9,6 +9,7 @@
 #include "plug_sharedex.h"
 #include <konnekt/core_message.h>
 #include <konnekt/core_contact.h>
+#include <konnekt/core_account.h>
 #include <konnekt/core_tables.h>
 #include <konnekt/core_net.h>
 #include <konnekt/obsolete.h>
