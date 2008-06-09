@@ -17,10 +17,9 @@ namespace Konnekt { namespace Messages {
   }
 
   void MessageQueue::loadMessages() {
-    unsigned int i = 0;
-
     TableLocker lock(msg);
-    while (i < msg->getRowCount()) {
+
+    for (tRowId i = 0; i < msg->getRowCount();) {
       Message m;
       readMessage(i, &m);
       if (addMessage(&m, true, i)) i++;
@@ -28,14 +27,10 @@ namespace Konnekt { namespace Messages {
   }
 
   void MessageQueue::clearMessages() {
-    unsigned int i = 0;
-
     TableLocker lock(msg);
 
-    tRowId row = msg->getRowCount() -1;
-    while (row > -1) {
+    for (tRowId row = msg->getRowCount() - 1; row >= 0; row--) {
       msg->removeRow(row);
-      row--;
     }
   }
 
@@ -237,7 +232,7 @@ messagedelete:
       foundMessage = foundMessage && (ms->net == Net::all || 
         msg->getInt(row, Message::colNet) == ms->net || 
         (ms->net == Net::none && (type & Message::typeMask_NotOnList)));
-      foundMessage = foundMessage && (!ms->_chUid || ms->getUid() == uid || 
+      foundMessage = foundMessage && (!ms->getUid().a_str() || ms->getUid() == uid || 
         (!ms->gotUid() && (type & Message::typeMask_NotOnList)));
       foundMessage = foundMessage && ((flag & ms->wflag) == ms->wflag && 
         !(flag & ms->woflag));
@@ -250,10 +245,8 @@ messagedelete:
         } else {
           return true;
         }
-
         found++;
       }
-
       row -= downto ? 1 : -1;
     }
 
@@ -305,7 +298,6 @@ messagedelete:
 
       row--;
     }
-
     return found;
   }
 
