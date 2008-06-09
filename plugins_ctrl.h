@@ -16,8 +16,8 @@ namespace Konnekt {
 		HINSTANCE __stdcall hInst(){return Stamina::getHInstance();}   ///  Uchwyt procesu (HINSTANCE)
 		HINSTANCE __stdcall hDll(){return _plugin.getDllModule();}   ///  Uchwyt biblioteki.
 		enIMessageError __stdcall getError(); ///< Zwraca kod ostatniego bledu
-		void __stdcall setError(enIMessageError err_code);
-		bool __stdcall isRunning() {return ::isRunning;} ///< Ustawia kod b³êdu.
+		void __stdcall setError(enIMessageError err_code); ///< Ustawia kod b³êdu.
+		bool __stdcall isRunning() {return ::isRunning;}
 
 		Controler_(Plugin& plugin):_plugin(plugin) {
 			warn_cnt = 0; err_cnt = 0; 

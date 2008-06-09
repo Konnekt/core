@@ -35,8 +35,8 @@ LANGUAGE LANG_POLISH, SUBLANG_DEFAULT
 //
 
 1 VERSIONINFO
- FILEVERSION 0,6,24,139
- PRODUCTVERSION 0,6,0,0
+ FILEVERSION 0,7,0,1
+ PRODUCTVERSION 0,7,0,0
  FILEFLAGSMASK 0x0L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -53,9 +53,9 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Stamina"
             VALUE "FileDescription", "Konnekt - Core"
-            VALUE "FileVersion", "0.6.24.139"
+            VALUE "FileVersion", "0.7.0.1"
             VALUE "InternalName", "Konnekt"
-            VALUE "LegalCopyright", "Copyright ©2002-2007 Stamina"
+            VALUE "LegalCopyright", "Copyright ©2002-2008 Stamina"
             VALUE "ProductName", "Konnekt"
             VALUE "ProductVersion", "0.7"
             VALUE "URL", "http://www.konnekt.info/"
@@ -76,7 +76,7 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_PLUG_BAN            ICON                    "res\\plug_ban.ico"
-MAINICON                ICON                    "../ui/res/app.ico"
+MAINICON                ICON                    "res\\main.ico"
 IDI_DEBUG_ICON          ICON                    "res\\debug_icon.ico"
 IDI_PLUG_NEW            ICON                    "res\\plug_new.ico"
 IDI_PLUG_ERROR          ICON                    "res\\plug_error.ico"

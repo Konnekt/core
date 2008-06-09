@@ -3,10 +3,10 @@
 <assemblyIdentity
     version="1.0.0.0"
     processorArchitecture="X86"
-    name="CompanyName.ProductName.YourApp"
+    name="Stamina.Konnekt"
     type="win32"
 />
-<description>Your application description here.</description>
+<description>Konnekt yourself</description>
 <dependency>
     <dependentAssembly>
         <assemblyIdentity
