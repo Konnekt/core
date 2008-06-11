@@ -193,11 +193,13 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 		case IMC_CNT_CHANGED: {
 			ISRUNNING();
 			IMESSAGE_TS();
+
 			sIMessage_CntChanged msgCC(msg);
 			Contacts::updateContact(msgCC._cntID);
-			if (Tables::cnt->getInt(msgCC._cntID,CNT_INTERNAL)&1) {
-				Tables::cnt->setInt(msgCC._cntID,CNT_INTERNAL, Tables::cnt->getInt(msgCC._cntID,CNT_INTERNAL)& (~1));
-				IMessage(IM_CNT_ADD, Net::broadcast, imtContact, Tables::cnt->getRowId(msgCC._cntID),0);
+
+			if (Tables::cnt->getInt(msgCC._cntID, Contact::colInternal) & 1) {
+				Tables::cnt->setInt(msgCC._cntID, Contact::colInternal, Tables::cnt->getInt(msgCC._cntID, Contact::colInternal) & (~1));
+				IMessage(IM_CNT_ADD, Net::broadcast, imtContact, Tables::cnt->getRowId(msgCC._cntID), 0);
 			}
 			else {
 				msgCC.id = IM_CNT_CHANGED;
@@ -207,14 +209,15 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				if (msgCC._changed.net || msgCC._changed.uid) {
 					if (!msgCC._oldUID) {
 						String& temp = TLSU().buffer().getString(true);
-						temp = Tables::cnt->getString(msgCC._cntID , CNT_UID);
+						temp = Tables::cnt->getString(msgCC._cntID , Contact::colUid);
 						msgCC._oldUID = temp.c_str();
 					}
-					if (!msgCC._changed.net && msgCC._oldNet == Net::none) msgCC._oldNet = Tables::cnt->getInt(msgCC._cntID , CNT_NET);
+          if (!msgCC._changed.net && msgCC._oldNet == Net::none) msgCC._oldNet = Tables::cnt->getInt(msgCC._cntID , Contact::colNet);
 				}
 				IMessage(&msgCC);
 			}
-			break;}
+			break;
+    }
 
 		case IMC_CNT_IDEXISTS: 
 			return Tables::cnt->getRowPos(msg->p1) != Tables::rowNotFound;
@@ -226,31 +229,35 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			if (msg->p1 && msg->p2 && *(char*)msg->p2) {
 				int cnt = Contacts::findContact((tNet) msg->p1,(char *) msg->p2);
 				if (cnt != -1) {
-					int r = IMessage(&sIMessage_msgBox(IMI_CONFIRM, stringf(loadString(IDS_ASK_CNTOVERWRITE).c_str(), msg->p2, msg->p1, Tables::cnt->getString(cnt, CNT_DISPLAY)).c_str(), "Dodawanie kontaktu", MB_YESNOCANCEL));
+					int r = IMessage(&sIMessage_msgBox(IMI_CONFIRM, 
+            stringf(loadString(IDS_ASK_CNTOVERWRITE).c_str(), msg->p2, msg->p1, 
+            Tables::cnt->getString(cnt, Contact::colDisplay)).c_str(), "Dodawanie kontaktu", MB_YESNOCANCEL
+          ));
 					switch (r) {
-						case IDNO:cnt=-1;break;
-						case IDCANCEL:return -1;
+						case IDNO: cnt = -1; break;
+						case IDCANCEL: return -1;
 					}
 				}
 			}
 			if (cnt == -1) {
 				cnt = Tables::cnt->getRowId(Tables::cnt->addRow());
-				//if (!msg->p1) msg->p2 = (int)inttostr(Tables::cnt->getInt(a , DT_C_ID));
-				if (msg->p1) Tables::cnt->setInt(cnt , CNT_NET , msg->p1);
-				if (msg->p2) Tables::cnt->setString(cnt , CNT_UID , (char*)msg->p2);
-				Tables::cnt->setInt(cnt , CNT_INTERNAL , Tables::cnt->getInt(cnt , CNT_INTERNAL)|1);
+				// if (!msg->p1) msg->p2 = (int) inttostr(Tables::cnt->getInt(a , DT_C_ID));
+        if (msg->p1) Tables::cnt->setInt(cnt , Contact::colNet , msg->p1);
+        if (msg->p2) Tables::cnt->setString(cnt , Contact::colUid , (char*)msg->p2);
+				Tables::cnt->setInt(cnt , Contact::colInternal , Tables::cnt->getInt(cnt , Contact::colInternal) | 1);
 				IMessage(IM_CNT_ADDING, Net::broadcast, imtContact, cnt, 0);
 			}
-			return cnt;}
+			return cnt;
+    }
 
 		case IMC_CNT_REMOVE: 
 			ISRUNNING(); 
 			if (msg->p1>0 && (!msg->p2
 								 || ICMessage(IMI_CONFIRM
-								 ,(int)stringf(loadString(IDS_ASK_CNTREMOVE).c_str(),Tables::cnt->getString(msg->p1,CNT_DISPLAY).c_str()).c_str()
+                 ,(int)stringf(loadString(IDS_ASK_CNTREMOVE).c_str(),Tables::cnt->getString(msg->p1,Contact::colDisplay).c_str()).c_str()
 								 ,0))) 
 			{
-				MessageQueue::getInstance()->removeMessage(&MessageSelect((tNet)Tables::cnt->getInt(msg->p1,CNT_NET),Tables::cnt->getString(msg->p1,CNT_UID).a_str(),Message::typeMessage,Message::flagNone,Message::flagSend),-1);
+        MessageQueue::getInstance()->removeMessage(&MessageSelect((tNet)Tables::cnt->getInt(msg->p1,Contact::colNet),Tables::cnt->getString(msg->p1,Contact::colUid).a_str(),Message::typeMessage,Message::flagNone,Message::flagSend),-1);
 				IMessage(IM_CNT_REMOVE, Net::broadcast, imtContact, msg->p1, msg->p2);
 				bool result = Tables::cnt->removeRow(msg->p1);
 				IMessage(IM_CNT_REMOVED, Net::broadcast, imtContact, msg->p1, msg->p2);
@@ -472,8 +479,8 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			sc.id = IM_CNT_STATUSCHANGE;
 			sc.sender = pluginCore;
 			IMessage(&sc);
-			if (sc.status != -1) Tables::cnt->setInt(sc.cntID , CNT_STATUS , (Tables::cnt->getInt(sc.cntID , CNT_STATUS) & ~ST_MASK) | sc.status);
-			if (sc.info) Tables::cnt->setString(sc.cntID , CNT_STATUSINFO , sc.info);
+      if (sc.status != -1) Tables::cnt->setInt(sc.cntID , Contact::colStatus , (Tables::cnt->getInt(sc.cntID , Contact::colStatus) & ~ST_MASK) | sc.status);
+      if (sc.info) Tables::cnt->setString(sc.cntID , Contact::colStatusInfo , sc.info);
 			return 0;
 			}
 
@@ -561,11 +568,11 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			}
 			if (group.empty()) { // sprawdzamy grupê pust¹
 				if (Tables::cfg->getInt(0, CFG_UIALLGROUPS_NOGROUP)) {
-					return Tables::cnt->getString(msg->p1 , CNT_GROUP).empty(); // wpuszczamy tylko puste...
+          return Tables::cnt->getString(msg->p1 , Contact::colGroup).empty(); // wpuszczamy tylko puste...
 				} else
 					return 1; // wszystkie tu pasuj¹
 			}
-			return _stricmp(Tables::cnt->getString(msg->p1 , CNT_GROUP).c_str() , group.c_str()) == 0;
+			return _stricmp(Tables::cnt->getString(msg->p1 , Contact::colGroup).c_str() , group.c_str()) == 0;
 		}
 
 		case IMC_IGN_ADD:
@@ -634,8 +641,8 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 				list.erase(found, item.length() - 1);
 				Tables::cfg->setString(0, CFG_GROUPS, list);
 				for (unsigned int i = 1; i < (int)Tables::cnt->getRowCount() ; i++) {
-					if (Tables::cnt->getString(i,CNT_GROUP).equal((char*)msg->p1, true)) {
-						Tables::cnt->setString(i, CNT_GROUP, "");
+					if (Tables::cnt->getString(i,Contact::colGroup).equal((char*)msg->p1, true)) {
+						Tables::cnt->setString(i, Contact::colGroup, "");
 						sIMessage_CntChanged cc(IM_CNT_CHANGED , i);
 						cc._changed.group = true;
 						Ctrl->IMessage(&cc);
@@ -656,8 +663,8 @@ int __stdcall Konnekt::coreIMessageProc(sIMessage_base * msgBase) {
 			Tables::cfg->setString(0, CFG_GROUPS, RegEx::doReplace(("/^" + std::string((char*)msg->p1) + "$/mi").c_str(), (const char*)msg->p2, Tables::cfg->getString(0, CFG_GROUPS).c_str(), 1) ); 
 
 			for (int i = 1; i < (int)Tables::cnt->getRowCount() ; i++) {
-				if (_stricmp((char*)msg->p1 , Tables::cnt->getString(i, CNT_GROUP).c_str()) == 0) {
-					Tables::cnt->setString(i , CNT_GROUP , (char*)msg->p2);
+				if (_stricmp((char*)msg->p1 , Tables::cnt->getString(i, Contact::colGroup).c_str()) == 0) {
+					Tables::cnt->setString(i , Contact::colGroup , (char*)msg->p2);
 					sIMessage_CntChanged cc(IM_CNT_CHANGED , i);
 					cc._changed.group = true;
 					Ctrl->IMessage(&cc);

@@ -107,7 +107,7 @@ messagedelete:
       int cntID = m->getType() & Message::typeMask_NotOnList ? 0 
         : ICMessage(IMC_FINDCONTACT, m->getNet(),(int) m->getFromUid().a_str());
 
-      if (cntID != -1) cnt->setInt(cntID, CNT_LASTMSG, m->getId());
+      if (cntID != -1) cnt->setInt(cntID, Contact::colLastMsg, m->getId());
 
       IMLOG("- Wiadomoœæ %d %s", m->getId(), load ? "jest w kolejce" : "dodana do kolejki");
 
@@ -148,7 +148,7 @@ messagedelete:
           ? 0 : ICMessage(IMC_FINDCONTACT, msg->getInt(row, Message::colNet), 
           (int)msg->getString(row, Message::colFromUid).a_str());
 
-      if (cntID != -1) SETCNTI(cntID, CNT_NOTIFY, NOTIFY_AUTO);
+      if (cntID != -1) SETCNTI(cntID, Contact::colNotify, NOTIFY_AUTO);
       msg->removeRow(row);
 
       c++;
@@ -397,7 +397,7 @@ messagedelete:
         IMLOG("_Wiadomosc obsluzona - %d r=%x", msg->getInt(row, Message::colId), r);
 
         if (cntID != -1) {
-          SETCNTI(cntID, CNT_NOTIFY, NOTIFY_AUTO);
+          SETCNTI(cntID, Contact::colNotify, NOTIFY_AUTO);
         }
         msg->removeRow(row);
         continue;
@@ -406,10 +406,10 @@ messagedelete:
       msg->setInt(row, Message::colFlag, m.getFlags());
 
       if (cntID != -1 && m.getNotify()) {
-        SETCNTI(cntID, CNT_NOTIFY, m.getNotify());
-        SETCNTI(cntID, CNT_NOTIFY_MSG, m.getId());
-        SETCNTI(cntID, CNT_ACT_PARENT, m.getAction().parent);
-        SETCNTI(cntID, CNT_ACT_ID, m.getAction().id);
+        SETCNTI(cntID, Contact::colNotify, m.getNotify());
+        SETCNTI(cntID, Contact::colNotifyMsg, m.getId());
+        SETCNTI(cntID, Contact::colActParent, m.getAction().parent);
+        SETCNTI(cntID, Contact::colActId, m.getAction().id);
       }
 
       row++;

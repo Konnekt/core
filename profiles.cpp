@@ -179,14 +179,14 @@ namespace Konnekt {
 		// CNT
 		Tables::cnt->lockData(Tables::allRows);
 		for (unsigned int i = 1; i < Tables::cnt->getRowCount() ; i++) {
-			int s = Tables::cnt->getInt(i, CNT_STATUS);
+      int s = Tables::cnt->getInt(i, Contact::colStatus);
 			// ST_OFFLINE
 			s &= ~(ST_MASK);
 			if (s & ST_NOTINLIST) {
 				Tables::cnt->removeRow(i--);
 				continue;
 			}
-			Tables::cnt->setInt(i, CNT_STATUS, s | ST_OFFLINE);
+			Tables::cnt->setInt(i, Contact::colStatus, s | ST_OFFLINE);
 		}
 		Tables::cnt->unlockData(Tables::allRows);
 
