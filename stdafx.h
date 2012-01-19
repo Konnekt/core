@@ -36,8 +36,7 @@
 #include <stamina/RegEx.h>
 #include <stamina/Helpers.h>
 #include <stamina/WinHelper.h>
-#include <Stamina\ButtonX.h>
-
+#include <Stamina\UI\ButtonX.h>
 
 #include "include\msc_compat.h"
 #include "include\critical_section.h"

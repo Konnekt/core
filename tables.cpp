@@ -96,6 +96,84 @@ namespace Konnekt { namespace Tables {
 		return _dt.getrowid(rowPos);
 	}
 
+	tRowId __cdecl TableImpl::findRow(unsigned int startPos, int argCount, ...) {
+	    va_list marker;
+	    if (argCount == 0) return rowNotFound;
+        
+		this->lock();
+		this->lockData(allRows);
+
+		int found = -1;
+
+		for (int i=this->getRowPos((tRowId) startPos); i < this->_dt.getrowcount(); i++) {
+
+			found = i;
+			int args = argCount;
+			va_start( marker, argCount );
+			do {
+				Find* find = va_arg( marker, Find*);
+				if (!find) break;
+				// sprawdzamy...
+
+				Value value(find->value.type);
+				if (value.type == ctypeString) {
+					value.vChar = TLS().buff;
+					value.buffSize = 1024;
+				}
+				this->_dt.getValue(i, find->col, value.dtRef());
+				int cmp = 0;
+				switch (value.type) {
+					case ctypeString:
+						cmp = stricmp(value.vCChar, find->value.vCChar);
+						break;
+					case ctypeInt64:
+						if (value.vInt64 > find->value.vInt64)
+							cmp = 1;
+						else if (value.vInt64 < find->value.vInt64)
+							cmp = -1;
+						break;
+					default:
+						if (value.vInt > find->value.vInt)
+							cmp = 1;
+						else if (value.vInt < find->value.vInt)
+							cmp = -1;
+						break;
+				}
+				switch (find->operation) {
+					case Find::eq:
+						if (cmp != 0) found = -1;
+						break;
+					case Find::neq:
+						if (cmp == 0) found = -1;
+						break;
+					case Find::gt:
+						if (cmp <= 0) found = -1;
+						break;
+					case Find::gteq:
+						if (cmp < 0) found = -1;
+						break;
+					case Find::lt:
+						if (cmp >= 0) found = -1;
+						break;
+					case Find::lteq:
+						if (cmp > 0) found = -1;
+						break;
+				}
+			} while (--args != 0 && found == i);
+			va_end( marker );
+
+			if (found == i)
+				break;
+
+		}
+
+		this->unlockData(allRows);
+		this->unlock();
+        
+		return this->getRowId(found);
+	}
+
+
 	tColType __stdcall TableImpl::getColType(tColId colId) {
 		ObjLocker l(this);
 		int i=_dt.cols.colindex(colId, false);
@@ -263,14 +341,14 @@ namespace Konnekt { namespace Tables {
 		if (enabled == false)
 			_lateSaveTimer.reset();
 		else
-			Stamina::threadInvoke(mainThread, boost::bind(TableImpl::queryLateSave, this), false);
+			Stamina::threadInvoke(mainThread, boost::bind(&TableImpl::queryLateSave, this), false);
 
 		IMDEBUG(DBG_FUNC, "iTable::lateSave(%d)", enabled);
 	}
 	void TableImpl::queryLateSave() {
 		Stamina::ObjLocker lock(this);
 		IMDEBUG(DBG_FUNC, "iTable::lateSave() queried");
-		_lateSaveTimer.reset(Stamina::timerTmplCreate(boost::bind(TableImpl::onLateSaveTimer, this)));
+		_lateSaveTimer.reset(Stamina::timerTmplCreate(boost::bind(&TableImpl::onLateSaveTimer, this)));
 		_lateSaveTimer->start(lateSaveDelay);
 	}
 	void TableImpl::onLateSaveTimer() {

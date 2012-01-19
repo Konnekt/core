@@ -524,7 +524,7 @@ namespace Konnekt { namespace Beta {
 					}
 					frmdata += var + "[log]="+urlEncode(log);
 					frmdata += var + "[digest]="+urlEncode(Reports.getch(i , REP_DIGEST));
-					frmdata += var + "[version]="+inttostr(Reports.getint(i , REP_VERSION), 16);
+					frmdata += var + "[version]="+(std::string)inttostr(Reports.getint(i , REP_VERSION), 16);
 					frmdata += var + "[plugins]="+urlEncode(Reports.getch(i , REP_PLUGS));
 				}
 			} // have login...

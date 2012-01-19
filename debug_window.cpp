@@ -225,7 +225,7 @@ namespace Konnekt { namespace Debug {
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		//if (hWnd == hwndDebugGSend) MessageBox(0,"ee","",0);
-		static quitOnce = false;
+		static bool quitOnce = false;
 		string str1,str2;
 		switch (message) {
 		case WM_CLOSE:
@@ -287,7 +287,7 @@ namespace Konnekt { namespace Debug {
 					break;
 				case IDB_MARK:
 					if (Debug::logFile) {
-						static mark = 0;
+						static int mark = 0;
 						fprintf(Debug::logFile , "\n\n~~~~~~~~~~~~~~~~~~~~ %d ~~~~~~~~~~~~~~~~~~~~~\n\n",++mark);
 						fflush(Debug::logFile);
 						debugLogMsg(stringf("Zaznaczenie wstawione do "+logFileName+" pod numerem %d",mark));
