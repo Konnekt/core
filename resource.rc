@@ -76,7 +76,7 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_PLUG_BAN            ICON                    "res\plug_ban.ico"
-//MAINICON                ICON                    "../ui/res/app.ico"
+MAINICON                ICON                    "../ui/res/app.ico"
 IDI_DEBUG_ICON          ICON                    "res\debug_icon.ico"
 IDI_PLUG_NEW            ICON                    "res\plug_new.ico"
 IDI_PLUG_ERROR          ICON                    "res\plug_error.ico"

@@ -252,7 +252,7 @@ namespace Konnekt {
 				Plug.insert(ins , *it);
 				it = Plug.erase(Plug.begin() + pos + 1);
 				//            it++; // na pewno wrzucamy wczesniej, wiec sie troche przesunelo...
-				cPlug temp2 = *it;
+				//cPlug temp2 = *it;
 				continue;
 			}
 			it ++;
