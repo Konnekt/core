@@ -17,7 +17,7 @@ namespace Konnekt { namespace Beta {
 		case WM_INITDIALOG:
 			SetFocus(GetDlgItem(hwnd , IDE_LOGIN));
 			PassChanged=false;
-			if (!anonymous) SetDlgItemText(hwnd , IDE_LOGIN , Beta.getch(0,BETA_LOGIN));
+			//if (!anonymous) SetDlgItemText(hwnd , IDE_LOGIN , Beta.getch(0,BETA_LOGIN));
 			SendDlgItemMessage(hwnd , IDWWW , BM_SETIMAGE , IMAGE_BITMAP , (LPARAM)LoadImage(hInst , "BETA" , IMAGE_BITMAP , 0 , 0 , 0));
 			break;
 		case WM_NCDESTROY:

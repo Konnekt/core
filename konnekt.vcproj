@@ -159,6 +159,8 @@
 				OutputFile="$(OutDir)/__main/konnekt.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\depends\stamina.lib_0.6\lib;..\..\Depends\lib;..\..\depends\stamina.lib_0.6\depends\lib;..\..\depends\konnekt_0.6\Konnekt"
+				GenerateManifest="true"
+				AdditionalManifestDependencies="&quot;type=&apos;Win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;X86&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/debug/konnekt.pdb"
 				GenerateMapFile="true"
@@ -1235,6 +1237,38 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
+				RelativePath=".\res\.manifest"
+				>
+			</File>
+			<File
+				RelativePath="..\ui\res\app.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\beta.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\debug_icon.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\plug_ban.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\plug_error.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\plug_new.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\plug_ok.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\resource.rc"
 				>
 			</File>
@@ -1275,94 +1309,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\res\main\.manifest"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="dev|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="dev_log|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug - remote|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="res\main\.manifest"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="dev|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="dev_log|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug - remote|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
-		</File>
 		<File
 			RelativePath="Branches.txt"
 			>

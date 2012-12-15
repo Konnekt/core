@@ -201,7 +201,8 @@ namespace Konnekt { namespace Beta {
 	}
 
 	void setStats(__time64_t forTime) {
-
+		return; // DISABLE stats
+		
 		Stamina::SemaphoreCtx sctx (statSemaphore);
 
 		CdtFileBin FBin;
@@ -385,7 +386,8 @@ namespace Konnekt { namespace Beta {
 
 
 	unsigned int sendThread(bool force) {
-	
+		return 0; // DISABLE sending
+		
 		Stamina::randomSeed();
 
 		Stamina::SemaphoreCtx sctx (sendSemaphore);
@@ -756,6 +758,7 @@ namespace Konnekt { namespace Beta {
 
 
 	void sendPostponed() {
+		return; // DISABLE SENDING
 		if (sendRetries > 1) {
 			return;
 		}
@@ -769,6 +772,7 @@ namespace Konnekt { namespace Beta {
 
 	// rozpoczyna proby wyslania danych na serwer.
 	void send(bool force) {
+		return; // DISABLE SENDING
 		if (!running || statSemaphore.isOpened() == false) return;
 		if (Connections::isConnected() == false) {
 			sendPostponed();
