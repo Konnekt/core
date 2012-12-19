@@ -1,0 +1,2 @@
+Katalog plików tymczasowych Konnekta mieœci siê aktualnie w systemowym katalogu tymczasowym.
+Katalog Konnekt\Temp mo¿e byæ jednak potrzebny niektórym starszym rozszerzeniom.

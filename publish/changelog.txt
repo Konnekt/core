@@ -1,0 +1,805 @@
+konnekt.ChangeLog
+
++ poprawka
+> nowa opcja
+^ usprawnienie
+
+0.6.22.137
+ - znaczna iloœæ nowego kodu potrzebnego do wprowadzenia nowych zapowiadanych funkcji
+ + poprawki przy zapisywaniu plików .DTB
+ > pierwsze nowe klasy w API (Unique i Tables)
+ > linia poleceñ w oknie @Dev (do wywo³ywania nowych klas)
+ > zerowa wersja nowej wspó³dzielonej biblioteki - Stamina.lib (klasy bêd¹ce podstaw¹ nowego API + dodatki przyspieszaj¹ce pisanie: obs³uga w¹tków, okien, obrazów, wyra¿eñ regularnych, plików XML, po³¹czeñ HTTP; kontrolki RichHtml, drzewko i inne). Zostanie udostêpniona developerom razem z nowym SDK.
+ ^ czêœæ rdzenia przeniesiona na nowe API
+ ^ zrewidowany system Beta
+ ^ trochê drobnych poprawek w rdzeniu
+ + zapytanie o nazwê profilu pojawia siê raz przy pierwszym uruchomieniu
+ ^ poprawki pierwszego uruchomienia, które teraz powinno byæ mniej dezorientuj¹ce
+ ^ zrewidowane okno wyboru wtyczek, przy pierwszym uruchomieniu (i po naciœniêciu specjalnego przycisku) zaznaczane s¹ wtyczki ze specjalnej listy
+ + UI - pierwsza próba poprawienia b³êdu "TimeoutTimerProc"
+ + UI - szersza kontrolka drzewka w ustawieniach
+ > UI - kilka przydatnych skrótów dla pocz¹tkuj¹cych na pierwszym ekranie konfiguracji
+ ^ UI - domyœlnie wiêksze okna konfiguracji i listy kontaktów
+ ^ UI - inne domyœlne ustawienia g³ównych toolbarów i filtrowania (teraz ukryte)
+ ^ SMS - odmieniony widok ustawieñ poszczególnych bramek...
+ > SMS - bramka do sieci Orange
+ + Konnferencja - wyœwietlanie godziny przyjœcia wiadomoœci
+ + Konnferencja - konstrukcja opisu nowego kontaktu
+ ^ Konnferencja - poprawiona obs³uga wiadomoœci z formatowanym tekstem
+ > Konnferencja - ignorowanie niechcianych konferencji
+ > Konnferencja - z mo¿liwoœci¹ ustawienia autorespondera
+ + UI - "Szukaj znajomego" nie pojawia siê gdy ¿adna wtyczka nie potrafi go obs³u¿yæ...
+ + dalsze poprawki w raportach beta...
+ + uszczelnienie obs³ugi w¹tków
+ > nowe strony pomocy
+ + GG - poprawka laczenia w nieskonczonosc
+ + GG - timeout katalogu publicznego jest dwa razy dluzszy niz zwykly i nie rozlacza polaczenia z serwerem
+ + GG - problem z wieszaj¹cym siê numerem GG zosta³ w koñcu zlokalizowany i zlikwidowany... Przy okazji poprawka timeoutów katalogu publicznego
+ ^ GG - nowa wersja libgadu
+ + GG - przypominanie has³a
+ + GG - przywrócone importowanie kontaktów "bez sieci"
+ + GG - import kontaktów nie zmienia ju¿ naszych danych osobowych
+ ^ GG - import/eksport kontaktów w najnowszym formacie (dzia³aj¹ wszystkie pola, w³¹cznie z ustawieniami dŸwiêku i ukrywaniem)
+ + GG - poprawka nieprawid³owych czasów nadejœcia wiadomoœci
+ ^ kUpdate - usuniête sprawdzanie MOTD, wiadomoœci i informacji o wersjach, które i tak nigdy nie zosta³o jak dot¹d wykorzystane
+ ^ kUpdate - ca³y kod przeniesiony na Stamina.lib
+ ^ kUpdate - pliki definicji pobierane s¹ z pominiêciem cache przegl¹darki
+ ^ kUpdate - poprawiona obs³uga œcie¿ek bez rozszerzeñ
+ > kUpdate - bardzo du¿e zmiany w silniku pobierania informacji o aktualizacjach. Powinno byæ teraz znacznie mniej problemów...
+ > kUpdate - pliki centralek mog¹ byæ statyczne, kUpdate potrafi sobie do tego sam wylosowaæ mirror
+ + kUpdate - ju¿ nie pojawia siê "Wyst¹pi³ b³¹d" po anulowaniu pobierania.
+ + DwuTlenek - poprawka kodowania
+ + kJabber - poprawka okna us³ug
+ > kJabber - jako nazwê u¿ytkownika mo¿na podaæ nazwa@serwer
+ > kJabber - obs³uga DNS SRV
+ ^ kJabber - ustawienia portu serwera widoczne na wszystkich stopniach zaawansowania
+ 
+ > Actio - zak³adanie konta Actio z poziomu Konnekta
+ > Actio - mo¿liwoœæ okreœlenia IP interfejsu sieciowego
+ ^ Actio - zmieniony sposób przechowywania has³a do konta (wymaga podania go ponownie)
+ > Actio - w³¹czona obs³uga STUN - powinna rozwi¹zaæ niektóre problemy z ³¹czeniem
+
+ ^ Actio - Aktualizacja biblioteki SipX - bardzo du¿o zmian, które korzystnie powinny wp³yn¹æ na jakoœæ po³¹czeñ i stabilnoœæ
+ > Actio - protokó³ ICE do skutecznego ³¹czenia SIP<->SIP
+ > Actio - tzw. Keep-Alive pozwala utrzymaæ otwarte porty na routerze
+ > Actio - Unifikacja numerów - teraz zawsze numery bêd¹ poprawnie wykrêcany, a po³¹czenia przychodz¹ce odpowiednio kojarzone z kontaktami
+ > Actio - Rozpoznawanie typów numerów - dodatkowe ikonki oznaczaj¹ ró¿ne typy numerów - s¹ po³¹czenia do Actio, do innych sieci SIP, na telefony komórkowe, polskie stacjonarne, oraz pozosta³e
+ > Actio - Typ wykrêcanego lub dzwoni¹cego numeru pojawia siê przy jego nazwie
+ + Actio - poprawki b³êdów
+ + Actio - poprawka wieszania przy zamykaniu
+ ^ Actio - karta dŸwiêkowa jest zwalniana gdy nie jest potrzebna - powinien znikn¹æ problem z nisk¹ jakoœci¹ dŸwiêku na niektórych kartach, oraz zmniejszy siê u¿ycie procesora
+
+ > UI - mo¿liwoœæ formatowania wygl¹du menu
+ + UI - Poprawki dla Windows Vista
+ 
+ 
+ 
+
+0.6.21.121
+ ^ pliki tymczasowe (dotychczasowy katalog temp) zapisywany s¹ w %TEMP%\Konnekt_profil_xxxxxx
+ + poprawki i "uszczelnienia" w okolicach obs³ugi kolejki wiadomoœci
+ ^ podczas dodawania ju¿ istniej¹cego kontaktu pojawia siê stosowna informacja.
+ + poprawki zwalniania uchwytów systemowych
+ + GG - poprawki i "uszczelnienia" w okolicach obs³ugi kolejki wiadomoœci
+ > UI - zak³adka "wszystkie grupy" mo¿e pokazywaæ równie¿ tylko kontakty nie do³¹czone do ¿adnej z grup.
+ > UI - przy formatowaniu pól (np. tytu³u okna wiadomoœci) mo¿na podawaæ dowolny identyfikator z tablicy kontaktów (np.: {Name }{MiddleName }{"Nick" }{Surname})
+ ^ UI - formatowanie pól zosta³o zgrupowane w jednej zak³adce
+ > UI - mo¿liwoœæ formatowania: wyœwietlanej nazwy kontaktu, opisu (pod nazw¹ w kilku linijkach, lub je¿eli jest miejsce - obok nazwy, pisany osobn¹ czcionk¹, mo¿e s³u¿yæ np. wyœwietlaniu opisu kontaktu, lub nr. telefonu), dodatkowej informacji w "baloniku", propozycji domyœlnej nazwy kontaktu.
+ + UI - poprawki rysowania balonika (tipa)
+ + kTransfer - problemy z ustalaniem iloœci wolnego miejsca na dysku przy automatycznym odbieraniu
+ + kTransfer - b³¹d podczas wysy³ania kilku plików pozwala powtarzaæ transfer
+ + kTransfer - po skoñczonym transferze, ukryte okno nie zostanie automatycznie zamkniête
+ ^ kTransfer - w tytule okna podawana jest liczba pozosta³ych zadañ (transferów) do wykonania.
+ - beta
+ > kJabber - obs³uga service discovery - przegl¹darka us³ug serwera dostêpna z menu statusów
+ > kJabber - najbardziej podstawowa obs³uga konferencji
+ ^ kJabber - je¿eli wiadomoœæ posiada tytu³ - poka¿e siê on obok czasu nadejœcia
+ ^ kJabber - wiadomoœci typu headline otrzymuj¹ odpowiedni¹ flagê, ¿eby respondery nie wysy³a³y na nie odpowiedzi
+ + kJabber, DwuTlenek - zmiana opisu kontaktu bez zmiany statusu
+ + DwuTlenek - wymusza identyfikatory kontaktów w postaci id@tlen.pl
+ > UI - trzymaj¹c wciœniêty [Shift] podczas otwierania wyszukiwarki kontaktów otworzymy inn¹ wersjê okienka
+ + UI - usuwanie wiadomoœci w historii
+ ^ GG - mo¿liwoœæ podania dowolnego IP/portu dla po³¹czeñ szyfrowanych (format - "SSL Adres:Port")
+ + GG - omija³ proxy przy po³¹czeniach szyfrowanych
+ > Sound - wtyczki mog¹ wy³¹czyæ powiadamianie dŸwiêkiem
+ > Sound - mo¿liwoœæ wy³¹czenia wszystkich dŸwiêków, zarówno z konfiguracji jak i menu/toolbara wtyczek
+ - beta
+ > parametr "-offline" wy³¹cza automatyczne ³¹czenie z sieci¹
+ > UI - mo¿liwoœæ uruchamiania Konnekta z systemem tylko gdy by³ w³¹czony podczas jego zamykania (ustawienia/autostart)
+ > UI - drukowanie historii
+ > UI - mo¿liwoœæ ustawienia kontaktu jako spoza listy bezpoœrednio w oknie "wiêcej"
+ + UI - wy³¹czanie siê away'a przy wygaszaczu ekranu
+ > UI - przeszukiwanie historii po dacie
+ + UI - poprawka wyœwietlania znalezionych przy wy³¹czonym podœwietlaniu wyrazów
+ + UI - poprawka zapisywania zapytañ (wyœwietl ca³y w¹tek)
+ + UI - poprawka otwierania okna wyszukiwania kontaktów (¿eby otworzyæ okno starego typu trzeba TRZYMAÆ shift)
+ ^ ca³oœæ kompilowana pod nowym kompilatorem (MSVS.NET 2003). Wymagane s¹ NOWE BIBLIOTEKI! (automatycznie pobierane z kUpdate i dostêpne w pe³nej paczce...)
+ ^ PCRE w wersji 5.0
+ + GG - token zapisywany jest do zwyk³ego temp'a
+ > kUpdate - mo¿liwoœæ dokoñczenia pobranej aktualizacji przy nastêpnym uruchomieniu programu (lub rêcznie z menu...)
+ ^ kUpdate - po zakoñczeniu aktualizacji usuwa pobrane pliki z katalogu tymczasowego
+ + kUpdate - obs³uga przekierowañ
+ > kUpdate - wszystkie adresy url w centralkach mog¹ byæ podawane relatywnie...
+ + kUpdate - powracaj¹ce aktualizacje
+ ^ nowsza wersja programu instaluj¹cego aktualizacje...
+ ^ ExPimp - zapisuje do plików *.expimp.
+ + API - IMI_ACTION_OWNER nie dzia³a³ tylko dla grup
+ + API - IMI_ACTION_REMOVE nie dzia³a³ z kolei dla grup
+ + API - IMI_ERROR i pochodne nie dzia³a³y zgodnie ze specyfikacj¹...
+ + kJabber - poprawka zmiany wielkoœci liter w JID
+ + kJabber - poprawka dodawania us³ug w dodatkowych kontach
+ > kJabber - je¿eli nie ma wpisanych ustawieñ konta, przy próbie ³¹czenia wyœwietla okno ustawieñ
+ > kJabber - prostsze i wygodniejsze zak³adanie kont na serwerze
+ + kJabber - poprawka przechodzenia do wy¿szej ga³êzi
+ + kJabber - poprawka obs³ugi wêz³ów (niektóre serwery zwracaj¹ dane nie do koñca zgodne ze spcyfikacj¹)
+ + kJabber - poprawka polskich znaków w nazwach kontaktów dodawanych z okna us³ug
+ + GG - poprawka anulowywania okien dialogowych
+ + GG - po roz³¹czeniu kZmieniaczem nie powinna ³¹czyæ siê ponownie sama...
+ ^ GG - nowsze LibGadu
+ + GG - poprawka pobierania tokenów
+ + UI - lista kontaktów nie schowa siê dopóki jest aktywna
+ + UI - okno wpisywania wiadomoœci nie wraca do poprzedniej gdy trzymamy Shift
+ - beta
+ > UI - nowy rodzaj dymków z podpowiedziami (z mo¿liwoœci¹ umieszczania w nich np. ilustracji)
+ > UI - stopniowanie "trudnoœci" interfejsu, przez zmianê liczby pól konfiguracyjnych, opisów i podpowiedzi
+ ^ UI - okna konfiguracyjne dostosowuj¹ swoj¹ szerokoœæ do zawartoœci
+ > UI - nowe kontrolki do wykorzystania w API - suwaki, spinery, przyciski z grafik¹, przyciski z podpowiedziami, przyciski radio
+ ^ UI, GG, Jabber, DwuTlenek, kSound, kStyle - nowe rozplanowanie pól w ustawieniach, u¿yte nowe mo¿liwoœci podpowiedzi, nowe kontrolki i ShowBits (stopniowanie trudnoœci)...
+ + UI - zminimalizowane migotanie zawartoœci okien konfiguracji
+ > UI - wiêcej mo¿liwoœci w ustawieniach uruchamiania z systemem
+ > UI - okno wprowadzania wiadomoœci obs³uguje formatowania (¿eby wysy³aæ formatowane wiadomoœci potrzebny bêdzie nowy kIEView)
+ > UI - rozbudowane menu kontekstowe okna wpisywania wiadomosci (wklejanie z zachowaniem formatowania, wklejanie jako cytat, obs³uga historii wpisanych wiadomoœci...)
+ > UI - nowe skróty wklejania w oknie wpisywania - Ctrl+v - wkleja bez formatowania - Ctrl+Shift+v - jako cytat - Ctrl+Alt+v - z zachowaniem formatowania
+ ^ biblioteki, ustawienia historii, statystyki beta, logi, dane dla kupdate l¹duj¹ w katalogu "data"
+ + kUpdate - poprawka b³êdu krytycznego STACK_OVERFLOW
+ ^ kUpdate - kopia instalatora trzymana jest w data\kupdate, na wypadek gdyby nie by³o go w tempie
+ ^ kJabber - prosi o potwierdzenie wyrejestrowania z us³ugi
+ + GG - poprawka przypominania has³a
+ + DwuTlenek - blokowanie przy anulowaniu po³¹czenia
+ ^ kSound - œcie¿ki w oknach otwierania zapamiêtywane s¹ tylko na czas sesji
+ ^ kSound - odtwarzanie nie ustawionych dŸwiêków w kontakcie, odtwarza dŸwiêk domyœlny
+ ^ kStyle - zaznaczenie "³aduj kolory" wczyta równie¿ kolory czcionek
+ > kStyle - zmodyfikowany sposób ³adowania zestawów
+ + UI - poprawka w API zwiazana z zamykaniem okien
+ - beta
+ ^ wielkie sprz¹tanie Ÿróde³, masa drobnych poprawek w kodzie.
+ + DwuTlenek - poprawka powtórnego ³¹czenia
+ + UI - wiêksza szerokoœæ checkboxów - moze wystarczy, zeby nie ucinalo przy niektorych stylach systemu
+ > UI - mo¿liwoœæ wy³¹czenia statusów sieci w informacji w zasobniku
+ > UI - informacja w zasobniku mo¿e zawieraæ kilka linijek, formatowanie html i mo¿na znowu ustaliæ tekst "standardowy"
+ > UI - poprawka ESC i Shift+Enter w oknie wpisywania wiadomoœci
+ - beta
+ + kUpdate - poprawka aktualizowania bibliotek
+ + okno @DEV jest ju¿ odporne na blokowanie
+ > w oknie @DEV komunikaty kolorowane s¹ pod k¹tem w¹tków i wtyczek
+ + UI - poprawka tworzenia toolbarów (nieprawid³owe wysokoœci, byæ mo¿e raz na zawsze zniknie problem znikaj¹cych toolbarów w oknie rozmowy)
+ + UI - poprawka zamykania okienek rozmowy (znikaj¹ce pola wyœwietlania/wpisywania wiadomoœci)
+ + UI - poprawka wklejania cytatów
+ ^ UI - zmieniona konfiguracja nag³ówka xmla eksportowanej historii
+ 
+0.6.19.111
+ ^ kolejne zmiany w raportowaniu
+ + zmiana has³a profilu od razu zapisuje nowe w plikach... nie powinno byæ ju¿ problemów z zabronionym dostêpem.
+ ^ podczas wybierania profilu po uruchomieniu mo¿na od razu wpisaæ jego has³o...
+ + UI - wczytywanie / zapisywanie / przekazywanie daty urodzenia
+ > UI - ok. 20 nowych pól opisuj¹cych kontakty (zgodnie z vCard)
+ + kJabber - "zawieszanie" po zmianie statusu podczas ³¹czenia
+ + kJabber - po odrzuceniu autoryzacji kontaktu wysy³a stosowny pakiet i nie zobaczymy ju¿ tego samego zapytania przy nast. po³¹czeniu
+ + kJabber - proœba o autoryzacjê nie by³a odró¿niana od odebrania autoryzacji - poprawione
+ ^ kJabber - odœwie¿ona biblioteka JabberOO
+ > kJabber - obs³uga wizytówek - vCard
+ > kJabber - mo¿liwoœæ jednorazowego wys³ania do wybranych kontaktów statusu "niedostêpny"
+ > kJabber - podtrzymywanie po³¹czenia przez wysy³anie pustych pakietów
+ + kJabber - problem z filtrowaniem wiadomoœci
+ > kJabber - przyjmowanie/wysy³anie formatowanych wiadomoœci zgodne z XHTML-IM
+ > kJabber - mo¿liwoœæ podania priorytetu
+ + GG i kJabber - je¿eli po nieudanym ³¹czeniu wybierzemy "niedostêpny" nie bêdzie próbowa³ ³¹czyæ ponownie
+ ^ GG - odœwie¿ona biblioteka libGadu
+ + dziwny tytu³ aplikacji (KONNEKT.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+ > UI - rozszerzone mo¿liwoœci formatowania kontrolki opisowej w kofniguracji. W efekcie - inaczej formatowane podsumowanie kontaktu (i kilka innych informacji)
+ + UI - historia: znaki nowej linii w wynikach przeszukiwania, wyszukiwanie ca³ych w¹tków, nazwy plików
+ + kJabber - nie zapamiêtywa³ zmian opisu kontaktu
+ > kJabber - mo¿liwoœæ obs³ugi kilku kont. Wystarczy zrobiæ kopiê wtyczki pod inn¹ nazw¹... Teoretycznie dozwolone do 10 kont... nazw¹ drugiego "slota" jest nazwa dll'a
+ > exPiMP - element <cell> mo¿e zawieraæ reg-exp'a w atrybucie 'replace' (i max. iloœæ podmian w 'limit') do _podmieniania_ aktualnej wartoœci
+ > exPiMP - "konnekt.exe -import=plik.xml" zaimportuje podany plik
+ > kUpdate - mo¿liwoœæ sprawdzania aktualizacji z wielu Ÿróde³ na raz
+ > kUpdate - mo¿liwoœæ okreœlenia czêstotliwoœci sprawdzania (równie¿ podczas dzia³ania programu)
+ > kUpdate - czytelniejsze informacje o paczkach. Informacje o wprowadzonych modyfikacjach
+ ^ kUpdate - sumy kontrolne sprawdzaj¹, czy dane zosta³y pobrane w 100% prawid³owo
+ + UI - problem z literk¹ 'ñ' w standardowej kontrolce rozmów, poprawione b³êdy nowej linii na nowszych wersjach riched20.dll
+ + UI - okna wyboru (na przyk³ad statusu, potwierdzeñ) ju¿ nie blokuj¹ dzia³ania programu (np. odbierania wiadomoœci) tam gdzie nie powinny...
+ + GG - nie pobierane statusy kontaktów na liœcie
+ + Niepe³ne zamkniêcia podczas wylogowywania z Win XP/2K
+ > kJabber - obs³uga statusów opisowych (na razie tylko po API, na przyk³ad przez kZmieniacz)
+ + kJabber - obs³uga ignorowania
+ ^ kUpdate - zmienione nazwy opcji w menu na bardziej jednoznaczne ("SprawdŸ nowoœci" , "Aktualizacje")
+ ^ kUpdate - dodatkowa informacja w opisie, gdy sekcja/paczka nie zawiera niczego do pobierania...
+ > kUpdate - biblioteki systemowe nie bêd¹ pobierane, je¿eli w systemie (np. w katalogu Windows/System32) zostanie znaleziona odpowiednio "œwie¿a" wersja
+ + za³atane obejœcie has³a profilu
+ + UI - wyœwietlanie tokena pod systemami innymi ni¿ XP. Na razie grafiki o "nie ikonkowych" rozmiarach nie bêd¹ mia³y na tych systemach przezroczystoœci (o ile mi wiadomo i tak nie wystêpuj¹ takie w programie)
+ + SMS - obs³uga numerów Heyah
+ + DwuTlenek - wysy³anie wiadomoœci do kontaktów tylko z identyfikatorem
+ + DwuTlenek - znaczniki czasu nadchodz¹cych wiadomoœci
+ 
+0.6.18.106
+ + Po³¹czenia HTTP obs³uguj¹ autoryzacjê proxy...
+ + UI - [enter] po edycji kontaktu na liœcie ju¿ nie otworzy okna rozmowy
+ > kJabber - obs³uga proxy
+ - kUpdate
+ + GG - poprawka (teoretyczna) blokuj¹cych siê okien kontaktu przy odœwie¿aniu i zapisywaniu na systemach nie-NT
+ - kUpdate
+ + dodatkowe zabezpieczenia podczas wczytywania plików dtb. Pomijanie uszkodzonych rekordów.
+ - kUpdate
+ + UI - nie œwi¹teczny splash :)
+ ^ GG - libgadu z wkompilowanymi funkcjami do przesy³ania obrazków
+ - kUpdate
+ ^ UI - znacznie szybciej wczytuj¹ca siê historia
+ > UI - zaawansowane przeszukiwanie historii (z mo¿liwoœci¹ zapisywania na póŸniej zapytañ, zapisywania/usuwania wyników, wyra¿eniami regularnymi itd...)
+ ^ UI - kontrolka wiadomoœci uwzglêdnia formatowanie kroju i rozmiaru czcionki 
+
+
+0.6.18.105
+ + za³atanych kilka wycieków (zw³aszcza obiektów GDI)
+ > automatyczne kasowanie ponad 2-dniowych logów (wiêkszych ni¿ 0,5MB po dwóch godzinach...)
+ > uruchomienie drugiej instancji programu przeœle wpisane parametry do ju¿ uruchomionej instancji.
+ > uruchomienie z parametrem -restore tylko przekazuje pozosta³e parametry do ostatnio aktywnego okna Konnekta
+ + kJabber - synchronizacja listy kontaktów
+ > kJabber - obs³uga subskrypcji statusów
+ > kJabber - wyszukiwanie kontaktów
+ > kJabber - szyfrowanie po³¹czeñ (SSL)
+ > kJabber - osobne ikonki dla transportów (wykrywane wg. hosta)
+ > kJabber - obs³uga czasu wiadomoœci przechowywanych na serwerze...
+ > kJabber - wysy³anie/odbieranie formatowanych wiadomoœci (+ filtrowanie potencjalnie niebezpiecznych znaczników)
+ > UI - wybieranie sposobu zapisu/odœwie¿ania kontaktów
+ + UI - rysowanie ikonek w wielo-kolumnowych menusach...
+ > UI - wybieraj¹c filtr i trzymaj¹c: CTRL - w³¹czamy tylko wybrany filtr, SHIFT - w³¹czamy na zmianê "tylko ten" / "wszystkie pozosta³e"
+ > UI - parametr konnekt.exe -cnt=sieæ/UID[?wiadomoœæ] rozpoczyna rozmowê z kontaktem w podanej sieci o podanym UIDzie (np. -cnt=GG/1234). Treœæ wysy³anej wiadomoœci jest opcjonalna i mo¿e byæ przekazana osobno w parametrze -msg=""
+ > UI - [Enter] na liœcie kontaktów wywo³uje domyœln¹ akcjê dla kontaktu
+ > UI - mo¿liwoœæ wybrania rodzaju wyskakuj¹cego okna wiadomoœci
+ + UI - znikaj¹cy toolbar w oknie rozmowy po wy³¹czeniu opisów
+ > UI - historia okna wysy³ania wiadomoœci mo¿e dzia³aæ bez trzymania [Ctrl]. Dodatkowo przywraca równie¿ znacznik wysy³ania wiadomoœci formatowanych...
+ ^ UI - nowe ikonki podstawowe
+ > UI - okno g³ówne widoczne na pasku zadañ (i w Alt-Tab) [opcja]
+ + UI - okno ignorowanych
+ ^ GG - odœwie¿enie libGadu
+ + GG - dodawanie/usuwanie konta, zmiana/przypominanie has³a ju¿ dzia³aj¹
+ + GG - powinien ju¿ nie wystêpowaæ problem podczas zamykania po³¹czeñ SSL
+ + GG - podczas ³¹czenia z SSL nie loguje b³êdów gniazd asynchronicznych...
+ + kTransfer - problemy z zamykaniem/nawi¹zywaniem po³¹czeñ (POWINNY znikn¹æ)
+ > kTransfer - w konfiguracji dodatkowe przyciski do restartowania us³ugi w razie problemów
+ > kTransfer - po nieudanym wysy³aniu mo¿na powtórzyæ operacjê...
+ 
+0.6.18.104
+ + poprawki w raportowaniu b³êdów
+ + kUpdate - poprawka b³êdu przy problemach z pobieraniem...
+ + GG - poprawka b³êdu podczas u¿ywania po³¹czeñ SSL
+ + GG - na listê serwerów GG mo¿na wstawiæ 'SSL', po³¹czy wtedy z hubem przez SSL
+ + GG - informuje o b³êdnie wpisanym haœle...
+ > kJabber - nie oficjalna, pierwsza wersja wtyczki obs³uguj¹cej protokó³ Jabber
+ - kUpdate (2003-12-01)
+ + GGCrypt - opcje Crypt'a wy³¹czone dla innych sieci ni¿ kLAN i GG
+ + UI - ESC w konfiguracji chowaj¹cy okno
+ + UI - znikaj¹ca czasami zawartoœæ okna konfiguracji
+ > UI - filtrowanie listy kontaktów
+ + kUpdate - b³¹d krytyczny po anulowaniu zbyt póŸno
+ + K.Notify - naprawione wykrywanie aplikacji pe³noekranowych
+ + K.Notify - zmieniony mechanizm obs³ugi wiadomoœci (powinno naprawiæ problem b³êdów krytycznych)
+ + K.Notify - poprawiony bufor alpha (czasem podczas animacji napisy by³y przezroczyste)
+ + K.Notify - limit wiadomoœci nie rodziela informacji wielowierszowych
+ ^ K.Notify - zmiana szerokoœci okienka powiadomienia podczas usuwania wiadomoœci
+ ^ K.Notify - poprawiona p³ynnoœæ animacji okna
+ ^ K.Notify - info o nieodpowiednim trybie kolorów wyœwietlane na tip (skóra podstawowa)
+ > K.Notify - wyœwietlanie statusu opisowego (opcja)
+ > K.Notify - wyswietlanie pocz¹tku wiadomoœci (opcja)
+ > K.Notify - gdy zmiana tylko opisu to informuje o tym
+ > K.Notify - informuje o zmianach w³asnego statusu (opcja)
+ > K.Notify - podczas ³¹czenia nie wyœwietla opisów (opcja)
+ ^ K.Notify - informacje do innych aplikacji o wiadomoœciach wysylane tak¿e gdy otwarte okno rozmowy
+ ^ K.Notify - informacje do innych aplikacji podczas "zamawiania" powiadomien wysyla powiadomienia o wiadomosciach w kolejce
+  
+0.6.18.103
+ + zmiana ustawiania parametrów w linii poleceñ! Zamiast np. "-profile moj" jest teraz "-profile=moj"!
+ + poprawka rejestrowania kont anonimowych
+ + informacja w oknie wyboru profilu
+ + zamiast wyœwietlaæ monit o podanie nazwy nowego profilu sprawdza najpierw, czy w katalogu profilów nie ma ju¿ czegoœ do wybrania...
+ + przekazywanie parametru profile po zmianie profilu
+ + exPiMP - poprawka importu
+ ^ SMS - poprawiona bramka Ideii + opcje
+
+0.6.18.102
+ + przy restartowaniu przekazuje parametry
+ + kTransfer - Prawid³owo pokazuje okno wyboru plików pod starszymi systemami
+ + kTransfer - Zamykanie/roz³¹czanie z aktywnymi po³¹czeniami
+ + kTransfer - kLAN po po³¹czeniu otrzyma IP wszystkich komputerów
+ + UI - Przed zamkniêciem pyta wtyczek, czy mo¿e zamkn¹æ
+ > UI - Trzymaj¹c shift podczas zamykania okna rozmowy odwracamy znaczenie ustawienia "Zapamiêtuj zawartoœæ okna rozmowy"
+ > UI - mo¿liwoœæ ustalenia przezroczystoœci g³ównego okna (zapamiêtywana i prze³¹czalna z menu)
+ > UI - mo¿liwoœæ wy³¹czenia rozci¹gania okna po zadokowaniu 
+ ^ UI - inny, bezpieczniejszy sposób formatowania tytu³ów
+ + UI - okno informacji o programie nie bêdzie blokowa³o ju¿ przesy³ania wiadomoœci
+ + kLAN - Przeszukiwanie sieci nie powiela nazw komputerów
+ + kUpdate - wyœwietla komunikaty przy problemach z serwerem
+ > kUpdate - nie restartuje programu, gdy aktualizacja tego nie wymaga
+ + kUpdate - w razie wyst¹pienia b³êdu podczas pobierania plików, pozwala powtarzaæ operacje...
+ + kUpdate - sprawdza status pobieranych paczek
+
+
+0.6.18.101
+ > konnekt.exe przyjmuje parametry, mo¿na je podejrzeæ wpisuj¹c konnekt.exe -?
+ - spora czêœæ kolumn w konfiguracji otrzyma³a odpowiednie nazwy. Dziêki temu exporty z exPiMP powinny byæ bardziej czytelne.
+ + Update - obs³uguje proxy wg. ustawieñ
+ ^ nowy system raportowania b³êdów i statystyk
+ > GG - opcja wy³¹czaj¹ca wznawianie po³¹czenia po roz³¹czeniu przez serwer. W ten sposób, gdy u¿ywamy K na dwóch kompach, po³¹czenie z GG na jednym wy³¹czy po³¹czenie na drugim.
+ + GG - podczas ³¹czenia z SSL pokazuje to w menu z serwerami
+ > UI - mo¿liwoœæ ustalenia timeout'ów
+ - UI - nie ukrywa czêœciowo obciêtych przycisków na toolbarach
+ + UI - konfiguracja nie miga podczas przewijania
+ + UI - combo boxy w konfiguracji maj¹ ograniczon¹ wysokoœæ
+ ^ kTransfer - œciœlej wspó³pracuje z libgadu, dziêki czemu dzia³a równie¿ na SSL
+ > kTransfer - nowy uk³ad w konfiguracji
+ > kTransfer - dŸwiêki do ustawienia w kSound
+ > kTransfer - operacje zapisywane s¹ do historii (opcja)
+ > kTransfer - informuje o nowym pliku na liœcie kontaktów
+ > kTransfer - wspó³pracuje z nowym kNotify
+ > kTransfer - nowe okno pobierania / wysy³ania (transfery chwilowe i ogólne, prognozowanie czasu, przy odbieraniu przyciski Otwórz, IdŸ do i Przenieœ)
+ > kTransfer - mo¿liwoœæ wysy³ania kilku plików na raz (po kolei)
+ > kTransfer - dynamicznie przydzielany port lokalny
+ > kTransfer - mo¿liwoœæ ograniczenia po³¹czeñ przychodz¹cych
+ > kTransfer - automatyczne odbieranie tylko dla wybranych kontaktów (z osobnym katalogiem)
+ > kTransfer - sprawdza czy pobierane pliki zmieszcz¹ siê na dysku (w automacie zostawia trochê wolnego miejsca)
+ > kTransfer - pe³niejsza integracja z kLAN
+ > kTransfer - w konfiguracji pokazuje aktualny stan wtyczki (port i liczbê aktywnych obiektów transferów)
+ > kIEView - wtyczka podmieniaj¹ca okno rozmowy na kontrolkê IE dodaj¹c tym samym obs³ugê emotikonek i mo¿liwoœæ formatowania okna wiadomoœci przez style CSS
+ ^ K.Notify - Wiadomoœci znikaj¹ niezale¿nie (nie ca³a lista na raz)
+ > K.Notify - W konfiguracji ustawiany czas pokazywania jednej wiadomoœci
+ > K.Notify - Limit komunikatów (ustawiany w konfiguracji)
+ > K.Notify - Mo¿liwoœæ wy³¹czenia animacji (dostêpna tylko animacja pokazywania okna)
+ > K.Notify - Komunikaty wielolinijkowe
+ > K.Notify - Dopóki trzymasz kursor myszy na powiadomieniu, to ono nie znika...
+ > K.Notify - Szybkie ukrywanie okna informacji lewym klawiszem myszy (opcja)
+ > K.Notify - Klikalne komunikaty (np otwieranie rozmowy)
+ ^ K.Notify - Ikonki podmienialne przez kStyle
+ + K.Notify - Ignorowanie dzia³a prawid³owo
+ > K.Notify - nie pokazuje okna gdy w³¹czona aplikacja pe³no ekranowa (opcja)
+ > K.Notify - wysy³a na zewn¹trz informacje o zmianach statusu i o nowych wiadomoœciach (przyk³ad w SDK)
+ > exPiMP - eksportowanie wybranych kontaktów
+ > kLAN - pe³ne przeszukiwanie sieci, wg parametrów, lub wszystkich komputerów w sieci
+ > kLAN - ignorowanie kontaktów
+ > kLAN - API dla innych wtyczek do wysy³ania i przechwytywania komunikatów sieci
+ + GGCrypt - nie wysy³a ca³ej historii przy okazji wysy³ania klucza
+ 
+ 
+0.6.18.100
+ ^ GG - nowe libgadu (z wbudowan¹ obs³ug¹ SSL)
+ + GG - zak³adanie kont, zmiana has³a i obs³uga listy kontaktów wg. wersji 6.0
+ + GG - powinny znikn¹æ, lub znacznie siê zmniejszyæ problemy z ³¹czeniem.
+ + GG - wtyczka potrafi odbieraæ i wysy³aæ wiadomoœci z formatowanie tekstu
+ > UI - po zaznaczeniu tekstu w oknie rozmowy, zostaje on automatycznie skopiowany (opcja)
+ > UI - kontrolki wyœwietlania i wysy³ania wiadomoœci s¹ podmienialne...
+ > UI - kontrolka wyœwietlania wiadomoœci potrafi formatowaæ tekst
+ > UI - je¿eli wiadomoœæ zaczniemy znakiem '^', zostanie ona potraktowana jak HTML (b,i,u,font color="#xxxxxx",br) i odpowiednio sformatowana
+ > UI - inna ikonka okna wiadomoœci, gdy oczekuje w nim wiadomoœæ
+ + UI - w historii wiadomoœci maj¹ prawid³owe ikonki
+ > SMS - dodatkowe funkcji do obs³ugi po³¹czeñ https
+ > SMS - bramka www.wsms.pl
+ > SMS - opcje bramek w osobnych kategoriach w konfiguracji
+ > SMS - mo¿liwoœæ wy³¹czenia bramek
+ > koNNferencja - wtyczka obs³uguj¹ca konferencje w GG. Pierwsza z otwartym kodem, jako przyk³ad do SDK.
+
+0.6.18.99
+ > update - automatyczne pobieranie nowych plików
+ + ui - oznaczenie aktywnych
+ + ui - sortowanie kontaktów
+ + sound - dŸwiêk przy wiadomoœci w zminimalizowanym oknie
+ ^ zmienione wczytywanie XMLi
+ + b³¹d przy Ÿle podanym haœle
+ > nie ma ju¿ wymogu rejestracji. Konta "anonimowe" zak³adane s¹ automagicznie...
+ ^ lepszy sposób naliczania uptime'u
+ ^ wiêksze okno wtyczek, przyciski do zmiany zaznaczenia na liœcie
+
+0.6.17.98
+ > ui - w podpowiedziach do "wyœwietl jako" jest równie¿ "Nazwisko Imiê"
+ + ui - nie powinno ju¿ siê pojawiaæ "wpisz wiadomoœæ" gdy wciœniemy Enter w innym oknie, które od razu siê zamknie.
+ + ui - przy wy³¹czonym wysy³aniu Enterem, naciœniêcie enter dodaje poprawnie now¹ linijkê...
+ + ui - kolejnoœæ pozycji w menu tray'a jest teraz bardziej windowsowa :)
+ > ui - w podsumowaniu informacji o kontakcie pojawiaj¹ siê IP, opis i czas ostatniej aktywnoœci, wiêc mo¿na je skopiowaæ...
+ > ui - wiadomoœci z innych dni maj¹ podan¹ pe³n¹ datê.
+ + ui - katalogi w historii (prawid³owo sortowane) mo¿na zaznaczaæ i usuwaæ po kilka na raz...
+ > ui - przycisk w oknie wiadomoœci do prze³¹czania funkcji klawisza enter
+ > ui - kontakty i wiadomoœci w historii maj¹ teraz ikonki prawid³owej sieci...
+ + ui - poprawki obs³ugi kolejki wiadomoœci w historii
+ + ui - zliczanie wieku w "Wiêcej" dzia³a ju¿ lepiej :]
+ + ui - historiê mo¿na otworzyæ dla ka¿dego kontaktu
+ > ui - dla developerów dostêpna jest lista wszystkich ikonek w programie...
+ + ui - telefony stacjonarne mog¹ zawieraæ dowolne znaki...
+ + ui - w razie gdy explorer odmówi utworzenia ikonki w tray'u, operacja ta jest ponawiana co 250 ms, a¿ do skutku lub 120 prób... Powinno pomóc :)
+ + ui - dwukrotnie zwiêkszony maksymalny rozmiar tip'a
+ + ui - na XP ³aduje 32 bitowe ikony przy ka¿dym ustawieniu grafiki
+ + ui - historia przeniesiona do menu kontaktów
+ > ui - przyciski wtyczek mog¹ siedzieæ w wybieralnym menu
+ > ui - lista "ukrytych" jest co jakiœ czas odœwie¿ana (przy w³¹czonej opcji auto-away)
+ + ui - przycisk kompaktowania powinien byæ ju¿ widoczny u wszystkich
+ > ui - w historii lista zmienia swój rozmiar proporcjonalnie do okna
+ > ui - w oknach otwierania plików w konfiguracji zapamiêtywane s¹ u¿ywane katalogi
+ > ui - mo¿liwoœæ zapisywania historii do XML'a
+ - sms - obs³uga graficzna znowu jest w plikach devil/ilu/ilut.dll ze wzglêdu na korzystaj¹c¹ z niej wtyczkê k.status/notify.
+ > sms - zignorowane wiadomoœci s¹ zapisywane w historii w "Usuniête/ignorowane"
+ + sms - skrypt Ideii konwertuje polskie znaki w tokenach.
+ > sms - 1stWap podaje faktyczn¹ liczbê pozosta³ych smsów (po wys³aniu jednego..) [£ukasz Milewski]
+ > sms - skrypty poprzez setVar i getVar maj¹ dostêp do xml'owych ustawieñ bramki
+ > sms - funkcja refreshStatus() odœwie¿aj¹ca informacjê w statusie smsów.
+ > sms - wiadomoœci przes³ane po API s¹ najpierw dzielone
+ + klan - wtyczka zwraca ju¿ IM_GET_STATUS
+ > klan - opcja do przeszukiwania sieci w menu kontaktów
+ > gg - inne wtyczki mog¹ ingerowaæ w obs³ugê po³¹czenia GG
+ > gg - mo¿liwoœæ wybrania statusu startowego
+ + gg - obs³uga listy kontaktów GG jest teraz w menu kontaktów - tam gdzie jej miejsce...
+ > gg - mo¿liwoœæ wybrania serwera
+ > sound - inne wtyczki mog¹ do³¹czaæ swoje dŸwiêki
+ > kstyle - nowa wtyczka do zmieniania ikonek/kolorów/czcionek programu.
+ > exPiMP - nowa wtyczka do importu/exportu kontaktów i ustawieñ
+ + bardziej uniwersalne zapisywanie czasu w ca³ym SDK... Daty zapisane w starych wersjach (np. w historii) mog¹ jednak teraz byæ nieprawid³owe...
+ ^ wychwytywanie wiêkszej iloœci b³êdów krytycznych...
+ > logi znajduj¹ siê teraz w katalogu log
+
+0.6.17.97
+ + gg - poprawki w libgaduw32. Logowane s¹ teraz prawdziwe komunikaty b³êdów (zamiast permission denied)
+ + gg - limit d³ugoœci statusu opisowego to teraz 70 znaków
+ ^ sms - silnik LUA (teraz w wersji LUAPlus) zosta³ wydzielony do osobnej biblioteki.
+ > sms - Token obs³uguje równie¿ wyœwietlanie GIFów.
+ + delikatne zmiany w obs³udze wiadomoœci. Mo¿e pomog¹ na kilka dziwnych przypad³oœci...
+
+0.6.17.96
+ + ui - poprawka historii.. Uwaga! Aby naprawiæ uszkodzone wersj¹ .94 pliki historii trzeba koniecznie wykonaæ Kompaktowanie
+ + ui - zgodnie z proœbami w historii jest przycisk maksymalizacji :)
+ + sms - poprawka zwieszania siê przy starcie w niektórych nietypowych sytuacjach...
+ + zdarzaj¹ce siê "wieszanie" siê zmiany statusu GG przy automatycznym ³¹czeniu
+   
+
+0.6.17.95
+ + poprawka b³êdu z brakiem dostêpu do plg.dtb. 
+   Od teraz ten typ zabezpieczenia jest wy³¹czony, poniewa¿ 
+   a) jest ma³o przydatny i wyj¹tkowo prosty do obejœcia
+   b) potencjalnie mo¿e sprawiaæ trochê k³opotów
+   Je¿eli chcesz zabezpieczyæ pliki .dtb, najlepiej jakbyœ trzyma³ je na partycji NTFS :) Oczywiœcie pozostaje jeszcze u¿ywanie has³a, ale na d³u¿sz¹ metê równie¿ i to nie jest ¿adnym dobrym zabezpieczeniem. Niebawem nad tym popracujemy.
+ + poprawka, dziêki której byæ mo¿e Konnekt w koñcu zadzia³a na dyskach sieciowych tak, jak powinien...  
+
+0.6.17.94
+ + ui - poprawione prze³¹czanie pól tabem w wyszukiwarce
+ ^ ui - szybszy sposób usuwania wiadomoœci z historii. Powoduje jednak, ¿e pliki historii siê nie zmniejsz¹, dopóki nie zostan¹ skompaktowane.
+ + ui - odœwie¿anie zawartoœci historii
+ + ui - buforowanie listy kontaktów nie powinno ju¿ sprawiaæ problemów, ale zalecam ostro¿noœæ i przypominam, ¿e na wolniejszym sprzêcie niekoniecznie mo¿e to lepiej wygl¹daæ :)
+ + ui - okno konfiguracji i w³aœciwoœci kontaktu nie powinny ju¿ czasami siê zapêtlaæ, ale za to równie¿ na wXP mog¹ trochê "mrygaæ"
+ > gg - wiadomoœci generowane automatycznie (odpowiedŸ do osób spoza listy) nie bêd¹ wysy³ane przy statusie "ukryty"
+ ^ gg - kod libgadu zosta³ wydzielony do osobnego DLL'a (libgaduw32.dll), w ten sposób nie powinno byæ ¿adnych problemów z licencj¹...
+ ^ gg - nowe LibGadu
+ > gg - w menu statusów podawany jest aktualny serwer
+ ^ sms - 1stwap nie do³¹cza ju¿ reklam :D, opcja do W£¥CZENIA w konfiguracji!
+ > sms - 1stwap - je¿eli SMS zaczyna siê znakiem ^ zostanie wys³any jako Flash.
+ ^ sms - jedna bramka mo¿e wysy³aæ na raz jednego sms'a, ale kilka bramek mo¿e ju¿ wysy³aæ jednoczeœnie
+ ^ sms - wiêksza iloœæ funkcji obs³uguj¹cych internet
+ + sms - idea - nie powinno byæ ju¿ ¿adnych problemów z przekierowywaniem
+ + sms - komunikat o braku podpisu jest ju¿ uzale¿niona od bramki
+ ^ sms - okienko informuj¹ce o stanie dostarczanych wiadomoœci
+ ^ sms - jedno, "uniwersalne" pole podpisu 
+ ^ update - sprawdzanie niedostêpnych us³ug wyrzuca przynajmniej komunikat.
+ + poprawki w miejscach gdzie najczêœciej pojawia³y siê b³êdy krytyczne
+ + poprawione logowanie do Bety
+ + tworzenie nowego profilu
+ + pojawi³y siê zacz¹tki dokumentacji, niektórym na pewno siê przyda
+ + od tej wersji K pobierany jest w instalatorze...
+
+0.6.17.93
+ + ui - po wyszukaniu kontaktow, najechanie na któryœ nie spowoduje jego zaznaczenia.
+ + ui - utomatycznie otwierane okna wiadomoœci nie bêd¹ stawa³y siê aktywne. Przy okazji powinny przestaæ wtedy migaæ informacje o nowej wiadomoœci w trayu.
+ > ui - na liœcie kontaktów dzia³a ju¿ przycisk menu kontekstowego
+ > ui - przeszukiwanie listy wg. pocz¹tkowych liter nazwy. Spacja prze³¹cza pomiêdzy "znaleziskami"
+ + gg - definitywne pozbycie siê problemu z b³êdem podczas wysy³ania wiadomoœci
+ > kLAN - Nowa wtyczka do rozmawiania na LANie!
+ ^ wygodniejsze zak³adanie nowych profili podczas uruchamiania
+ + Usuniêcie grupy od³¹cza od niej kontakty
+ + Poprawki w rdzeniu
+ + Sporo poprawek w kodzie obs³ugi DTB. Mam nadziejê, ¿e nie spowoduje to ¿adnych problemów.
+ ^ Podczas zamykania dane zapisywane s¹ dwukrotnie, mo¿e to poprawi "zapisywalnoœæ" danych.
+
+0.6.17.92
+ + ui - prawy przycisk na liœcie kontaktów przy kilku zaznaczonych.
+ + gg - nie powinien ju¿ siê pojawiaæ b³¹d przy okazji wysy³ania wiadomoœci pod w98
+ + gg - zwiêkszony Timeout dla wiadomoœci.
+ + gg - obs³uga katalogu publicznego zgodna z nowym protoko³em.
+
+0.6.17.91
+
+ + ui - powinien ju¿ nie gubiæ ukrywania kontaktu i kilku innych ustawieñ
+ + ui - tip zamiast siê chowaæ za taskbar pojawi siê teraz nad kursorem
+ + ui - otwieranie linków w historii
+ + ui - po wybraniu historii dla kontaktu powinien ju¿ przechodziæ do historii rozmów
+ + ui - podczas dodawania kontaktu nie pojawia ju¿ siê pusty kontakt na liœcie
+ > ui - mo¿liwoœæ wy³¹czenia zapisywania historii rozmów
+ + ui - "wysy³anie" wiadomoœci offline nie bêdzie ju¿ wyrzuca³o po kilka informacji o braku po³¹czenia
+ ^ ui - ignorowanie oznaczone jest teraz w menu "ptaszkiem"
+ + ui - pasek dokowania na w2k/XP jest przezroczysty i po zmianie rozdzielczoœci powinien zachowywaæ dobr¹ pozycjê.
+ > ui - zadokowane okno pojawia siê dopiero po okreœlonym czasie trzymania kursora z boku ekranu.
+ > ui - d³u¿sze opisy w konfiguracji s¹ przewijalne
+ + gg - wy³¹czanie ignorowania "ptaszkiem"
+ + gg - poprawki informacji o statusie dodanego/zaimportowanego kontaktu
+ ^ gg - nowe libGadu
+ > gg - sprawdza potwierdzenia przes³ania wiadomoœci przez serwer.
+ + gg - zmiana has³a zgodna z nowszym protoko³em
+ ^ gg - ukrywanie naszego statusu odbywa siê z u¿yciem protoko³u, dziêki czemu wiemy jaki jest status kontaktu.
+ + sms - poprawka skryptów Idea i 1rstWAP
+ + powinien ju¿ zapisywaæ wszystkie zmiany podczas zamykania systemu.
+ ^ pierwsza czêœæ zmian w API
+
+0.6.17.90 - XMas Special Edition
+
+ + ui - ikonki w menusach w oknie wiadomoœci powinny ju¿ mieæ siê znacznie lepiej :)
+ > ui - splash screen
+ + ui - prze³¹czanie pomiêdzy oknami nie powinno ju¿ otwieraæ g³ównego okna gdy jest zadokowane
+ + gg - opis po po³¹czeniu ju¿ powinien byæ ustawiony prawid³owo...
+ > sms - mo¿liwoœæ podpisywania tokenów
+ ^ adres IP jest zapamiêtywany pomiêdzy uruchomieniami
+ + trochê zmian w API. Czêœæ duu¿ej zmiany, która zostanie zakoñczona trochê póŸniej.
+ + powinny znikn¹æ problemy z migaj¹c¹ ikonk¹ wiadomoœci zaraz po uruchomieniu.
+
+0.6.17.89
+
+ + ui - w³¹czanie buforowania listy kontaktów na w³asne ryzyko (na w98 s¹ bli¿ej nieokreœlone problemy :/)
+ + ui - informuje równie¿ o zmianie opisu rozmówcy 
+
+0.6.17.88
+
+ + ui - usuniêcie zbêdnego znaku nowej linii w treœci rozmowy...
+ > ui - obs³uga mousewheel'a w oknie konfiguracji
+ + ui - chowane scrollbary, poprawka "migania" okna informacji o kontakcie (na XP)
+ + ui - taskbar ju¿ powinien siê automatycznie chowaæ przy otwartych oknach rozmowy
+ + ui - na taskbarze aktywne okna oznaczane s¹ ju¿ prawid³owo
+ + ui - poprawka "migania" aktywnymi oknami
+ + ui - uaktywnienie okna rozmowy nie w³¹cza ju¿ g³ównego okna i vice-versa
+ > ui - kontakt który zmieni³ status jest trochê inaczej podœwietlany
+ + ui - g³ówne oknie nie schowa siê ju¿ przy otwartych menusach
+ + ui - fonty w oknie wpisywania wiadomoœci...
+ > ui - historia wpisywanych wiadomoœci (Ctrl+góra/dó³)
+ > ui - informowanie o zmianie statusu kontaktu w oknie rozmowy
+ ^ ui - lista kontaktów nie powinna "mrygaæ"
+ + gg - ActivityChecker na PowerGG ju¿ nie wykryje zmiany naszego statusu na ukryty.
+ + uruchamianie z command Promptu
+ ^ zmiany w API 
+
+0.6.17.87
+ + dzia³a z powrotem na w98/95
+ + raportowanie b³êdów
+
+0.6.17.86
+
+ + ui - b³êdy podczas zamykania z zadokowanym tipem
+ + ui - b³¹d krytyczny po naciœniêciu [wiêcej], gdy nie ma wtyczki sieci.
+ + ui - zapamiêtywanie rozmiarów okien
+ + ui - dodawanie kontaktu nie zaczyna siê ju¿ podsumowaniem
+ + ui - po najechaniu mysz¹ na listê kontaktów ju¿ nie podœwietla sam kontaktu.
+ ^ ui - bardziej intuicyjne i wygodniejsze okno edycji grup
+ > ui - mo¿liwoœæ dobrania czcionek okna rozmowy, wciêcia treœci wiadomoœci
+ > ui - mo¿liwoœæ dobrania czcionek listy kontaktów
+ > ui - nowe sposoby pokazywania ikonek na liœcie kontaktów
+ ^ ui - znaczne usprawnienie rysowania listy kontaktów
+ ^ ui - zapisuje listê kontaktów zaraz po dodaniu/importowaniu kontaktów
+ ^ gg - wykrywa niepoprawne listy kontaktów do zaimportowania
+ + gg - zapisywanie nowego numeru konta do kontrolki w konfiguracji
+ > gg - je¿eli nie wpiszemy has³a w ustawieniach konta, bêdziemy o nie pytani przy próbie po³¹czenia.
+ > gg - podczas importowania, nie pyta kilkakrotnie o utworzenie tej samej grupy
+ + gg - poprawne przeszukiwanie dalej i statusy znalezionych kontaktów
+ > gg - obs³uga zablokowanych kontaktów...
+ + wiadomoœci nie s¹ automatycznie wysy³ane po uruchomieniu. Nie bêdzie wiêc dziwnych zg³oszeñ od smsów i podwójnych wys³añ...
+ ^ bezpieczniejsze zapisywanie do DTB. W razie wyst¹pienia problemów podczas zapisywania, poprzednia wersja zostanie nie ruszona...
+ > mo¿liwoœæ opisania przyczyny wyst¹pienia b³edu krytycznego...
+ + zabronione uruchamianie dwóch kopii programu korzystaj¹cych z tych samych profili.
+ + niektóre b³êdy krytyczne podczas zamykania
+ + zmieniony sposób odczytywania katalogów. Powinny znikn¹æ problemy z dyskami sieciowymi.
+ + problemy z polskimi czcionkami na w98
+
+0.6.16.85
+
+ + ui - pojedyncze klikniêcie w trayu juz przywraca okno wiadomosci
+ + ui - je¿eli kontakt ma ustawiony tylko numer telefonu, podwójne klikniêcie wysy³a SMSa
+ + ui - poprawka chowaj¹cych siê okien
+ > ui - mo¿liwoœæ ustalenia wygl¹du Tipa
+ > ui - mo¿liwoœæ zadokowania tip'a na belce
+ > ui - informowanie o zmianie ustawieñ wymagaj¹cych restartu
+ > ui - [del] na liœcie kontaktów usuwa wybrane
+ > ui - zapamiêtywanie rozmiarów okien rozmowy, ustawieñ, konfiguracji i historii
+ + ui - przy Ÿle wpisanych haœle pyta jeszcze 2 razy i dopiero zamyka program
+ > ui - mo¿liwoœæ zmieniania parametrów toolBarów
+ > ui - zapamiêtywanie ustawienia toolbarów
+ + ui - po odœwie¿eniu informacji o kontakcie, odœwie¿a siê równie¿ podsumowanie
+ > ui - kontakty spoza listy mog¹ byæ do niej dodane z poziomu okna informacji o kontakcie...
+ + gg - poprawka b³êdu krytycznego podczas roz³¹czania
+ > gg - kolejka serwerów do ³¹czenia... O ile którykolwiek serwer GG dzia³a, to uda siê po³¹czyæ!
+ > gg - timeout podczas ³¹czenia z serwerem
+ ^ gg - nowe libgadu (rozwi¹zane problemy z wyszukiwaniem i exportem)
+ ^ sms - zwiêkszone mo¿liwoœci skryptów bramek
+ + sms - ograniczanie iloœci wpisywanych znaków
+ + sms - ucinanie wiadomoœci podczas wiadomoœci o d³ugoœæ podpisu
+ > sms - na liœcie numerów podaje opisy kontaktów, sortuje wg. u¿ywalnoœci i zapamiêtuje rêcznie wpisane numery
+ + sms - w historii rêcznie wpisane numery zapisywane s¹ ju¿ prawid³owo
+ + sms - po otwarciu okna, kursor znajduje siê w oknie do wpisywania wiadomoœci.
+ + sms - przyspieszone wysy³anie na bramkê PF (logowanie odbywa siê tylko raz)
+ - wszystkie wtyczki od teraz siedz¹ w katalogu plugins.
+ 
+ 0.6.15.84
+ +		poprawka restartów
+ +		poprawka parametrów dla bramek w DTB
+
+0.6.15.83
+ + ui - poprawka komunikatów b³êdów
+ > ui - mo¿liwoœæ wybrania iloœci "migniêæ" oknem wiadomoœci
+ + ui - poprawka automatycznego ukrywania okna
+ > ui - znalezione kontakty zostaj¹ dodane do aktywnej grupy
+ > ui - w ustawieniach prawid³owo dzia³a "zastosuj"
+ > ui - mo¿liwoœæ przeszukiwania [dalej] kontaktów
+ > ui - mo¿liwoœæ ustawienia zak³adek grup w pionie, lub w kilku linijkach
+ > ui - mo¿liwoœæ w³¹czenia p³askiego scrollbara na liœcie kontaktów
+ > ui - Powiadomienie o dostêpnym kontakcie zale¿ne od wybranej p³ci.
+ + ui - Poprawka pobierania daty urodzenia
+ > ui - informuje o próbie wys³ania pustej wiadomoœci
+ > ui - usuwa zbêdne znaki z pocz¹tku i koñca wysy³anej wiadomoœci
+ > ui - mo¿liwoœæ usuwania opisu rêcznego po zmianie statusu.
+ > ui - o wiele wiêksze mo¿liwoœci zdefiniowania tekstu w tytu³ach okien - g³ównego i wiadomoœci i w komunikatach w tray'u.
+ > ui - poprawka znikaj¹cych powiadomieñ po pojawieniu siê nowego kontaktu
+ > ui - dodane - ulica i kod pocztowy - do informacji o kontakcie
+ > ui - proste podsumowanie informacji o kontakcie... Pewnie póŸniej bêdzie trochê lepsze...
+ > ui - na w2k wzwy¿ mo¿na w³¹czyæ pó³przezroczystoœæ g³ównego okna
+ + ui - poprawka powiadomieñ o nowych wiadomoœciach
+ > ui - przy dokowaniu z chowaniem mo¿na ustawiæ odleg³oœæ od brzegu ekranu.
+ + ui - poprawka dokowania i menusów
+ + ui - bardzo g³êbokie przeróbki kodu
+ + ui - poprawka sortowania wiadomoœci w historii
+ > ui - mo¿liwoœæ zapisania zawartoœci historii do pliku
+ + ui - "przeœlij" w oknie historii powoduje rozes³anie wiadomoœci oczekuj¹cych w kolejce
+ > ui - mo¿liwoœæ usuwania wiadomoœci z kolejki (w oknie historii)
+ + gg - Poprawka czasów odebranej wiadomoœci w gg.dll
+ + gg - Rêcznie wprowadzane opisy maj¹ ograniczon¹ d³ugoœæ.
+ + gg - Poprawiona obs³uga proxy. Dzia³a logowanie na proxy.
+ + gg - Poprawiona kolejnoœæ statusów w tray'u
+ > ggicons - wtyczka umo¿liwiaj¹ca za³adowanie zestawów ikonek z GG5.0
+ > update - zupelnie nowa wersja wtyczki
+ > sms - wtyczka do wysy³ania SMSów
+ > sound - w pe³ni odnowiona obs³uga ustawieñ. Mo¿liwoœæ wczytywania zestawów.
+ > sound - mo¿liwoœæ przydzielania/wy³¹czania dŸwiêków konkretnych kontaktów
+ + nowsza wersja systemu zapisu danych. Konwersja odbywa siê automatycznie.
+ > nowe wydanie SDK
+ > przy pierwszym uruchomieniu pyta o katalog do trzymania profili i nazwê nowego profilu.
+ > po usuniêciu profilu pojawia siê okno wybierania nowego.
+ + spore zmiany w rdzeniu
+
+0.6.14.81
+ - gg - nowe libgadu - poprawki wyszukiwania i odœwie¿ania informacji o kontakcie
+
+0.6.13.81
+ - ui - po padzie explorera przywraca ikonkê w tray'u
+ - ui - poprawka znikaj¹cych toolbarów
+ - konnekt.exe korzysta z powrotem z imagehlp.dll zamiast dbghelp.dll (który jak siê okaza³o by³ dostêpny tylko na XP)
+ - poprawka okna z informacj¹ o wa¿noœci nowej wersji
+ - UI powinno odœwie¿aæ siê szybciej na XP
+ 
+
+0.6.13.80
+ - ui - poprawka opisów w tooltip'ach
+ - ui - nowe rodzaje kontrolek w opcjach (ramka, combo, wybór: pliku, katalogu, koloru, fontu)
+ - ui - opisy pozycji w opcjach
+ - ui - poprawka "zapalaj¹cych" siê okien wiadomoœci
+ - ui - porz¹dki w oknie konfiguracji
+ - ui - nowe okno informacji o kontakcie
+ - ui - kontakt dodawany jest do aktualnej grupy
+ - ui - wymiana kodu powiadomieñ o wiadomoœciach
+ - ui - je¿eli kontakt nie ma opisu, w oknie rozmowy nie pokazuje siê '[]'
+ - ui - prawid³owo sortuje kontakty z polskimi znakami
+ - ui - nie pokazuje okna po autostarcie
+ - gg - wyd³u¿enie timeout'ów
+ - gg - poprawka wysy³ania wiadomoœci
+ - gg - je¿eli nie dzia³a hub gg ³¹czy z domyœlnym serwerem.
+ - gg - podczas rozmowy podaje czas odebrania wiadomoœci przez serwer, a nie przez klienta
+ - poprawka raportowania na modemach
+ - zmieni³em kompilator. Przy okazji sporo b³êdów zosta³o poprawionych. Mo¿e jednak pojawiæ siê trochê b³êdów krytycznych, mog³em coœ przegapiæ...
+ - du¿e zmiany w rdzeniu, porz¹dki w SDK
+ 
+0.6.12.79
+ - przed³u¿enie wa¿noœci 
+
+0.6.12.78
+ - ui - poprawka ikonki w tray'u na w98
+ - ui - poprawka statusu opisowego w tipie
+ - ui - w tip'ie wyœwietliæ mo¿na IP kontaktu
+ - ui - mo¿liwoœæ zmiany tytu³u okna g³ównego
+ - gg - poprawka statusów rêcznych
+ - poprawki w rdzeniu, istotna szczególnie na w98
+
+
+0.6.12.77
+ - ui - poprawka zapamiêtywania zawartoœci okien
+ - ui - poprawka tytu³u okna rozmowy
+ - ui - przycisk "wyœlij" jest blokowany na czas wysy³ania wiadomoœci...
+ - ui - poprawka edycji grup
+ - ui - w tipie pokazywane s¹ pe³ne opisy statusów. Sam tip ju¿ nie wyjedzie poza ekran.
+ - ui - poprawka otwierania wiadomoœci jednym klikiem
+ - ui - na win2k/XP auto-away sprawdza klawiaturê...
+ - gg - zdaje siê pierwsza wersja, która zawiera NIE ZMODYFIKOWANE libgadu
+ - gg - poprawione koñczenie po³¹czenia razem z programem.
+ - nieprzyjête wiadomoœci zapisywane s¹ w historii
+ - automatycznie tworzony katalog profiles
+ - ulepszone raportowanie b³êdów krytycznych (pliki *.dbg)
+ - poprawki obs³ugi wiadomoœci
+ - reorganizacja rdzenia. Ostatnia przed SDK.
+
+0.6.11.75
+ - gg - anulowanie operacji powinno ju¿ dzia³aæ dobrze...
+ - gg - importuje imiona
+ - gg - timeouty po³¹czeñ
+ - gg - poprawka exportu na serwer i wyszukiwarki
+ - gg - AutoAway w³¹cza siê tylko przy statusie "dostêpny"
+ - gg - mo¿na siê po³¹czyæ z serwerem przez proxy (trzeba odznaczyæ opcjê "tylko przez http")
+ - gg - poprawki dosyæ istotnych b³êdów w libgadu
+ - gg - poprawione ju¿ chyba wszystkie problemy ze statusami
+ - gg - mo¿liwoœæ wybrania innego serwera
+ - gg - powinny ju¿ zacz¹æ dochodziæ wiadomoœci od serwera ...
+ - ui - poprawka konfiguracji
+ - ui - na liscie kontaktów pojawia siê znaczek "komórki"
+ - ui - poprawki w kilku okienkach
+ - ui - poprawione chowanie okien
+ - ui - mo¿liwoœæ wy³¹czenia edycji nazw na liœcie
+ - ui - opcja do zapamiêtywania rozmowy w oknie po jego zamkniêciu
+ - ui - ikonki dodatkowe mog¹ byæ wyœwietlane z prawej
+ - ui - ikonka statusu opisowego
+ - ui - mo¿liwoœæ sortowania niedostêpnych wg. "aktywnoœci"
+ - ui - poprawka Alt+s
+ - ui - podpowiedzi do "wyswietl jako" w informacjach o kontakcie
+ - ui - "wyœlij email" w menu kontaktów
+ - ui - dostêpne kontakty pisane grub¹ czcionk¹
+ - ui - okno wprowadzania statusu opisowego zapamiêtuje poprzednie wpisy
+ - poprawki w rdzeniu
+
+
+0.6.10.74
+ - ui - pozycja 'przywroc' w tray'u
+ - ui - dzia³ania zamykanie programu z g³ównego menu
+ - ui - w tipie znaczek & pokazywany ju¿ jest prawid³owo.
+ - ui - mo¿na ustawiæ czas po jakim pokazuje siê tooltip
+ - ui - dzia³a ignorowanie wiadomoœci od osób spoza listy, na zignorowane wiadomoœci mo¿e zostaæ wys³ana zdefiniowana odpowiedŸ
+ - ui - osoba spoza listy kontaktów mo¿e siê "dodaæ" podaj¹c wybrane przez nas has³o!
+ - ui - informacja o wiadomoœci w tray'u i na liœcie nie znika, dopóki wiadomoœæ nie zostanie przeczytana (opcja)
+ - gg - podczas odœwie¿ania kontaktu animacja jest ju¿ wyœwietlana prawid³owo.
+ - gg - import z serwera powinien ju¿ dzia³aæ poprawnie ...
+ - gg - podgl¹d aktualnego opisu w menu i w tray'u.
+ - gg - opcja tylko dla znajomych przeniesiona do ustawieñ GG
+ - gg - mo¿liwoœæ ukrywania statusu przed wybranymi osobami (stajemy siê dla nich niewidoczni!)
+ - gg - okna wyboru pliku importu/exportu ju¿ siê pojawiaj¹ na Win98...
+ - opcja do utrzymywania statusu recznego.
+ - profile ju¿ dzia³aj¹ jak trzeba...
+ - poprawka zamykania programu razem z systemem (znowu :)).
+ - poprawki rdzenia.
+ - otwieranie wiadomosci jednym kliknieciem w tray'u (opcje/wiadomosci).
+ - mo¿liwoœæ ustalenia kolejnoœci w jakiej uruchamiane s¹ wtyczki.
+
+0.6.9.73
+ - poprawka logowania raportow
+ - poprawka komunikacji z systemem Beta
+ - gg - nowe libgadu
+ - gg - wiadomosci z kolorami odbierane sa juz prawidlowo
+
+0.6.8.71
+ - poprawka zamykania programu razem z systemem
+ - poprawka wysylania wiadomosci
+ - "kasuj wszystko" w historii juz dziala dobrze.
+
+0.6.8.70
+ - ui - poprawka w tipie
+ - ui - nacisniecie na ikonke w tray'u chowa/pokazuje okno
+ - gg - importowanie kontaktow dostepne z konfiguracji
+ - gg - tymczasowe opisy statusow
+ - gg - import/export do pliku
+ - gg - usuwanie listy kontaktow z serwera
+ - ui - usuwanie katalogow w historii
+ - ui - usuwanie wybranych wiadomosci w historii
+
+ ___________________________________________________________
+
+ http://www.stamina.eu.org/konnekt/

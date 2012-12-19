@@ -1,0 +1,17 @@
+System BETA pozwala autorom komunikatora Konnekt znacznie szybciej reagowaæ
+na pojawiaj¹ce siê problemy, jak równie¿ jest istotnym Ÿród³em danych statystycznych
+przydatnych w rozwoju projektu.
+
+Konnekt co jakiœ czas (przy niezak³óconym dostêpie do sieci i bez czêstych
+"wywrotek" programu - co 2 dni) wysy³a raporty o swoim dzia³aniu zawieraj¹ce
+dane jak iloœæ uruchomieñ programu, plaforma na której pracuje, wykorzystywane
+wtyczki, czy raporty b³êdów krytycznych...
+Dane wysy³ane s¹ ANONIMOWO (chyba, ¿e u¿ytkownik na w³asne ¿yczenie zarejestruje
+siê w systemie BETA). Prywatne dane u¿ytkownika (w tym has³a) NIE S¥ czêœci¹ raportów.
+Wszystkie zebrane dane nie s¹ wykorzystywane w celach komercyjnych!
+
+W katalogu Konnekt\Data\Log znajdziesz plik "reports.log" - zawiera on wszystkie
+wys³ane ostatnio raporty.
+
+Katalog Konnekt\Data\Beta s³u¿y do przechowywania plików potrzebnych w generowaniu
+raportów.
