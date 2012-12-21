@@ -4,6 +4,9 @@ konnekt.ChangeLog
 > nowa opcja
 ^ usprawnienie
 
+0.6.23.140
+ - wy³¹czony system beta
+
 0.6.22.137
  - znaczna iloœæ nowego kodu potrzebnego do wprowadzenia nowych zapowiadanych funkcji
  + poprawki przy zapisywaniu plików .DTB

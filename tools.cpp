@@ -8,7 +8,7 @@ int Konnekt::findVersion(string & ver , string fileName , int version) {
         found = ver.find('=' , found)+1;
         prevVer = chtoint(ver.c_str() + found , 16);
         if (prevVer != version) {
-            ver.erase(ver.begin() + found , ver.begin() + ver.find('\n' , found));
+			ver.erase(ver.begin() + found , ver.find('\n' , found) < ver.length() ? ver.begin() + ver.find('\n' , found) : ver.end());
             ver.insert(found , inttoch(version , 16));
         }
     } else {

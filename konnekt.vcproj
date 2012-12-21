@@ -104,7 +104,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="../../_publish/"
+			OutputDirectory="../../publish/"
 			IntermediateDirectory="../../_temp/CORe/release/"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
