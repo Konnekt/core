@@ -736,7 +736,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		rename("beta_reports.dtb", dataPath + "beta\\beta_reports.dtb");
 		rename("beta_stats.dtb", dataPath + "beta\\beta_stats.dtb");
 	}
-	moveAdditionalLibraries();
+	// moveAdditionalLibraries();
 
 
 	logPath = getArgV(ARGV_LOGPATH , true , dataPath+"log\\");

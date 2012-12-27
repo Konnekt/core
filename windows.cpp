@@ -182,15 +182,15 @@ namespace Konnekt {
 	void PlugsDialogRecommend(HWND hwnd) {
 		std::list<std::string> list;
 
-		list.push_back("gg.dll");
+		list.push_back("gg8.dll");
 		list.push_back("expimp.dll");
 		list.push_back("kboard.dll");
 		list.push_back("kieview.dll");
 		list.push_back("kjabber.dll");
 		list.push_back("klan.dll");
-		list.push_back("konnferencja.dll");
+		//list.push_back("konnferencja.dll");
 		list.push_back("kstyle.dll");
-		list.push_back("ktransfer.dll");
+		//list.push_back("ktransfer.dll");
 		list.push_back("notify.dll");
 		list.push_back("sms.dll");
 		list.push_back("sound.dll");
@@ -199,7 +199,7 @@ namespace Konnekt {
 		list.push_back("kzmieniacz.dll");
 		list.push_back("dwutlenek.dll");
 		list.push_back("k.lawa.dll");
-		list.push_back("ggimage.dll");
+		//list.push_back("ggimage.dll");
 		list.push_back("k.away.dll");
 		list.push_back("grupy.dll");
 		//list.push_back("kpilot2.dll");
